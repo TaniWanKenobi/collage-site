@@ -1,0 +1,26 @@
+[
+  {
+    "id": "ice3dp",
+    "title": "ICE3DP",
+    "repo": "https://github.com/TaniWanKenobi/ICE3DP",
+    "glb": "models/ice3dp.glb",
+    "poster": "models/ice3dp.webp",
+    "triangles": 436477,
+    "bytes": 3726616,
+    "caption": "A CoreXY 3D printer that prints icing in a 150×150×50 mm cube, with sheet cooling, dual Z driven by one NEMA 17, and a NEMA 17 on the toolhead driving a lead screw to extrude the icing. Runs Klipper.",
+    "units": "meters, Y-up, centered on bounding box",
+    "settings": { "tessellator": "OpenCascade (cadquery-ocp)", "linearDeflectionMm": 0.08, "angularDeflectionRad": 0.3, "simplifyRatio": 0.18, "simplifyError": 0.0015, "trianglesBeforeSimplify": 2190670 }
+  },
+  {
+    "id": "tamagotchi",
+    "title": "Tamagotchi",
+    "repo": "https://github.com/TaniWanKenobi/tamagotchi",
+    "glb": "models/tamagotchi.glb",
+    "poster": "models/tamagotchi.webp",
+    "triangles": 169761,
+    "bytes": 1233316,
+    "caption": "A custom PCB-based Tamagotchi virtual pet built on the XIAO ESP32-C6, with a 0.96\" OLED display, three buttons, and a buzzer. Case designed in Onshape, PCB in KiCad.",
+    "units": "meters, Y-up, centered on bounding box",
+    "settings": { "tessellator": "occt-import-js", "linearDeflectionBboxRatio": 0.0008, "angularDeflectionRad": 0.35, "simplifyRatio": 0.6, "simplifyError": 0.0005, "trianglesBeforeSimplify": 281039 }
+  }
+]
