@@ -96,3 +96,7 @@ import { url } from '../../lib/sections';
 The fallback hides once the model is drawing. For a custom scene that isn't a GLB, copy `Globe.tsx`: wrap your meshes in `<Stage size={...}>` and use `useFrame` for animation.
 
 Always build URLs with `url()` from `src/lib/sections.ts` so they keep the `/collage-site` base.
+
+## Fonts
+
+Fonts are self-hosted from `public/fonts/` as Latin-only woff2 subsets (no Google Fonts request, nothing render-blocking). `bricolage.woff2` is preloaded in `src/layouts/Base.astro`. To add glyphs, re-subset the upstream variable fonts with fontTools (`pyftsubset … --flavor=woff2 --unicodes=U+0020-007E,U+00A0-00FF,U+2010-2027,U+20AC,U+2190-2193 --layout-features='*'`), keeping the `wght` axis ranges used in Base.astro.

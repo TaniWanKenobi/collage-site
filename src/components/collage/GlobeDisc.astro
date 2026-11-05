@@ -1,7 +1,7 @@
 ---
 // Grape disc behind the photo. The SVG globe is the static fallback; on desktop a live 3D globe
-// (three/Globe.tsx) mounts in the slot and hides the fallback once it is drawing.
-import Globe from '../three/Globe';
+// (scripts/globe.js: perspective wireframe on a 2D canvas, loaded when idle) mounts in the slot and
+// hides the fallback once it is drawing.
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
 ---
@@ -17,7 +17,11 @@ const desk = Astro.props.mode === 'desk';
   </div>
   {desk && (
     <div class="three-slot" data-three-slot="globe" style="left: 53px; top: 53px; right: auto; bottom: auto; width: 294px; height: 294px">
-      <Globe client:visible />
     </div>
   )}
 </div>
+
+<script>
+  import { initGlobe } from '../../scripts/globe.js';
+  initGlobe();
+</script>

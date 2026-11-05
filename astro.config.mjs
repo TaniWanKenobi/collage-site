@@ -7,4 +7,6 @@ export default defineConfig({
   base: '/collage-site',
   trailingSlash: 'ignore',
   integrations: [react()],
+  // Inline the small global stylesheet: one fewer render-blocking request.
+  build: { inlineStylesheets: 'always' },
 });

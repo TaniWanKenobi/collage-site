@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useZoomView, prefersStatic } from './useZoomView';
+// @ts-ignore - plain JS helper
+import { whenIdle } from '../../scripts/slot-view.js';
 
 /** Re-render on demand when the camera moves, and keep animating only while visible. */
 function Driver({ animate, tick }: { animate: boolean; tick: number }) {
@@ -21,7 +23,13 @@ export function Stage({ size, animate = true, children, camZ = 3.2 }: { size: nu
   // Starts off on the server and first client render (no hydration mismatch); the empty div is what
   // client:visible observes, so it must always render.
   const [enabled, setEnabled] = useState(false);
-  useEffect(() => { setEnabled(!prefersStatic()); }, []);
+  // The WebGL context is created only after the page has loaded and gone idle: 3D is never on the critical path.
+  useEffect(() => {
+    if (prefersStatic()) return;
+    let off = false;
+    whenIdle(() => { if (!off) setEnabled(true); });
+    return () => { off = true; };
+  }, []);
   const view = useZoomView(slot, size);
   const [drawn, setDrawn] = useState(false);
 

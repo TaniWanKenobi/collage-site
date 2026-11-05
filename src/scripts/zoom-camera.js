@@ -85,13 +85,21 @@ export function initZoomCamera() {
     });
   }
 
+  // Style writes are skipped when the value has not changed, so a scroll frame touches only what moves.
+  var lastW = {};
+  function put(el, prop, val, id) {
+    if (!el || lastW[id] === val) return;
+    lastW[id] = val;
+    el.style[prop] = val;
+  }
+
   function applyCam(c) {
     cur = c;
-    world.style.transform = 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(c.s) + ') rotate(' + f(-c.r) + 'deg) translate(' + f(-c.cx) + 'px, ' + f(-c.cy) + 'px)';
+    put(world, 'transform', 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(c.s) + ') rotate(' + f(-c.r) + 'deg) translate(' + f(-c.cx) + 'px, ' + f(-c.cy) + 'px)', 'world');
     ORDER.forEach(function (k) {
       var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
-      pg.style.opacity = String(f(op));
-      if (covers[k]) covers[k].style.opacity = String(f(1 - op));
+      put(pg, 'opacity', String(f(op)), 'p' + k);
+      put(covers[k], 'opacity', String(f(1 - op)), 'c' + k);
       if (on !== live[k]) {
         live[k] = on;
         pg.style.pointerEvents = on ? 'auto' : 'none';
@@ -99,10 +107,10 @@ export function initZoomCamera() {
       }
     });
     var zn = zoomness(c);
-    if (hint) hint.style.opacity = String(f(1 - zn));
-    home.style.opacity = String(f(zn));
-    home.style.visibility = zn > 0.02 ? 'visible' : 'hidden';
-    if (whead) whead.inert = zn > 0.3;
+    put(hint, 'opacity', String(f(1 - zn)), 'hint');
+    put(home, 'opacity', String(f(zn)), 'home');
+    put(home, 'visibility', zn > 0.02 ? 'visible' : 'hidden', 'homeV');
+    if (whead && whead.inert !== (zn > 0.3)) whead.inert = zn > 0.3;
     setHud(c.i);
     publish(c, zn);
   }
@@ -111,7 +119,8 @@ export function initZoomCamera() {
   function publish(c, zn) {
     var open = false;
     ORDER.forEach(function (k) { if ((c.ops[k] || 0) > 0.5) open = true; });
-    var cam = { s: c.s, open: open, zoom: zn, flying: !!fl };
+    // cx/cy/r/vw/h let 3D slots compute their own screen rect from the camera math (no layout reads per frame).
+    var cam = { s: c.s, open: open, zoom: zn, flying: !!fl, cx: c.cx, cy: c.cy, r: c.r, vw: vw, h: stageH };
     window.__zoomCam = cam;
     window.dispatchEvent(new CustomEvent('zoomcam', { detail: cam }));
     // URL follows the view: a section route while its page is open, the home route at the overview.
