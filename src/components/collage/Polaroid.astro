@@ -1,0 +1,21 @@
+---
+// Projects card (zoom target "projects"). Used by both the desktop zoom world and the phone collage.
+// The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
+import ZoomPage from '../sections/ZoomPage.astro';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 224;
+const attrs = desk
+  ? { 'data-jump': 'projects', 'data-rot': '-6' }
+  : { href: '#sec-projects', 'aria-label': 'Projects' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp" {...attrs} style="left: 66px; top: 390px; width: 248px; height: 216px; padding: 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-6deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 79px; width: 90px; transform: rotate(-4deg)"></span>
+<div class="zpanel" style="width: 224px; height: 140px; background-color: var(--grape)">
+<div class="halftone mono" data-cover={desk ? 'projects' : undefined} style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--lime-tint)">[Holos screenshot]</div>
+{desk && <ZoomPage section="projects" panelWidth={PANEL_W} />}
+</div>
+<span style="display: block; margin-top: 10px; font-weight: 800; font-size: 22px; line-height: 1">Holos</span>
+<span class="mono" style="display: block; margin-top: 3px; font-size: 11px; color: var(--grape)">01 · projects</span>
+</Tag>

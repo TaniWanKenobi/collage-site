@@ -1,0 +1,21 @@
+---
+import { getCollection } from 'astro:content';
+import Section from './Section.astro';
+interface Props { back?: boolean }
+const items = (await getCollection('timeline')).sort((a, b) => a.data.order - b.data.order);
+const TILT = [0.8, -0.4, 1.4, -1];
+---
+<Section id="timeline" label="02 · timeline" title="So far" back={Astro.props.back}>
+  <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px">
+    {items.map((t, i) => (
+      <li class={i === 0 ? 'ticket ticket-now' : 'ticket'} style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
+        <div style="flex: 1; padding: 22px 22px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px">
+          <span class="mono" style="font-size: 13px">{t.data.when}</span>
+          <span style="font-weight: 600; font-size: 22px; line-height: 1.25">{t.data.what}</span>
+        </div>
+        <span aria-hidden="true" class="ticket-stub"></span>
+      </li>
+    ))}
+  </ol>
+  <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">ADMIT ONE · 2024 → now</p>
+</Section>

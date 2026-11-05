@@ -1,0 +1,18 @@
+---
+import { getCollection } from 'astro:content';
+import Section from './Section.astro';
+interface Props { back?: boolean }
+const items = (await getCollection('writing')).sort((a, b) => a.data.order - b.data.order);
+---
+<Section id="writing" label="04 · writing + awards" title="Notes and wins" back={Astro.props.back}>
+  <ul class="ruled writing-sheet">
+    {items.map((w) => (
+      <li>
+        <span class="mono" style="width: 80px; font-size: 13px; color: var(--grape)">{w.data.date}</span>
+        <span style="flex: 1 1 260px; font-family: 'Caveat', cursive; font-size: 34px; line-height: 1">{w.data.title}</span>
+        <span class="mono pill">{w.data.kind === 'award' ? 'Award' : 'Writing'}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">Posts and awards, newest first.</p>
+</Section>

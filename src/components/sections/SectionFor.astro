@@ -1,0 +1,15 @@
+---
+// Renders one section page by key. Desktop zoom pages pass back={true}; the phone stack does not.
+import Projects from './Projects.astro';
+import Timeline from './Timeline.astro';
+import Photos from './Photos.astro';
+import Writing from './Writing.astro';
+import Map from './Map.astro';
+import Guestbook from './Guestbook.astro';
+import Contact from './Contact.astro';
+import type { SectionKey } from '../../lib/sections';
+interface Props { section: SectionKey; back?: boolean }
+const { section, back = false } = Astro.props;
+const C = { projects: Projects, timeline: Timeline, photos: Photos, writing: Writing, map: Map, guestbook: Guestbook, contact: Contact }[section];
+---
+<C back={back} />

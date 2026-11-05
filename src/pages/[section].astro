@@ -1,0 +1,13 @@
+---
+// Deep links: /projects, /timeline, ... render the same page, starting zoomed into that section.
+import Base from '../layouts/Base.astro';
+import Home from '../components/Home.astro';
+import { ORDER, NAMES, type SectionKey } from '../lib/sections';
+export function getStaticPaths() {
+  return ORDER.map((section) => ({ params: { section } }));
+}
+const section = Astro.params.section as SectionKey;
+---
+<Base title={`${NAMES[section]} · Tanishq`}>
+  <Home initial={section} />
+</Base>

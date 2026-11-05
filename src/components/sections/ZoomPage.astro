@@ -1,0 +1,11 @@
+---
+// A section page laid out at 1440x900 and scaled down to fit inside a card's .zpanel.
+// The camera script re-measures and rescales it; the initial scale here just avoids a flash.
+import SectionFor from './SectionFor.astro';
+import type { SectionKey } from '../../lib/sections';
+interface Props { section: SectionKey; panelWidth: number }
+const { section, panelWidth } = Astro.props;
+---
+<div class="zpage" data-page={section} aria-hidden="true" inert style={`transform: scale(${+(panelWidth / 1440).toFixed(6)})`}>
+  <SectionFor section={section} back />
+</div>

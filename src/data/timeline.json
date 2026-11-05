@@ -1,0 +1,6 @@
+[
+  { "id": "now", "order": 1, "when": "Now", "what": "Building Holos, a personal health app" },
+  { "id": "11th-grade", "order": 2, "when": "2026", "what": "Started 11th grade at Bayonne High School" },
+  { "id": "milestone", "order": 3, "when": "[Year]", "what": "[Hackathon, award, or milestone]" },
+  { "id": "first-ship", "order": 4, "when": "[Year]", "what": "[First project you shipped]" }
+]

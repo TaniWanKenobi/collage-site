@@ -1,0 +1,15 @@
+---
+// Shared shell for every section page: label, big title, optional "back to collage" button (desktop zoom pages only).
+interface Props { id: string; label: string; title: string; back?: boolean }
+const { id, label, title, back = false } = Astro.props;
+---
+<div class="zs">
+  <div class="zs-head">
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">{label}</p>
+      <h2 class="zs-title">{title}</h2>
+    </div>
+    {back && <button type="button" data-back={id} class="mono zs-back">← back to collage</button>}
+  </div>
+  <slot />
+</div>

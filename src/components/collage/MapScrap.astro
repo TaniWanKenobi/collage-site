@@ -1,0 +1,23 @@
+---
+// Places card (zoom target "map"). Used by both the desktop zoom world and the phone collage.
+// The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
+import ZoomPage from '../sections/ZoomPage.astro';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 240;
+const attrs = desk
+  ? { 'data-jump': 'map', 'data-rot': '-5' }
+  : { href: '#sec-map', 'aria-label': 'Places' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp" {...attrs} style="left: 840px; top: 575px; width: 240px; height: 150px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-5deg)">
+<div class="zpanel" style="width: 240px; height: 150px; background-color: var(--onyx-2)">
+<div class="mapgrid" data-cover={desk ? 'map' : undefined} style="position: absolute; inset: 0; color: var(--lime); box-shadow: inset 0 0 0 1px var(--lime)">
+<span aria-hidden="true" style="position: absolute; left: 62px; top: 52px; width: 14px; height: 14px; border-radius: 50%; background: var(--lime); border: 3px solid var(--onyx)"></span>
+<span aria-hidden="true" style="position: absolute; left: 150px; top: 38px; width: 10px; height: 10px; border-radius: 50%; background: var(--grape-lite)"></span>
+<span aria-hidden="true" style="position: absolute; left: 182px; top: 86px; width: 10px; height: 10px; border-radius: 50%; background: var(--grape-lite)"></span>
+<span class="mono" style="position: absolute; left: 12px; bottom: 10px; font-size: 11px; line-height: 1">05 · places · Bayonne, NJ</span>
+</div>
+{desk && <ZoomPage section="map" panelWidth={PANEL_W} />}
+</div>
+</Tag>

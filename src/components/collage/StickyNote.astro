@@ -1,0 +1,19 @@
+---
+// Guestbook card (zoom target "guestbook"). Used by both the desktop zoom world and the phone collage.
+// The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
+import ZoomPage from '../sections/ZoomPage.astro';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 176;
+const attrs = desk
+  ? { 'data-jump': 'guestbook', 'data-rot': '8' }
+  : { href: '#sec-guestbook', 'aria-label': 'Guestbook' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp" {...attrs} style="left: 370px; top: 560px; width: 204px; height: 160px; padding: 14px; background: var(--lime); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(8deg)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: var(--lime)">
+<div data-cover={desk ? 'guestbook' : undefined} style="position: absolute; inset: 0; font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; line-height: 1">sign my guestbook →</div>
+{desk && <ZoomPage section="guestbook" panelWidth={PANEL_W} />}
+</div>
+<span class="mono" style="position: absolute; left: 14px; bottom: 12px; font-size: 11px; line-height: 1; color: var(--grape)">06 · guestbook</span>
+</Tag>

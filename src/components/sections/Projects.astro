@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Section from './Section.astro';
+interface Props { back?: boolean }
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const TILT = [-1.2, 0.8, -0.4, 1.4, -1, 0.5];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<Section id="projects" label="01 · projects" title="Things I've built" back={Astro.props.back}>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 26px 24px">
+    {projects.map((p, i) => (
+      <article class="proj-card" style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
+        <span aria-hidden="true" class="proj-tape"></span>
+        {p.data.image
+          ? <img src={`${base}/${p.data.image}`} alt="" class="proj-shot" loading="lazy" />
+          : <div class="halftone mono proj-shot">[Screenshot]</div>}
+        <h3 style="margin: 6px 0 0; font-weight: 800; font-size: 24px; line-height: 1.1">{p.data.title}</h3>
+        <p style="margin: 0; font-size: 14px; color: var(--grape)">{p.data.blurb}</p>
+        <ul class="tags">{p.data.tags.map((t) => <li class="mono">{t}</li>)}</ul>
+      </article>
+    ))}
+  </div>
+</Section>

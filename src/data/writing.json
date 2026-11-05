@@ -1,0 +1,6 @@
+[
+  { "id": "post-1", "order": 1, "kind": "post", "date": "[Date]", "title": "[Post title]" },
+  { "id": "post-2", "order": 2, "kind": "post", "date": "[Date]", "title": "[Post title]" },
+  { "id": "award-1", "order": 3, "kind": "award", "date": "[Date]", "title": "[Award name]" },
+  { "id": "award-2", "order": 4, "kind": "award", "date": "[Date]", "title": "[Award name]" }
+]

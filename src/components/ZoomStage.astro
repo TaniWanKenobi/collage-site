@@ -1,0 +1,38 @@
+---
+// Desktop zoom experience: a tall scroll track with a sticky stage. The camera script (scripts/zoom-camera.js)
+// turns scroll position into a camera over the 1440x900 collage world and flies between pieces on click.
+import CollageWorld from './collage/CollageWorld.astro';
+import { ORDER, NAMES, url } from '../lib/sections';
+---
+<div class="only-desk">
+  <div id="zm-track" style="position: relative; height: 12000px">
+    <div id="zm-stage" style="position: sticky; top: 0; height: 100vh; overflow: hidden; background-color: var(--onyx)">
+      <div class="grain" id="zm-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: none; background-color: var(--onyx)">
+        <CollageWorld mode="desk" />
+      </div>
+
+      <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none; opacity: 0; visibility: hidden">Tanishq</a>
+
+      <div id="zm-hud" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 2px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
+        <span class="mono" id="hud-num" style="font-size: 11px; color: var(--lime-tint)">01</span>
+        <div style="display: flex; flex-direction: column">
+          {ORDER.map((k, i) => (
+            <button type="button" data-dot={i} aria-label={`Go to ${NAMES[k]}`} aria-current={i === 0 ? 'true' : 'false'} style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+              <span style={`display: block; width: ${i === 0 ? 10 : 7}px; height: ${i === 0 ? 10 : 7}px; border-radius: 50%; background-color: ${i === 0 ? 'var(--lime)' : 'var(--grape-lite)'}`}></span>
+            </button>
+          ))}
+        </div>
+        <span class="mono" id="hud-name" style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--lime-tint); padding-top: 4px">Projects</span>
+      </div>
+    </div>
+  </div>
+  <footer style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 28px 24px; border-top: 1px solid var(--onyx-3)">
+    <span class="mono" style="font-size: 12px; color: var(--muted)">© 2026 Tanishq</span>
+    <span class="mono" style="font-size: 12px; color: var(--muted)">Bayonne, NJ · Hack Club</span>
+  </footer>
+</div>
+
+<script>
+  import { initZoomCamera } from '../scripts/zoom-camera.js';
+  initZoomCamera();
+</script>
