@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Model render</title>
+<style>html,body{margin:0;height:100%;background:transparent;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": {
+  "three": "/node_modules/three/build/three.module.js",
+  "three/addons/": "/node_modules/three/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<script type="module">
+// Headless render page for scripts/models/render.mjs.
+// Query: ?model=/public/models/x.glb&bg=transparent|0d160b&az=35&el=22&single=0&save=name.webp&w=1200&h=900
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const q = new URLSearchParams(location.search);
+const W = +(q.get('w') || 1200), H = +(q.get('h') || 900);
+const bg = q.get('bg') || 'transparent';
+const az = THREE.MathUtils.degToRad(+(q.get('az') ?? 35)), el = THREE.MathUtils.degToRad(+(q.get('el') ?? 22));
+window.__stats = { ready: false };
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+if (bg !== 'transparent') scene.background = new THREE.Color('#' + bg);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environmentIntensity = 0.9;
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(3, 5, 4); scene.add(key);
+scene.add(new THREE.HemisphereLight(0xeffdd8, 0x172315, 0.5));
+
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+try {
+  const t0 = performance.now();
+  const gltf = await loader.loadAsync(q.get('model'));
+  const root = gltf.scene;
+  let tris = 0, meshes = 0;
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    meshes++;
+    const g = o.geometry; tris += (g.index ? g.index.count : g.attributes.position.count) / 3;
+    // single=1 renders front faces only, to expose inverted normals / missing faces.
+    if (q.get('single') === '1') { o.material = o.material.clone(); o.material.side = THREE.FrontSide; }
+  });
+  scene.add(root);
+
+  // Fit a camera to the bounding sphere at a 3/4 view.
+  const box = new THREE.Box3().setFromObject(root);
+  const sphere = box.getBoundingSphere(new THREE.Sphere());
+  const cam = new THREE.PerspectiveCamera(30, W / H, sphere.radius / 100, sphere.radius * 100);
+  // The bounding sphere is conservative; `fit` (default 0.82) tightens the framing.
+  const dist = sphere.radius / Math.sin(THREE.MathUtils.degToRad(cam.fov / 2)) * +(q.get('fit') || 0.82);
+  cam.position.set(
+    sphere.center.x + dist * Math.cos(el) * Math.sin(az),
+    sphere.center.y + dist * Math.sin(el),
+    sphere.center.z + dist * Math.cos(el) * Math.cos(az));
+  cam.lookAt(sphere.center);
+  key.position.copy(cam.position).add(new THREE.Vector3(sphere.radius * 2, sphere.radius * 3, 0));
+  renderer.render(scene, cam);
+
+  const size = box.getSize(new THREE.Vector3());
+  window.__stats = { ready: true, ms: Math.round(performance.now() - t0), tris, meshes, size: size.toArray().map((v) => +v.toFixed(4)), center: sphere.center.toArray().map((v) => +v.toFixed(4)) };
+
+  const save = q.get('save');
+  if (save) {
+    const blob = await new Promise((r) => renderer.domElement.toBlob(r, 'image/webp', 0.86));
+    const res = await fetch('/__save?name=' + encodeURIComponent(save), { method: 'POST', body: blob });
+    window.__stats.saved = res.ok ? blob.size : 'failed';
+  }
+} catch (e) {
+  window.__stats = { ready: true, error: String(e && e.message || e) };
+}
+</script>
+</body>
+</html>
