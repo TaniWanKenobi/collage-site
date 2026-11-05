@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tanishq · Collage</title>
+<meta name="description" content="Two scroll-driven collage landing pages by Tanishq.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --onyx:#0D160B; --onyx-2:#172315; --onyx-3:#263424; --lime:#C2F970; --grape-lite:#8F86C0; --muted:#A8B595; --tint:#EFFDD8; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; background:var(--onyx); color:var(--tint); font-family:"Bricolage Grotesque",system-ui,sans-serif; display:grid; place-items:center; padding:48px 16px; }
+  main { width:min(720px,100%); }
+  .k { font:600 12px/1 "JetBrains Mono",monospace; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+  h1 { font-size:clamp(40px,8vw,72px); font-weight:800; line-height:.95; margin:14px 0 36px; letter-spacing:-.02em; }
+  h1 span { color:var(--lime); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+  a.card { display:block; text-decoration:none; color:inherit; background:var(--onyx-2); border:1px solid var(--onyx-3); border-radius:14px; padding:22px; transition:transform .2s, border-color .2s; }
+  a.card:hover, a.card:focus-visible { transform:translateY(-3px) rotate(-.6deg); border-color:var(--lime); outline:none; }
+  a.card h2 { margin:10px 0 8px; font-size:26px; }
+  a.card p { margin:0; color:var(--muted); font-size:15px; line-height:1.45; }
+  .go { margin-top:16px; font:600 13px "JetBrains Mono",monospace; color:var(--lime); }
+</style>
+</head>
+<body>
+<main>
+  <div class="k">Collage landing · two styles</div>
+  <h1>Pick a <span>scroll</span>.</h1>
+  <div class="grid">
+    <a class="card" href="grape.html">
+      <div class="k">01</div>
+      <h2>Falls into the site</h2>
+      <p>The collage pieces drop out of the banner and settle into the page as you scroll.</p>
+      <div class="go">Open →</div>
+    </a>
+    <a class="card" href="zoom.html">
+      <div class="k">02</div>
+      <h2>Zoom into the collage</h2>
+      <p>Scrolling flies the camera into each piece, and its full page opens inside it.</p>
+      <div class="go">Open →</div>
+    </a>
+  </div>
+</main>
+</body>
+</html>

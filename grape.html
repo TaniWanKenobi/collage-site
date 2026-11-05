@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tanishq · makes things</title>
+<meta name="description" content="Tanishq, 11th grade in Bayonne, NJ and part of Hack Club. Apps, tools, and small hardware projects, collaged.">
+<meta name="theme-color" content="#0D160B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&amp;family=JetBrains+Mono:wght@400;500&amp;family=Caveat:wght@500;700&amp;display=swap">
+<style>
+/* Tokens. Every color on this board is one of these (rgba() uses the same channels).
+   onyx       #0D160B  page background
+   onyx-2     #172315  raised panels on onyx
+   onyx-3     #263424  hairlines and dividers on onyx
+   shade      #040803  shadows (deepest onyx)
+   grape      #564D80  surfaces: cards, model disc, notes
+   grape-deep #3F3862  photo placeholders inside grape/lime-tint frames
+   grape-lite #8F86C0  decorative lines, secondary pins (5.6:1 on onyx if ever used as text)
+   lime       #C2F970  accent: buttons, ticket, sticky note, outlines, focus
+   lime-tint  #EFFDD8  body text on onyx/grape, paper cards
+   muted      #A8B595  secondary text on onyx / onyx-2 only (not on grape)
+   Pairs: lime-tint/onyx 17:1, lime/onyx 15:1, onyx/lime 15:1, lime/grape 6.2:1,
+   lime-tint/grape 7.2:1, grape/lime-tint 7.2:1, grape/lime 6.2:1, muted/onyx 8.6:1 */
+body{margin:0;background:#0D160B}
+a{color:#C2F970}a:hover{color:#EFFDD8}
+.grain{background-image:repeating-linear-gradient(0deg,rgba(239,253,216,.016) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(4,8,3,.05) 0 1px,transparent 1px 4px)}
+.halftone{background-image:radial-gradient(rgba(239,253,216,.16) 1.2px,transparent 1.4px);background-size:7px 7px}
+.halftone-g{background-image:radial-gradient(rgba(86,77,128,.28) 1.2px,transparent 1.4px);background-size:7px 7px}
+.ruled{background-image:repeating-linear-gradient(180deg,transparent 0 27px,rgba(143,134,192,.55) 27px 28px)}
+.mapgrid{background-image:linear-gradient(rgba(194,249,112,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(194,249,112,.13) 1px,transparent 1px);background-size:28px 28px}
+.tape{position:absolute;height:24px;background:rgba(239,253,216,.42);mix-blend-mode:normal}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+.piece{position:absolute;z-index:20;box-sizing:border-box;transform-origin:0 0;will-change:transform}
+.piece:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid #C2F970;outline-offset:4px}
+.slot{flex:none;box-sizing:border-box;border:2px dashed rgba(194,249,112,.32);border-radius:6px}
+.gr-me{position:absolute;left:calc(38% + 150px);bottom:-6px;z-index:3;width:172px;height:354px}
+.gr-me img{display:block;height:100%;width:auto;filter:drop-shadow(3px 0 0 #C2F970) drop-shadow(-3px 0 0 #C2F970) drop-shadow(0 3px 0 #C2F970) drop-shadow(0 -3px 0 #C2F970) drop-shadow(0 18px 26px rgba(4,8,3,.65))}
+@media (max-width:760px){.hide-sm{display:none !important}.slot-opt{display:none !important}.banner{height:560px !important}.gr-me{left:auto;right:9%;width:136px;height:280px}}
+</style>
+<style>
+/* Phone banner: pieces rest smaller (the script scales them up as they land) and sit clear of the intro text. */
+@media (max-width:760px){
+#gr-piece-timeline{left:4% !important;top:150px !important}
+#gr-piece-photos{left:52% !important;top:136px !important}
+#gr-piece-projects{left:4% !important;top:218px !important}
+#gr-piece-guestbook{left:40% !important;top:292px !important}
+.gr-make{left:3% !important;right:auto !important;bottom:128px !important;font-size:46px !important}
+}
+</style>
+</head>
+<body>
+<div id="gr-root" class="grain" style="position: relative; overflow: hidden; width: 100%; background-color: #0D160B; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.55">
+
+<div id="top" class="banner" style="position: relative; height: 640px; overflow: hidden; border-bottom: 1px solid #263424">
+
+<header style="position: absolute; left: 0; right: 0; top: 0; z-index: 25; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 3%">
+<a href="#top" style="font-weight: 800; font-size: 18px; color: #EFFDD8; text-decoration: none; letter-spacing: -0.01em">Tanishq</a>
+<nav aria-label="Main" class="mono" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 22px; font-size: 13px">
+<a href="#projects" style="color: #A8B595; text-decoration: none">Work</a>
+<a href="#writing" style="color: #A8B595; text-decoration: none">Writing</a>
+<a href="#photos" style="color: #A8B595; text-decoration: none">Photos</a>
+<a href="#map" style="color: #A8B595; text-decoration: none">Map</a>
+<a href="#guestbook" style="color: #A8B595; text-decoration: none">Guestbook</a>
+<a href="#contact" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #C2F970; color: #0D160B; font-weight: 500; text-decoration: none">Email me</a>
+</nav>
+</header>
+
+<p aria-hidden="true" style="position: absolute; left: 2.5%; top: 64px; z-index: 1; margin: 0; font-weight: 800; font-size: clamp(110px, 17vw, 260px); line-height: 0.85; letter-spacing: -0.05em; color: #EFFDD8; white-space: nowrap">TANISHQ</p>
+
+<a href="#top" aria-label="3D model, back to top" style="position: absolute; left: 38%; top: 150px; z-index: 2; width: 340px; height: 340px; border-radius: 50%; background: #564D80; display: flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: 0 18px 40px rgba(4,8,3,.55)">
+<svg aria-hidden="true" width="250" height="250" viewBox="0 0 260 260" fill="none">
+<circle cx="130" cy="130" r="110" stroke="#8F86C0" stroke-width="2"></circle>
+<ellipse cx="130" cy="130" rx="110" ry="38" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="38" ry="110" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="110" ry="74" stroke="#8F86C0" stroke-width="2" transform="rotate(32 130 130)"></ellipse>
+<circle cx="222" cy="72" r="9" fill="#C2F970"></circle>
+</svg>
+<span class="mono" style="position: absolute; top: 40px; font-size: 12px; color: #EFFDD8">[3D model]</span>
+</a>
+
+<div class="gr-me">
+<img src="tanishq-grape.png" alt="Tanishq">
+<span aria-hidden="true" class="mono" style="position: absolute; right: -24px; top: 34px; width: 38px; height: 300px; box-sizing: border-box; background: #C2F970; color: #0D160B; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; font-size: 12px; font-weight: 500; transform: rotate(2deg); box-shadow: 0 10px 22px rgba(4,8,3,.55)">Bayonne, NJ · 11th grade · Hack Club</span>
+</div>
+
+<p aria-hidden="true" class="gr-make" style="position: absolute; right: 3%; bottom: 26px; z-index: 4; margin: 0; font-weight: 800; font-size: clamp(64px, 9vw, 140px); line-height: 0.9; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px #C2F970; white-space: nowrap; pointer-events: none">makes things.</p>
+
+<h1 style="position: absolute; left: 3%; bottom: 30px; z-index: 4; margin: 0; max-width: 30ch; font-size: 17px; font-weight: 400; line-height: 1.4; color: #EFFDD8">Tanishq, 11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
+<p id="gr-hint" class="mono" style="position: absolute; left: 3%; bottom: 92px; z-index: 4; margin: 0; font-size: 13px; color: #C2F970">scroll, it all falls into place ↓</p>
+</div>
+
+<a id="gr-piece-projects" href="#projects" class="piece" style="left: 5%; top: 290px; width: 220px; height: 236px; padding: 12px 12px 14px; background: #EFFDD8; color: #0D160B; text-decoration: none">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 70px; width: 90px; transform: rotate(-4deg)"></span>
+<span class="halftone mono" style="display: flex; align-items: center; justify-content: center; height: 150px; background-color: #564D80; font-size: 12px; color: #EFFDD8">[Holos screenshot]</span>
+<span style="display: block; margin-top: 10px; font-weight: 800; font-size: 22px; line-height: 1">Holos</span>
+<span class="mono" style="display: block; margin-top: 2px; font-size: 11px; color: #564D80">01 · projects</span>
+</a>
+
+<a id="gr-piece-timeline" href="#timeline" class="piece" style="left: 21%; top: 112px; width: 250px; height: 76px; display: flex; text-decoration: none">
+<span style="flex: 1; padding: 14px 16px; background: #C2F970; color: #0D160B; border-radius: 6px 0 0 6px; display: flex; flex-direction: column; gap: 2px">
+<span class="mono" style="font-size: 11px">ADMIT ONE · 02</span>
+<span style="font-weight: 800; font-size: 24px; line-height: 1.05">Timeline</span>
+</span>
+<span class="mono" style="width: 64px; border-left: 2px dashed #0D160B; background: #C2F970; color: #0D160B; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: center; font-size: 12px; writing-mode: vertical-rl">2024→now</span>
+</a>
+
+<a id="gr-piece-photos" href="#photos" class="piece" aria-label="Photos" style="left: 61%; top: 96px; width: 240px; height: 210px; text-decoration: none">
+<span style="position: absolute; left: 0; top: 18px; width: 160px; height: 170px; padding: 8px 8px 30px; background: #EFFDD8; transform: rotate(-8deg); box-sizing: border-box">
+<span class="mono" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #3F3862; color: #EFFDD8; font-size: 11px">[Photo]</span>
+</span>
+<span style="position: absolute; right: 0; top: 0; width: 160px; height: 170px; padding: 8px 8px 30px; background: #EFFDD8; transform: rotate(6deg); box-shadow: -6px 6px 14px rgba(4,8,3,.4); box-sizing: border-box">
+<span class="mono" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #564D80; color: #EFFDD8; font-size: 11px">[Photo]</span>
+<span class="mono" style="position: absolute; left: 10px; bottom: 7px; font-size: 11px; color: #0D160B">03 · photos</span>
+</span>
+</a>
+
+<a id="gr-piece-writing" href="#writing" class="piece hide-sm" style="left: 79%; top: 300px; width: 210px; height: 176px; padding: 14px 16px 18px; background-color: #564D80; color: #EFFDD8; text-decoration: none">
+<span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
+<span class="ruled" style="display: block; padding-top: 4px; min-height: 140px">
+<span class="mono" style="display: block; font-size: 11px; color: #C2F970; line-height: 28px">04 · writing + awards</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Award name]</span>
+</span>
+</a>
+
+<a id="gr-piece-map" href="#map" class="piece hide-sm" style="left: 57%; top: 400px; width: 240px; height: 150px; background-color: #172315; border: 1px solid #C2F970; color: #C2F970; text-decoration: none; overflow: hidden">
+<span class="mapgrid" style="position: absolute; inset: 0"></span>
+<span aria-hidden="true" style="position: absolute; left: 62px; top: 52px; width: 14px; height: 14px; border-radius: 50%; background: #C2F970; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 150px; top: 38px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span aria-hidden="true" style="position: absolute; left: 182px; top: 86px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span class="mono" style="position: absolute; left: 12px; bottom: 10px; font-size: 11px">05 · places · Bayonne, NJ</span>
+</a>
+
+<a id="gr-piece-guestbook" href="#guestbook" class="piece" style="left: 25%; top: 420px; width: 180px; height: 150px; padding: 16px; background: #C2F970; color: #0D160B; text-decoration: none; display: flex; flex-direction: column; justify-content: space-between">
+<span style="font-family: 'Caveat', cursive; font-size: 28px; font-weight: 700; line-height: 1">sign my guestbook →</span>
+<span class="mono" style="font-size: 11px; color: #564D80">06 · guestbook</span>
+</a>
+
+<a id="gr-piece-contact" href="#contact" class="piece hide-sm" style="left: 85%; top: 96px; width: 140px; height: 140px; border-radius: 50%; border: 3px solid #C2F970; background: #0D160B; color: #C2F970; text-decoration: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+<span class="mono" style="font-size: 11px">07 · say hi</span>
+<span style="font-weight: 800; font-size: 26px; line-height: 1">EMAIL</span>
+<span style="font-weight: 800; font-size: 26px; line-height: 1">ME</span>
+</a>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: 96px 24px 64px; display: flex; flex-direction: column; gap: 128px">
+
+<section id="projects" aria-labelledby="projects-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-projects" class="slot" aria-hidden="true" style="width: 220px; height: 236px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">01 · projects</p>
+<h2 id="projects-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">Things I've built</h2>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 40px 28px">
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(-1.5deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">Holos</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">Personal health dashboard with wearable sync.</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Next.js</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">tRPC</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Postgres</li>
+</ul>
+</article>
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(1deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">AppTrack</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">Screen-time tracking for Windows.</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Python</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Windows</li>
+</ul>
+</article>
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(-0.5deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">Inkbadge</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">Uploader for an e-ink conference badge, ported to Windows.</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Python</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Arduino</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">E-ink</li>
+</ul>
+</article>
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(1.8deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">Announcements digest</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">Transcribes and summarizes the daily school announcements.</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Python</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Automation</li>
+</ul>
+</article>
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(-1.2deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">Slack notifier</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">A Slack bot that sends notes and scheduled reminders.</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Python</li>
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">Slack API</li>
+</ul>
+</article>
+<article style="position: relative; padding: 14px 14px 20px; background: #EFFDD8; color: #0D160B; box-shadow: 0 16px 34px rgba(4,8,3,.55); transform: rotate(0.6deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 38%; width: 92px; transform: rotate(-3deg)"></span>
+<div class="halftone mono" style="height: 190px; background-color: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Screenshot]</div>
+<h3 style="margin: 14px 0 4px; font-weight: 800; font-size: 26px; line-height: 1.05">[Project]</h3>
+<p style="margin: 0; font-size: 15px; color: #564D80">[One-line description]</p>
+<ul style="list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px">
+<li class="mono" style="font-size: 11px; color: #0D160B; border: 1px solid #0D160B; border-radius: 999px; padding: 2px 9px">[Tech]</li>
+</ul>
+</article>
+</div>
+</section>
+
+<section id="timeline" aria-labelledby="timeline-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-timeline" class="slot" aria-hidden="true" style="width: 250px; height: 76px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">02 · timeline</p>
+<h2 id="timeline-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">So far</h2>
+</div>
+</div>
+<ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 18px">
+<li style="display: flex; background: #C2F970; color: #0D160B; border-radius: 6px; min-height: 120px">
+<span style="flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+<span class="mono" style="font-size: 12px">Now</span>
+<span style="font-weight: 600; font-size: 18px; line-height: 1.3">Building Holos, a personal health app</span>
+</span>
+<span aria-hidden="true" style="width: 26px; border-left: 2px dashed currentColor; opacity: 0.6"></span>
+</li>
+<li style="display: flex; background: #564D80; color: #EFFDD8; border-radius: 6px; min-height: 120px">
+<span style="flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+<span class="mono" style="font-size: 12px">2026</span>
+<span style="font-weight: 600; font-size: 18px; line-height: 1.3">Started 11th grade at Bayonne High School</span>
+</span>
+<span aria-hidden="true" style="width: 26px; border-left: 2px dashed currentColor; opacity: 0.6"></span>
+</li>
+<li style="display: flex; background: #564D80; color: #EFFDD8; border-radius: 6px; min-height: 120px">
+<span style="flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+<span class="mono" style="font-size: 12px">[Year]</span>
+<span style="font-weight: 600; font-size: 18px; line-height: 1.3">[Hackathon, award, or milestone]</span>
+</span>
+<span aria-hidden="true" style="width: 26px; border-left: 2px dashed currentColor; opacity: 0.6"></span>
+</li>
+<li style="display: flex; background: #564D80; color: #EFFDD8; border-radius: 6px; min-height: 120px">
+<span style="flex: 1; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px">
+<span class="mono" style="font-size: 12px">[Year]</span>
+<span style="font-weight: 600; font-size: 18px; line-height: 1.3">[First project you shipped]</span>
+</span>
+<span aria-hidden="true" style="width: 26px; border-left: 2px dashed currentColor; opacity: 0.6"></span>
+</li>
+</ol>
+</section>
+
+<section id="photos" aria-labelledby="photos-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-photos" class="slot" aria-hidden="true" style="width: 240px; height: 210px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">03 · photos</p>
+<h2 id="photos-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">Camera roll</h2>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 36px 28px">
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-0.5deg)">
+<div class="mono" style="height: 220px; background: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(1.8deg)">
+<div class="mono" style="height: 280px; background: #3F3862; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.2deg)">
+<div class="mono" style="height: 200px; background: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(0.6deg)">
+<div class="mono" style="height: 260px; background: #3F3862; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.5deg)">
+<div class="mono" style="height: 230px; background: #564D80; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+<figure style="margin: 0; padding: 10px 10px 14px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(1deg)">
+<div class="mono" style="height: 200px; background: #3F3862; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Photo]</div>
+<figcaption style="margin-top: 8px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.1">[Caption, place]</figcaption>
+</figure>
+</div>
+</section>
+
+<section id="writing" aria-labelledby="writing-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-writing" class="slot slot-opt" aria-hidden="true" style="width: 210px; height: 176px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">04 · writing + awards</p>
+<h2 id="writing-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">Notes and wins</h2>
+</div>
+</div>
+<ul class="ruled" style="list-style: none; margin: 0; padding: 20px 28px 24px; background-color: #564D80; color: #EFFDD8; box-shadow: 0 16px 34px rgba(4,8,3,.55); display: flex; flex-direction: column; transform: rotate(-0.6deg)">
+<li style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; min-height: 56px; padding-top: 14px; box-sizing: border-box">
+<span class="mono" style="width: 72px; font-size: 12px; color: #C2F970">[Date]</span>
+<a href="#writing" style="flex: 1 1 240px; font-weight: 600; font-size: 22px; color: #EFFDD8; text-decoration: none">[Post title]</a>
+<span class="mono" style="font-size: 11px; border: 1px solid #EFFDD8; border-radius: 999px; padding: 2px 9px">Writing</span>
+</li>
+<li style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; min-height: 56px; padding-top: 14px; box-sizing: border-box">
+<span class="mono" style="width: 72px; font-size: 12px; color: #C2F970">[Date]</span>
+<a href="#writing" style="flex: 1 1 240px; font-weight: 600; font-size: 22px; color: #EFFDD8; text-decoration: none">[Post title]</a>
+<span class="mono" style="font-size: 11px; border: 1px solid #EFFDD8; border-radius: 999px; padding: 2px 9px">Writing</span>
+</li>
+<li style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; min-height: 56px; padding-top: 14px; box-sizing: border-box">
+<span class="mono" style="width: 72px; font-size: 12px; color: #C2F970">[Date]</span>
+<a href="#writing" style="flex: 1 1 240px; font-weight: 600; font-size: 22px; color: #EFFDD8; text-decoration: none">[Award name]</a>
+<span class="mono" style="font-size: 11px; border: 1px solid #EFFDD8; border-radius: 999px; padding: 2px 9px">Award</span>
+</li>
+<li style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; min-height: 56px; padding-top: 14px; box-sizing: border-box">
+<span class="mono" style="width: 72px; font-size: 12px; color: #C2F970">[Date]</span>
+<a href="#writing" style="flex: 1 1 240px; font-weight: 600; font-size: 22px; color: #EFFDD8; text-decoration: none">[Award name]</a>
+<span class="mono" style="font-size: 11px; border: 1px solid #EFFDD8; border-radius: 999px; padding: 2px 9px">Award</span>
+</li>
+</ul>
+</section>
+
+<section id="map" aria-labelledby="map-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-map" class="slot slot-opt" aria-hidden="true" style="width: 240px; height: 150px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">05 · places</p>
+<h2 id="map-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">Where I've been</h2>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 28px">
+<div class="mapgrid" style="flex: 2 1 460px; min-width: 0; height: 380px; position: relative; background-color: #172315; border: 1px solid #263424; color: #A8B595; box-shadow: 0 16px 34px rgba(4,8,3,.55); display: flex; align-items: center; justify-content: center">
+<p class="mono" style="margin: 0; font-size: 12px">[World map]</p>
+<span aria-hidden="true" style="position: absolute; left: 27%; top: 36%; width: 14px; height: 14px; border-radius: 50%; background: #C2F970; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 48%; top: 30%; width: 14px; height: 14px; border-radius: 50%; background: #8F86C0; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 70%; top: 46%; width: 14px; height: 14px; border-radius: 50%; background: #8F86C0; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 56%; top: 62%; width: 14px; height: 14px; border-radius: 50%; background: #8F86C0; border: 3px solid #0D160B"></span>
+</div>
+<ul style="flex: 1 1 260px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
+<li style="display: flex; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid #263424">
+<span>Bayonne, NJ</span>
+<span class="mono" style="font-size: 13px; color: #A8B595">Home</span>
+</li>
+<li style="display: flex; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid #263424">
+<span>[City, Country]</span>
+<span class="mono" style="font-size: 13px; color: #A8B595">[Year]</span>
+</li>
+<li style="display: flex; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid #263424">
+<span>[City, Country]</span>
+<span class="mono" style="font-size: 13px; color: #A8B595">[Year]</span>
+</li>
+<li style="display: flex; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid #263424">
+<span>[City, Country]</span>
+<span class="mono" style="font-size: 13px; color: #A8B595">[Year]</span>
+</li>
+</ul>
+</div>
+</section>
+
+<section id="guestbook" aria-labelledby="guestbook-title" style="display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px 28px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px 28px">
+<div id="gr-slot-guestbook" class="slot" aria-hidden="true" style="width: 180px; height: 150px"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">06 · guestbook</p>
+<h2 id="guestbook-title" style="margin: 0; font-weight: 800; font-size: clamp(40px, 6vw, 72px); line-height: 0.95; letter-spacing: -0.03em">Leave a note</h2>
+</div>
+</div>
+<button type="button" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; background: transparent; border: 1px solid #EFFDD8; color: #EFFDD8; font-family: 'Bricolage Grotesque', system-ui, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">
+<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
+Sign with GitHub
+</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 28px">
+<article style="min-height: 170px; padding: 18px; box-sizing: border-box; background: #C2F970; color: #0D160B; box-shadow: 0 14px 28px rgba(4,8,3,.55); display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transform: rotate(1deg)">
+<p style="margin: 0; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.1">[Their message]</p>
+<div class="mono" style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px">
+<span>[Visitor name]</span>
+<span>[Date]</span>
+</div>
+</article>
+<article style="min-height: 170px; padding: 18px; box-sizing: border-box; background: #564D80; color: #EFFDD8; box-shadow: 0 14px 28px rgba(4,8,3,.55); display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transform: rotate(-0.5deg)">
+<p style="margin: 0; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.1">[Their message]</p>
+<div class="mono" style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px">
+<span>[Visitor name]</span>
+<span>[Date]</span>
+</div>
+</article>
+<article style="min-height: 170px; padding: 18px; box-sizing: border-box; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 28px rgba(4,8,3,.55); display: flex; flex-direction: column; justify-content: space-between; gap: 12px; transform: rotate(1.8deg)">
+<p style="margin: 0; font-family: 'Caveat', cursive; font-size: 26px; line-height: 1.1">[Their message]</p>
+<div class="mono" style="display: flex; justify-content: space-between; gap: 12px; font-size: 12px">
+<span>[Visitor name]</span>
+<span>[Date]</span>
+</div>
+</article>
+</div>
+</section>
+
+<footer id="contact" style="border-top: 1px solid #263424; padding-top: 64px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px">
+<div style="display: flex; flex-direction: column; gap: 18px; align-items: flex-start">
+<p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">07 · say hi</p>
+<h2 style="margin: 0; font-weight: 800; font-size: clamp(56px, 9vw, 120px); line-height: 0.9; letter-spacing: -0.04em">Say hi.</h2>
+<p style="margin: 0; color: #A8B595; max-width: 40ch">Email is the best way to reach me.</p>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px">
+<a href="#contact" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #C2F970; color: #0D160B; font-weight: 600; text-decoration: none">Email me</a>
+<a href="#contact" class="mono" style="font-size: 13px; text-underline-offset: 4px">GitHub</a>
+<a href="#contact" class="mono" style="font-size: 13px; text-underline-offset: 4px">[LinkedIn]</a>
+</div>
+</div>
+<div id="gr-slot-contact" class="slot slot-opt" aria-hidden="true" style="width: 140px; height: 140px; border-radius: 50%"></div>
+</footer>
+<p class="mono" style="margin: -80px 0 0; font-size: 12px; color: #A8B595">© 2026 Tanishq</p>
+
+</div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var keys = ['projects', 'timeline', 'photos', 'writing', 'map', 'guestbook', 'contact'];
+  // [resting tilt in the banner, wobble while falling]
+  var tilts = {
+      projects: [-6, -10],
+      timeline: [4, 12],
+      photos: [7, -14],
+      writing: [-3, 10],
+      map: [-5, -12],
+      guestbook: [8, 14],
+      contact: [-12, 16]
+    };
+  var root = document.getElementById('gr-root');
+  var hint = document.getElementById('gr-hint');
+  var els = {}, slots = {};
+  keys.forEach(function (k) {
+    els[k] = document.getElementById('gr-piece-' + k);
+    slots[k] = document.getElementById('gr-slot-' + k);
+  });
+  var phone = window.matchMedia ? window.matchMedia('(max-width: 760px)') : null;
+  var mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var m = {};
+  var raf = 0;
+
+  // Where each slot sits relative to its piece, and the scroll range it lands over.
+  function measure() {
+    var rr = root.getBoundingClientRect();
+    var vh = Math.min(window.innerHeight || 800, 1200);
+    // Slots near the page bottom must finish landing by the time scrolling stops.
+    var maxScroll = Math.max(0, document.documentElement.scrollHeight - (window.innerHeight || 800));
+    m = {};
+    keys.forEach(function (k) {
+      var el = els[k], slot = slots[k];
+      if (!el || !slot || !el.offsetWidth || !slot.offsetWidth) return;
+      var r = slot.getBoundingClientRect();
+      var top = r.top - rr.top;
+      var left = r.left - rr.left;
+      var end = Math.min(top - 0.35 * vh, maxScroll);
+      var start = Math.max(0, end - 1.1 * vh);
+      m[k] = {
+        dx: Math.round(left - el.offsetLeft),
+        dy: Math.round(top - el.offsetTop),
+        sc: r.width / el.offsetWidth,
+        start: start,
+        end: end
+      };
+    });
+    paint();
+  }
+
+  function paint() {
+    var s = Math.max(0, -root.getBoundingClientRect().top);
+    var reduce = !!(mq && mq.matches);
+    var rest = phone && phone.matches ? 0.6 : 1;
+    keys.forEach(function (k) {
+      var el = els[k];
+      if (!el) return;
+      var t = tilts[k];
+      var d = m[k];
+      var p = 0;
+      if (d) {
+        p = d.end > d.start ? (s - d.start) / (d.end - d.start) : (s >= d.end ? 1 : 0);
+        p = Math.min(1, Math.max(0, p));
+        if (reduce) p = p >= 1 ? 1 : 0;
+      }
+      var fall = Math.min(1, p / 0.8);
+      var ease = p * p * (3 - 2 * p);
+      var bump = p > 0.8 && p < 1 ? 12 * Math.sin(Math.PI * (p - 0.8) / 0.2) : 0;
+      var x = d ? d.dx * (1 - (1 - p) * (1 - p)) : 0;
+      var y = d ? d.dy * fall * fall + bump : 0;
+      var rot = t[0] * (1 - ease) + t[1] * Math.sin(Math.PI * fall);
+      var sc = rest + ((d ? d.sc : 1) - rest) * p;
+      el.style.transform = 'translate(' + x.toFixed(1) + 'px, ' + y.toFixed(1) + 'px) rotate(' + rot.toFixed(2) + 'deg) scale(' + sc.toFixed(3) + ')';
+      var air = Math.sin(Math.PI * fall);
+      var settled = p > 0.8 ? (p - 0.8) / 0.2 : 0;
+      el.style.filter = 'drop-shadow(0 ' + (14 + 34 * air - 8 * settled).toFixed(1) + 'px ' + (24 + 30 * air - 12 * settled).toFixed(1) + 'px rgba(4,8,3,' + (0.6 - 0.2 * air).toFixed(2) + '))';
+      if (slots[k]) slots[k].style.opacity = Math.max(0, 1 - Math.max(0, (p - 0.7) / 0.3)).toFixed(3);
+    });
+    if (hint) hint.style.opacity = Math.max(0, 1 - s / 200).toFixed(3);
+  }
+
+  function onScroll() {
+    if (raf) return;
+    raf = requestAnimationFrame(function () { raf = 0; paint(); });
+  }
+
+  var rt = 0;
+  function onResize() { clearTimeout(rt); rt = setTimeout(measure, 80); }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onResize);
+  window.addEventListener('load', measure);
+  if (mq && mq.addEventListener) mq.addEventListener('change', paint);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  setTimeout(measure, 400);
+  setTimeout(measure, 1500);
+  measure();
+})();
+
+</script>
+</body>
+</html>
