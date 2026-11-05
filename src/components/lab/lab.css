@@ -1,0 +1,58 @@
+/* Design lab (/lab) styles. Uses the site tokens from global.css. */
+body.lab { color: var(--lime-tint); font-family: var(--font-display); min-height: 100vh; }
+
+/* Scaled 1440x900 collage world */
+.lab-stage { position: relative; overflow: hidden; aspect-ratio: 16 / 10; background: var(--onyx); }
+.lab-stage--page { width: min(100%, calc((100svh - 92px) * 1.6)); margin: 0 auto; }
+.lab-stage--width { width: 100%; }
+.lab-world { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; background-color: var(--onyx); }
+.lab-world .zp { cursor: pointer; }
+
+/* Variant page chrome */
+.lab-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 16px; min-height: 46px; box-sizing: border-box; }
+.lab-tag { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.lab-tag b { color: var(--lime); font-weight: 500; }
+.lab-tag strong { color: var(--lime-tint); font-family: var(--font-display); font-size: 15px; font-weight: 800; }
+.lab-nav { display: flex; gap: 6px; font-family: var(--font-mono); font-size: 12px; }
+.lab-nav a, .lab-btn { display: inline-flex; align-items: center; min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--onyx-3); background: var(--onyx-2); color: var(--lime-tint); text-decoration: none; }
+.lab-nav a:hover, .lab-btn:hover { border-color: var(--lime); color: var(--lime); }
+.lab-idea { max-width: 70ch; margin: 0 auto; padding: 8px 16px 18px; color: var(--muted); font-size: 15px; line-height: 1.45; text-align: center; }
+
+/* Live 3D model slots (see model-slots.ts). Poster first, canvas once the model draws. */
+.lab-model { position: absolute; box-sizing: border-box; }
+.lab-model > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lab-model-poster { object-fit: contain; }
+.lab-model-ph { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 12px; box-sizing: border-box; font-family: var(--font-mono); font-size: 13px; line-height: 1.4; color: var(--lime-tint); border: 2px dashed rgba(194,249,112,.55); }
+.lab-model.no-poster .lab-model-poster { display: none; }
+.lab-model.no-poster .lab-model-ph, .lab-model.is-missing .lab-model-ph { display: flex; }
+.lab-model.is-missing .lab-model-poster { display: none; }
+.lab-model-canvas { display: block; opacity: 0; transition: opacity .5s ease; cursor: grab; touch-action: pan-y; }
+.lab-model-canvas:active { cursor: grabbing; }
+.lab-model.is-live .lab-model-canvas { opacity: 1; }
+.lab-model.is-live .lab-model-poster, .lab-model.is-live .lab-model-ph { display: none; }
+.lab-model--circle { border-radius: 50%; overflow: hidden; }
+.lab-model--sticker { border-radius: 50%; background: var(--lime-tint); box-shadow: 0 0 0 6px var(--lime), 0 18px 34px rgba(4,8,3,.6); overflow: hidden; }
+.lab-model--sticker .lab-model-ph, .lab-model--circle .lab-model-ph { border-radius: 50%; }
+.lab-model--sticker .lab-model-ph { color: var(--onyx); border-color: var(--grape-lite); }
+.lab-model--sticker .lab-model-ph span { color: var(--grape-deep) !important; }
+.lab-model-cap { position: absolute; font-family: var(--font-mono); font-size: 12px; line-height: 1.2; color: var(--lime); white-space: nowrap; }
+
+/* Index */
+.lab-index { max-width: 1240px; margin: 0 auto; padding: 32px 16px 56px; }
+.lab-index h1 { margin: 6px 0 6px; font-weight: 800; font-size: clamp(40px, 7vw, 76px); line-height: .95; letter-spacing: -.03em; }
+.lab-index h1 span { color: var(--lime); }
+.lab-index > p { margin: 0 0 28px; color: var(--muted); max-width: 62ch; line-height: 1.45; }
+.lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 20px; }
+.lab-tile { position: relative; background: var(--onyx-2); border: 1px solid var(--onyx-3); border-radius: 14px; overflow: hidden; transition: border-color .2s, transform .2s; }
+.lab-tile:hover, .lab-tile:focus-within { border-color: var(--lime); transform: translateY(-2px); }
+.lab-tile .lab-stage { border-bottom: 1px solid var(--onyx-3); }
+.lab-tile-body { padding: 14px 16px 16px; }
+.lab-tile h2 { margin: 4px 0 6px; font-size: 22px; line-height: 1.1; }
+.lab-tile h2 a { color: var(--lime-tint); text-decoration: none; }
+.lab-tile h2 a::after { content: ''; position: absolute; inset: 0; border-radius: 14px; }
+.lab-tile p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+.lab-k { font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.lab-viewer-thumb { aspect-ratio: 16 / 10; display: grid; place-items: center; border-bottom: 1px solid var(--onyx-3); background: repeating-conic-gradient(var(--onyx-2) 0 25%, var(--onyx) 0 50%) 0 0 / 24px 24px; font-family: var(--font-mono); font-size: 13px; color: var(--lime); text-align: center; line-height: 1.6; }
+.lab-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lab-tile-thumb { border-bottom: 1px solid var(--onyx-3); overflow: hidden; }
+.lab-tile-thumb .lab-stage { border-radius: 0; }

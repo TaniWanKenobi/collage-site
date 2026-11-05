@@ -1,0 +1,36 @@
+---
+// 03 · Orbit: photo and globe in the centre, the cards spaced evenly around a ring.
+import Place from '../Place.astro';
+import Wordmark from '../../collage/Wordmark.astro';
+import GlobeDisc from '../../collage/GlobeDisc.astro';
+import MePhoto from '../../collage/MePhoto.astro';
+import Polaroid from '../../collage/Polaroid.astro';
+import Ticket from '../../collage/Ticket.astro';
+import PhotoStack from '../../collage/PhotoStack.astro';
+import RuledNote from '../../collage/RuledNote.astro';
+import MapScrap from '../../collage/MapScrap.astro';
+import StickyNote from '../../collage/StickyNote.astro';
+import Stamp from '../../collage/Stamp.astro';
+// Ring centre and radii; seven cards at equal angles, offset so none sits directly under the photo.
+const CX = 720, CY = 470, RX = 560, RY = 330;
+const at = (k: number) => {
+  const a = ((90 + 51.43 * k + 25.7) * Math.PI) / 180;
+  const x = CX + RX * Math.cos(a), y = CY + RY * Math.sin(a);
+  return { x: Math.round(x), y: Math.round(y), rot: Math.round(((x - CX) / RX) * 10) };
+};
+const P = [0, 1, 2, 3, 4, 5, 6].map(at); // sticky, stamp, polaroid, ticket, photos, note, map
+---
+<div aria-hidden="true" style={`position:absolute;left:${CX - RX}px;top:${CY - RY}px;width:${RX * 2}px;height:${RY * 2}px;border-radius:50%;border:2px dashed var(--grape-lite);box-sizing:border-box;z-index:1;opacity:.7`}></div>
+<div aria-hidden="true" style={`position:absolute;left:${CX - 330}px;top:${CY - 250}px;width:660px;height:500px;border-radius:50%;border:1px solid var(--onyx-3);box-sizing:border-box;z-index:1`}></div>
+{P.map((p) => <span aria-hidden="true" style={`position:absolute;left:${p.x - 5}px;top:${p.y - 5}px;width:10px;height:10px;border-radius:50%;background:var(--lime);z-index:1`}></span>)}
+<Place k="word" x={190} y={70} s={0.32} z={3}><Wordmark as="p" /></Place>
+<Place k="globe" x={CX} y={CY} s={1.05} z={2}><GlobeDisc mode="phone" /></Place>
+<Place k="me" x={735} y={640} s={0.92} z={5}><MePhoto /></Place>
+<Place k="sticky" x={P[0].x - 50} y={P[0].y} rot={P[0].rot}><StickyNote mode="phone" /></Place>
+<Place k="stamp" x={P[1].x} y={P[1].y} rot={P[1].rot}><Stamp mode="phone" /></Place>
+<Place k="polaroid" x={P[2].x} y={P[2].y} rot={P[2].rot}><Polaroid mode="phone" /></Place>
+<Place k="ticket" x={P[3].x} y={P[3].y} rot={P[3].rot}><Ticket mode="phone" /></Place>
+<Place k="photos" x={P[4].x} y={P[4].y} rot={P[4].rot}><PhotoStack mode="phone" /></Place>
+<Place k="note" x={P[5].x} y={P[5].y} rot={P[5].rot}><RuledNote mode="phone" /></Place>
+<Place k="map" x={P[6].x + 60} y={P[6].y} rot={P[6].rot}><MapScrap mode="phone" /></Place>
+<p aria-hidden="true" style="position:absolute;right:40px;top:58px;z-index:12;margin:0;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1.5px var(--lime);white-space:nowrap">makes things.</p>

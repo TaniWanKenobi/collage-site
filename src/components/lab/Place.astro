@@ -1,0 +1,14 @@
+---
+// Moves an existing collage piece (which has its own hard-coded left/top/rotation) to a new spot
+// without editing it: a zero-size wrapper is translated, rotated and scaled about the piece's original centre.
+//   <Place k="polaroid" x={300} y={220} rot={2} s={1.1} z={12}><Polaroid mode="phone" /></Place>
+// x/y = the new centre in the 1440x900 world; rot = final rotation in degrees (defaults to the original).
+import { ORIG, type PieceKey } from './lab';
+interface Props { k: PieceKey; x?: number; y?: number; rot?: number; s?: number; z?: number }
+const { k, x, y, rot, s = 1, z = 10 } = Astro.props;
+const [l, t, w, h, r0] = ORIG[k];
+const cx = l + w / 2, cy = t + h / 2;
+const dx = (x ?? cx) - cx, dy = (y ?? cy) - cy, dr = (rot ?? r0) - r0;
+const style = `position:absolute;left:0;top:0;width:0;height:0;z-index:${z};transform-origin:${cx}px ${cy}px;transform:translate(${dx}px,${dy}px) rotate(${dr}deg) scale(${s})`;
+---
+<div class="lab-place" style={style}><slot /></div>

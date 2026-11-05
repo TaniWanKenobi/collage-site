@@ -1,0 +1,33 @@
+---
+// 02 · Scrapbook pile: everything dumped in the middle, heavy overlap, big rotations, tape everywhere.
+import Place from '../Place.astro';
+import Wordmark from '../../collage/Wordmark.astro';
+import GlobeDisc from '../../collage/GlobeDisc.astro';
+import MePhoto from '../../collage/MePhoto.astro';
+import Polaroid from '../../collage/Polaroid.astro';
+import Ticket from '../../collage/Ticket.astro';
+import PhotoStack from '../../collage/PhotoStack.astro';
+import RuledNote from '../../collage/RuledNote.astro';
+import MapScrap from '../../collage/MapScrap.astro';
+import StickyNote from '../../collage/StickyNote.astro';
+import Stamp from '../../collage/Stamp.astro';
+// [left, top, width, rotation, z]
+const TAPE: [number, number, number, number, number][] = [
+  [392, 196, 110, -28, 40], [870, 140, 96, 22, 40], [1068, 380, 104, 64, 40],
+  [376, 520, 92, -50, 40], [930, 610, 118, 8, 40], [640, 380, 84, -12, 40],
+];
+---
+<Place k="word" x={720} y={168} s={1.18} z={1}><Wordmark as="p" /></Place>
+<Place k="globe" x={720} y={430} s={1.1} z={2}><GlobeDisc mode="phone" /></Place>
+<Place k="polaroid" x={470} y={330} rot={-16} s={1.35} z={12}><Polaroid mode="phone" /></Place>
+<Place k="ticket" x={905} y={232} rot={14} s={1.3} z={14}><Ticket mode="phone" /></Place>
+<Place k="photos" x={1020} y={470} rot={21} s={1.3} z={16}><PhotoStack mode="phone" /></Place>
+<Place k="note" x={455} y={600} rot={11} s={1.3} z={18}><RuledNote mode="phone" /></Place>
+<Place k="map" x={985} y={690} rot={-12} s={1.35} z={20}><MapScrap mode="phone" /></Place>
+<Place k="sticky" x={600} y={770} rot={-9} s={1.2} z={22}><StickyNote mode="phone" /></Place>
+<Place k="stamp" x={1120} y={290} rot={18} s={1.1} z={24}><Stamp mode="phone" /></Place>
+<Place k="me" x={738} y={600} s={1.02} z={30}><MePhoto /></Place>
+{TAPE.map(([l, t, w, r, z]) => (
+  <span aria-hidden="true" class="tape" style={`left:${l}px;top:${t}px;width:${w}px;transform:rotate(${r}deg);z-index:${z}`}></span>
+))}
+<p aria-hidden="true" style="position:absolute;right:36px;bottom:14px;z-index:41;margin:0;font-weight:800;font-size:96px;line-height:.9;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:2px var(--lime);white-space:nowrap">makes things.</p>

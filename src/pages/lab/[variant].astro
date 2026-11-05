@@ -1,0 +1,29 @@
+---
+// /lab/collage-N: one collage experiment at full size. Not linked from the site nav.
+import LabBase from '../../components/lab/LabBase.astro';
+import LabChrome from '../../components/lab/LabChrome.astro';
+import Stage from '../../components/lab/Stage.astro';
+import { VARIANTS } from '../../components/lab/lab';
+import Collage1 from '../../components/lab/variants/Collage1.astro';
+import Collage2 from '../../components/lab/variants/Collage2.astro';
+import Collage3 from '../../components/lab/variants/Collage3.astro';
+import Collage4 from '../../components/lab/variants/Collage4.astro';
+import Collage5 from '../../components/lab/variants/Collage5.astro';
+import Collage6 from '../../components/lab/variants/Collage6.astro';
+
+export function getStaticPaths() {
+  return VARIANTS.map((v) => ({ params: { variant: v.slug } }));
+}
+const COMPONENTS = { 'collage-1': Collage1, 'collage-2': Collage2, 'collage-3': Collage3, 'collage-4': Collage4, 'collage-5': Collage5, 'collage-6': Collage6 } as const;
+const slug = Astro.params.variant as keyof typeof COMPONENTS;
+const v = VARIANTS.find((x) => x.slug === slug)!;
+const Variant = COMPONENTS[slug];
+---
+<LabBase title={`Lab · ${v.title}`} description={v.idea}>
+  <LabChrome slug={slug} />
+  <main>
+    <h1 class="lab-sr">{v.title}</h1>
+    <Stage fit="page" label={`Collage experiment: ${v.title}`}><Variant /></Stage>
+    <p class="lab-idea">{v.idea}</p>
+  </main>
+</LabBase>

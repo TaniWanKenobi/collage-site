@@ -1,0 +1,40 @@
+---
+// 01 · Bento grid: every card squared up in its own tile.
+import Place from '../Place.astro';
+import Wordmark from '../../collage/Wordmark.astro';
+import GlobeDisc from '../../collage/GlobeDisc.astro';
+import MePhoto from '../../collage/MePhoto.astro';
+import Polaroid from '../../collage/Polaroid.astro';
+import Ticket from '../../collage/Ticket.astro';
+import PhotoStack from '../../collage/PhotoStack.astro';
+import RuledNote from '../../collage/RuledNote.astro';
+import MapScrap from '../../collage/MapScrap.astro';
+import StickyNote from '../../collage/StickyNote.astro';
+import Stamp from '../../collage/Stamp.astro';
+// [left, top, width, height, background]
+const TILES: [number, number, number, number, string][] = [
+  [40, 40, 720, 260, 'var(--onyx-2)'],
+  [776, 40, 300, 260, 'var(--grape-deep)'],
+  [1092, 40, 308, 260, 'var(--onyx-2)'],
+  [40, 316, 340, 264, 'var(--onyx-2)'],
+  [40, 596, 340, 264, 'var(--grape-deep)'],
+  [396, 316, 520, 544, 'var(--onyx-2)'],
+  [932, 316, 232, 264, 'var(--onyx-2)'],
+  [1180, 316, 220, 264, 'var(--onyx-2)'],
+  [932, 596, 468, 264, 'var(--onyx-2)'],
+];
+---
+{TILES.map(([l, t, w, h, bg]) => (
+  <div aria-hidden="true" style={`position:absolute;left:${l}px;top:${t}px;width:${w}px;height:${h}px;border-radius:18px;background:${bg};box-shadow:inset 0 0 0 1px var(--onyx-3)`}></div>
+))}
+<Place k="word" x={371} y={150} s={0.62} z={3}><Wordmark as="p" /></Place>
+<p style="position:absolute;left:74px;top:228px;z-index:3;margin:0;max-width:34ch;font-size:19px;line-height:1.35;color:var(--muted)">Tanishq, 11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</p>
+<Place k="globe" x={656} y={520} z={2}><GlobeDisc mode="phone" /></Place>
+<Place k="me" x={672} y={638} s={0.95} z={4}><MePhoto /></Place>
+<Place k="ticket" x={926} y={170} rot={0} s={1.05}><Ticket mode="phone" /></Place>
+<Place k="stamp" x={1246} y={170} rot={0} s={1.15}><Stamp mode="phone" /></Place>
+<Place k="polaroid" x={210} y={448} rot={0}><Polaroid mode="phone" /></Place>
+<Place k="sticky" x={210} y={728} rot={0} s={1.1}><StickyNote mode="phone" /></Place>
+<Place k="photos" x={1072} y={452} rot={0} s={0.9}><PhotoStack mode="phone" /></Place>
+<Place k="note" x={1290} y={448} rot={0} s={0.9}><RuledNote mode="phone" /></Place>
+<Place k="map" x={1166} y={728} rot={0} s={1.4}><MapScrap mode="phone" /></Place>

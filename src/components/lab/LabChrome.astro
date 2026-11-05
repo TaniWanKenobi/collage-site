@@ -1,0 +1,25 @@
+---
+// Top bar on every variant page: which experiment this is, plus prev / all / next.
+// Also points the collage cards (which link to #sec-x on the phone collage) at the real section routes.
+import { VARIANTS } from './lab';
+import { url } from '../../lib/sections';
+interface Props { slug: string }
+const i = VARIANTS.findIndex((v) => v.slug === Astro.props.slug);
+const v = VARIANTS[i];
+const prev = VARIANTS[(i - 1 + VARIANTS.length) % VARIANTS.length];
+const next = VARIANTS[(i + 1) % VARIANTS.length];
+---
+<header class="lab-bar">
+  <span class="lab-tag"><b>LAB</b> {String(i + 1).padStart(2, '0')} / {String(VARIANTS.length).padStart(2, '0')} <strong>{v.title}</strong></span>
+  <nav class="lab-nav" aria-label="Lab variants">
+    <a href={url(`lab/${prev.slug}`)} rel="prev">← {prev.title}</a>
+    <a href={url('lab/')}>All</a>
+    <a href={url(`lab/${next.slug}`)} rel="next">{next.title} →</a>
+  </nav>
+</header>
+<script>
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+  document.querySelectorAll<HTMLAnchorElement>('.lab-world a[href^="#sec-"]').forEach((a) => {
+    a.href = `${base}/${a.getAttribute('href')!.slice(5)}`;
+  });
+</script>

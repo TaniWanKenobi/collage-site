@@ -1,0 +1,124 @@
+---
+// /lab/viewer: drop-in 3D viewer for CAD and mesh files. Client-side only; noindex.
+import LabBase from '../../components/lab/LabBase.astro';
+import { url } from '../../lib/sections';
+const BGS = [['onyx', 'Onyx', '#0D160B'], ['grape', 'Grape', '#564D80'], ['lime', 'Lime', '#C2F970'], ['checker', 'Transparent', '']];
+---
+<LabBase title="Lab · 3D viewer" description="Drop a STEP, IGES, STL, OBJ, GLB, 3MF or PLY file to view it in the browser.">
+  <div class="vw">
+    <aside class="vw-panel" aria-label="Viewer controls">
+      <header>
+        <a class="vw-back mono" href={url('lab/')}>← Lab</a>
+        <h1>3D <span>viewer</span></h1>
+        <p>STEP · IGES · STL · OBJ+MTL · GLB/GLTF · 3MF · PLY. Nothing leaves your browser.</p>
+      </header>
+
+      <label class="vw-file">
+        <input id="vw-file" type="file" multiple accept=".step,.stp,.iges,.igs,.brep,.brp,.stl,.obj,.mtl,.glb,.gltf,.bin,.png,.jpg,.jpeg,.webp,.ktx2,.3mf,.ply">
+        <span>Choose file(s)</span>
+      </label>
+      <p class="vw-hint">Or drop them anywhere. For a .gltf or .obj, select the .bin / .mtl / textures too.</p>
+
+      <dl class="vw-stats mono">
+        <div><dt>File</dt><dd id="vw-s-files">—</dd></div>
+        <div><dt>Format</dt><dd id="vw-s-format">—</dd></div>
+        <div><dt>Size</dt><dd id="vw-s-size">—</dd></div>
+        <div><dt>Triangles</dt><dd id="vw-s-tris">—</dd></div>
+        <div><dt>Parse</dt><dd id="vw-s-parse">—</dd></div>
+        <div><dt>Meshes</dt><dd id="vw-s-meshes">—</dd></div>
+      </dl>
+
+      <fieldset>
+        <legend>View</legend>
+        <label><input id="vw-grid" type="checkbox" checked> Grid</label>
+        <label><input id="vw-wire" type="checkbox"> Wireframe</label>
+        <label><input id="vw-duo" type="checkbox"> Grape duotone</label>
+        <label><input id="vw-spin" type="checkbox"> Auto-rotate</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Background</legend>
+        {BGS.map(([v, label, c], i) => (
+          <label><input type="radio" name="vw-bg" value={v} checked={i === 0}><span class="vw-sw" data-v={v} style={c ? `background:${c}` : undefined}></span>{label}</label>
+        ))}
+      </fieldset>
+
+      <div class="vw-row">
+        <label>Up axis
+          <select id="vw-up"><option value="auto">Auto</option><option value="y">Y up</option><option value="z">Z up</option></select>
+        </label>
+        <label>STEP detail
+          <select id="vw-quality"><option value="0.004">Draft</option><option value="0.001" selected>Normal</option><option value="0.0004">Fine</option></select>
+        </label>
+      </div>
+
+      <div class="vw-btns">
+        <button id="vw-fit" type="button">Fit</button>
+        <button id="vw-png" type="button">Export PNG</button>
+        <button id="vw-glb" type="button">Export GLB</button>
+        <button id="vw-clear" type="button">Clear</button>
+      </div>
+      <p id="vw-status" class="vw-status mono" role="status" aria-live="polite"></p>
+      <p class="vw-keys mono">Canvas keys: arrows orbit · +/− zoom · F frame</p>
+    </aside>
+
+    <div id="vw-stage" class="vw-stage" data-bg="onyx">
+      <canvas id="vw-canvas" tabindex="0" aria-label="3D view. Arrow keys orbit, plus and minus zoom, F frames the model."></canvas>
+      <div class="vw-empty" aria-hidden="true"><span>Drop a 3D file</span></div>
+    </div>
+    <div id="vw-drop" class="vw-drop" hidden><span>Drop to open</span></div>
+  </div>
+</LabBase>
+
+<script>import '../../components/lab/viewer/viewer';</script>
+
+<style>
+  .vw { display: grid; grid-template-columns: 300px 1fr; height: 100svh; }
+  .vw-panel { overflow-y: auto; padding: 18px 18px 24px; background: var(--onyx-2); border-right: 1px solid var(--onyx-3); display: flex; flex-direction: column; gap: 14px; }
+  .vw-panel header p, .vw-hint, .vw-keys { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+  .vw-keys { font-size: 11px; }
+  .vw-back { color: var(--muted); font-size: 12px; text-decoration: none; }
+  .vw-back:hover { color: var(--lime); }
+  .vw h1 { margin: 6px 0; font-size: 30px; font-weight: 800; letter-spacing: -.02em; color: var(--lime-tint); }
+  .vw h1 span { color: var(--lime); }
+  .vw-file { position: relative; display: block; }
+  .vw-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .vw-file span { display: block; padding: 12px; border-radius: 10px; background: var(--lime); color: var(--onyx); font-weight: 600; text-align: center; }
+  .vw-file input:focus-visible + span { outline: 3px solid var(--lime-tint); outline-offset: 2px; }
+  .vw-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin: 0; padding: 12px; border-radius: 10px; background: var(--onyx); font-size: 12px; }
+  .vw-stats div { min-width: 0; }
+  .vw-stats dt { color: var(--muted); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+  .vw-stats dd { margin: 2px 0 0; color: var(--lime-tint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  fieldset { margin: 0; padding: 0; border: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; }
+  legend { padding: 0 0 6px; color: var(--muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+  fieldset label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--lime-tint); cursor: pointer; }
+  input[type=checkbox], input[type=radio] { accent-color: var(--lime); width: 16px; height: 16px; margin: 0; }
+  .vw-sw { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--muted); flex: none; }
+  .vw-sw[data-v=checker] { background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 8px 8px; }
+  .vw-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .vw-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); font-family: var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+  select { font: inherit; font-size: 14px; letter-spacing: 0; text-transform: none; padding: 7px 8px; border-radius: 8px; background: var(--onyx); color: var(--lime-tint); border: 1px solid var(--onyx-3); }
+  .vw-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .vw-btns button { font: inherit; font-size: 14px; padding: 10px; border-radius: 10px; border: 1px solid var(--onyx-3); background: var(--onyx); color: var(--lime-tint); cursor: pointer; }
+  .vw-btns button:hover:not(:disabled) { border-color: var(--lime); }
+  .vw-btns button:disabled { opacity: .45; cursor: not-allowed; }
+  :is(button, select, input, a, canvas):focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; }
+  .vw-status { margin: 0; min-height: 3em; font-size: 12px; line-height: 1.45; color: var(--lime-tint); }
+  .vw-stage { position: relative; min-width: 0; overflow: hidden; }
+  .vw-stage[data-bg=onyx] { background: #0D160B; }
+  .vw-stage[data-bg=grape] { background: #564D80; }
+  .vw-stage[data-bg=lime] { background: #C2F970; }
+  .vw-stage[data-bg=checker] { background: repeating-conic-gradient(#2a3328 0 25%, #1b2319 0 50%) 0 0 / 28px 28px; }
+  .vw-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .vw-empty { position: absolute; inset: 24px; display: grid; place-items: center; border: 2px dashed var(--grape-lite); border-radius: 18px; pointer-events: none; }
+  .vw-empty span { font-family: var(--font-mono); color: var(--muted); font-size: 14px; }
+  .vw-stage.has-model .vw-empty { display: none; }
+  .vw-drop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; background: rgba(13, 22, 11, .82); border: 4px dashed var(--lime); pointer-events: none; }
+  .vw-drop[hidden] { display: none; }
+  .vw-drop span { font-size: 40px; font-weight: 800; color: var(--lime); }
+  @media (max-width: 760px) {
+    .vw { grid-template-columns: 1fr; height: auto; }
+    .vw-stage { order: -1; height: 58svh; }
+    .vw-panel { border-right: 0; border-top: 1px solid var(--onyx-3); }
+  }
+</style>

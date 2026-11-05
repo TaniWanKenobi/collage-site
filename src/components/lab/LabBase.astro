@@ -1,0 +1,31 @@
+---
+// Page shell for /lab: same fonts and palette as the site, never indexed.
+import '../../styles/global.css';
+import './lab.css';
+interface Props { title: string; description?: string }
+const { title, description = 'Design lab: collage experiments and a 3D model viewer.' } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@500;700&display=swap">
+  <script is:inline>
+    // Scale each .lab-stage's 1440x900 world to the stage's width. Called inline right after each stage.
+    (function () {
+      var ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(function (es) { es.forEach(function (e) { set(e.target); }); }) : null;
+      function set(st) { var w = st.firstElementChild; if (w) w.style.transform = 'scale(' + (st.clientWidth / 1440) + ')'; }
+      window.__labFit = function (st) { if (!st) return; set(st); if (ro) ro.observe(st); };
+    })();
+  </script>
+</head>
+<body class="lab">
+  <slot />
+</body>
+</html>
