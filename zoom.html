@@ -1066,7 +1066,8 @@ Sign with GitHub
   var kb = function (e) { return e && e.detail === 0; };
   ORDER.forEach(function (key, idx) {
     els[key].addEventListener('click', function (e) {
-      if (fl || !cur || zoomness(cur) > 0.2) return;
+      // Any piece is clickable at any zoom level, except the one whose page is already open.
+      if (fl || !cur || live[key]) return;
       flyTo(idx + 0.5, kb(e));
     });
   });
