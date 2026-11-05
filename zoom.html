@@ -34,6 +34,13 @@ a:focus-visible,button:focus-visible{outline:3px solid #C2F970;outline-offset:4p
 /* Phone (<760px) gets the static collage + stacked pages; desktop gets the zoom track. */
 .only-phone{display:none}
 @media (max-width:759.98px){.only-phone{display:block}.only-desk{display:none}}
+.zp{position:absolute;z-index:10;box-sizing:border-box;transform-origin:50% 50%}
+#zm-world .zp{cursor:pointer}
+a.zp{display:block;color:inherit;text-decoration:none}
+.zpanel{position:relative;flex:none;overflow:hidden}
+.zpage{position:absolute;left:0;top:0;width:1440px;height:900px;overflow:hidden;transform-origin:0 0;background-color:#172315;opacity:0;pointer-events:none}
+.tape{height:24px}
+#zm-whead a:hover{color:#EFFDD8}
 </style>
 </head>
 <body>
@@ -47,116 +54,98 @@ a:focus-visible,button:focus-visible{outline:3px solid #C2F970;outline-offset:4p
 <span class="mono" style="font-size: 12px; color: #A8B595">Bayonne, NJ</span>
 </header>
 <div style="position: relative; width: 100%; height: 62.5vw; overflow: hidden">
-<div class="grain" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: scale(0.27)" id="ph-world">
-<h1 style="position: absolute; left: 0; top: 112px; width: 1440px; margin: 0; text-align: center; font-weight: 800; font-size: 180px; line-height: 1; letter-spacing: -0.045em; color: #EFFDD8; z-index: 1">TANISHQ</h1>
+<div class="grain" id="ph-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: scale(0.27); background-color: #0D160B">
+<h1 style="position: absolute; left: 36px; top: 92px; z-index: 1; margin: 0; font-weight: 800; font-size: 270px; line-height: 0.85; letter-spacing: -0.05em; color: #EFFDD8; white-space: nowrap">TANISHQ</h1>
 
-<div aria-hidden="true" style="position: absolute; left: 550px; top: 300px; width: 340px; height: 340px; border-radius: 50%; background-color: #564D80; overflow: hidden; z-index: 2">
-<div class="halftone" style="position: absolute; inset: 0"></div>
-<svg width="340" height="340" viewBox="0 0 340 340" fill="none" stroke="#8F86C0" stroke-width="1.5" style="position: absolute; inset: 0">
-<ellipse cx="170" cy="170" rx="150" ry="52"></ellipse>
-<ellipse cx="170" cy="170" rx="150" ry="104"></ellipse>
-<ellipse cx="170" cy="170" rx="52" ry="150"></ellipse>
-<ellipse cx="170" cy="170" rx="104" ry="150"></ellipse>
-<line x1="20" y1="170" x2="320" y2="170"></line>
-<line x1="170" y1="20" x2="170" y2="320"></line>
+<div aria-hidden="true" style="position: absolute; left: 520px; top: 210px; z-index: 2; width: 400px; height: 400px; border-radius: 50%; background: #564D80; display: flex; align-items: center; justify-content: center; box-shadow: 0 18px 40px rgba(4,8,3,.55)">
+<svg width="294" height="294" viewBox="0 0 260 260" fill="none">
+<circle cx="130" cy="130" r="110" stroke="#8F86C0" stroke-width="2"></circle>
+<ellipse cx="130" cy="130" rx="110" ry="38" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="38" ry="110" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="110" ry="74" stroke="#8F86C0" stroke-width="2" transform="rotate(32 130 130)"></ellipse>
+<circle cx="222" cy="72" r="9" fill="#C2F970"></circle>
 </svg>
-<span class="mono" style="position: absolute; left: 0; right: 0; top: 64px; text-align: center; font-size: 12px; color: #EFFDD8">[3D model]</span>
+<span class="mono" style="position: absolute; top: 46px; font-size: 13px; color: #EFFDD8">[3D model]</span>
 </div>
 
-<div class="gr-me" style="position: absolute; left: 638px; top: 560px; height: 340px; z-index: 3"><img src="tanishq-grape.png" alt="Tanishq"></div>
-
-<p aria-hidden="true" style="position: absolute; left: 0; top: 615px; width: 1440px; margin: 0; text-align: center; font-weight: 800; font-size: 88px; line-height: 1; letter-spacing: -0.03em; color: transparent; -webkit-text-stroke: 2px #C2F970; z-index: 4">makes things.</p>
-
-<div class="mono" style="position: absolute; left: 626px; top: 710px; width: 360px; height: 40px; transform: rotate(-88deg); transform-origin: 50% 50%; background-color: #C2F970; color: #0D160B; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; white-space: nowrap; box-shadow: 0 8px 18px rgba(4,8,3,.45); z-index: 5">Bayonne, NJ · 11th grade · Hack Club</div>
-
-<div style="position: absolute; left: 100px; top: 119px; width: 260px; height: 232px; box-sizing: border-box; padding: 12px; transform: rotate(-6deg); transform-origin: 50% 50%; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<span class="tape" aria-hidden="true" style="top: -11px; left: 92px; width: 76px; transform: rotate(-4deg); background: rgba(143,134,192,.55)"></span>
-<div style="position: relative; width: 236px; height: 147.5px; overflow: hidden; background-color: #3F3862">
-<div class="halftone" style="position: absolute; inset: 0; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; color: #EFFDD8; pointer-events: none; opacity: 1">
-<span class="mono" style="font-size: 9px; line-height: 1">01 · projects</span>
-<span style="font-weight: 800; font-size: 26px; line-height: 0.95; letter-spacing: -0.02em">Things<br>I've built</span>
-</div>
-</div>
-<p style="margin: 10px 0 0; font-weight: 800; font-size: 20px; line-height: 1.1">Projects</p>
-<p class="mono" style="margin: 2px 0 0; font-size: 10px; color: #564D80">Holos, AppTrack, Inkbadge +3</p>
+<div class="gr-me" style="position: absolute; left: 700px; top: 436px; z-index: 3; width: 228px; height: 470px">
+<img src="tanishq-grape.png" alt="Tanishq">
+<span aria-hidden="true" class="mono" style="position: absolute; right: -28px; top: 46px; width: 44px; height: 380px; box-sizing: border-box; background: #C2F970; color: #0D160B; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; font-size: 14px; font-weight: 500; transform: rotate(2deg); box-shadow: 0 10px 22px rgba(4,8,3,.55)">Bayonne, NJ · 11th grade · Hack Club</span>
 </div>
 
-<div style="position: absolute; left: 1095px; top: 140px; width: 240px; height: 120px; display: flex; transform: rotate(5deg); transform-origin: 50% 50%; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<div style="position: relative; flex: none; width: 192px; height: 120px; overflow: hidden; background-color: #C2F970">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; color: #0D160B; pointer-events: none; opacity: 1">
-<span class="mono" style="font-size: 9px; line-height: 1">02 · timeline</span>
-<span style="font-weight: 800; font-size: 36px; line-height: 0.9; letter-spacing: -0.03em">So far</span>
-<span class="mono" style="font-size: 8px; line-height: 1">ADMIT ONE · 2024 → now</span>
-</div>
-</div>
-<div style="flex: none; width: 48px; height: 120px; box-sizing: border-box; border-left: 2px dashed #0D160B; background-color: #564D80; color: #EFFDD8; display: flex; align-items: center; justify-content: center">
-<span class="mono" style="display: block; font-size: 10px; white-space: nowrap; transform: rotate(-90deg)">No. 002</span>
-</div>
-</div>
+<p aria-hidden="true" style="position: absolute; right: 43px; bottom: 30px; z-index: 4; margin: 0; font-weight: 800; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px #C2F970; white-space: nowrap; pointer-events: none">makes things.</p>
 
-<div style="position: absolute; left: 125px; top: 490px; width: 180px; height: 140px; transform: rotate(4deg); transform-origin: 50% 50%; z-index: 10">
-<div aria-hidden="true" style="position: absolute; left: -34px; top: 16px; width: 180px; height: 140px; box-sizing: border-box; padding: 10px; background-color: #EFFDD8; transform: rotate(-11deg); box-shadow: 0 12px 26px rgba(4,8,3,.5)">
-<div style="height: 100px; background-color: #3F3862"></div>
-</div>
-<div style="position: absolute; left: 0; top: 0; width: 180px; height: 140px; box-sizing: border-box; padding: 10px; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55)">
-<div style="position: relative; width: 160px; height: 100px; overflow: hidden; background-color: #564D80">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; color: #EFFDD8; pointer-events: none; opacity: 1">
-<span class="mono" style="font-size: 9px; line-height: 1">03 · photos</span>
-<span class="mono" style="align-self: center; font-size: 9px; line-height: 1">[Photo]</span>
-<span></span>
-</div>
-</div>
-<p style="margin: 1px 0 0; font-family: 'Caveat', cursive; font-size: 21px; line-height: 1.2">Camera roll</p>
-</div>
-</div>
 
-<div style="position: absolute; left: 1110px; top: 365px; width: 240px; height: 190px; transform: rotate(-5deg); transform-origin: 50% 50%; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<span class="tape" aria-hidden="true" style="top: -11px; left: 150px; width: 70px; transform: rotate(6deg); background: rgba(143,134,192,.55)"></span>
-<p class="mono" style="position: absolute; left: 16px; top: 16px; margin: 0; font-size: 10px; line-height: 1; color: #564D80">04 · writing + awards</p>
-<div style="position: absolute; left: 16px; top: 44px; width: 208px; height: 130px; overflow: hidden; background-color: #EFFDD8">
-<div class="ruled" style="position: absolute; inset: 0; box-sizing: border-box; padding: 0 6px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 28px; color: #0D160B; pointer-events: none; opacity: 1">
-<div style="font-weight: 700">Notes and wins</div>
-<div style="color: #564D80">[Post title]</div>
-<div style="color: #564D80">[Award name]</div>
-<div style="color: #564D80">[Post title]</div>
+<a class="zp" href="#sec-projects" aria-label="Projects" style="left: 66px; top: 390px; width: 248px; height: 216px; padding: 12px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-6deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 79px; width: 90px; transform: rotate(-4deg)"></span>
+<div class="zpanel" style="width: 224px; height: 140px; background-color: #564D80">
+<div class="halftone mono" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Holos screenshot]</div>
 </div>
-</div>
-</div>
+<span style="display: block; margin-top: 10px; font-weight: 800; font-size: 22px; line-height: 1">Holos</span>
+<span class="mono" style="display: block; margin-top: 3px; font-size: 11px; color: #564D80">01 · projects</span>
+</a>
 
-<div style="position: absolute; left: 172px; top: 710px; width: 256px; height: 160px; transform: rotate(-3deg); transform-origin: 50% 50%; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<div style="position: absolute; left: 0; top: 0; width: 256px; height: 160px; overflow: hidden; background-color: #564D80">
-<div class="mapgrid" style="position: absolute; inset: 0; color: #EFFDD8; pointer-events: none; opacity: 1">
-<span aria-hidden="true" style="position: absolute; left: 27%; top: 36%; width: 10px; height: 10px; border-radius: 50%; background-color: #C2F970; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 48%; top: 30%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 70%; top: 46%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 56%; top: 62%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span class="mono" style="position: absolute; left: 12px; top: 10px; font-size: 9px; line-height: 1">05 · places</span>
-<span style="position: absolute; left: 12px; bottom: 10px; font-weight: 800; font-size: 22px; line-height: 1">Where I've been</span>
+<a class="zp" href="#sec-timeline" aria-label="Timeline" style="left: 300px; top: 150px; width: 236px; height: 110px; display: flex; border-radius: 6px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(4deg)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #C2F970; border-radius: 6px 0 0 6px">
+<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; color: #0D160B">
+<span class="mono" style="font-size: 11px; line-height: 1">ADMIT ONE · 02</span>
+<span style="font-weight: 800; font-size: 32px; line-height: 1; letter-spacing: -0.02em">Timeline</span>
 </div>
 </div>
-<span class="tape" aria-hidden="true" style="top: -10px; left: -14px; width: 64px; transform: rotate(-32deg)"></span>
-</div>
+<span aria-hidden="true" class="mono" style="flex: none; width: 60px; box-sizing: border-box; border-left: 2px dashed #0D160B; background: #C2F970; color: #0D160B; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: center; font-size: 12px; writing-mode: vertical-rl">2024→now</span>
+</a>
 
-<div style="position: absolute; left: 1170px; top: 640px; width: 200px; height: 200px; transform: rotate(7deg); transform-origin: 50% 50%; background-color: #C2F970; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<div style="position: absolute; left: 12px; top: 12px; width: 176px; height: 110px; overflow: hidden; background-color: #C2F970">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 4px 4px; display: flex; flex-direction: column; gap: 2px; pointer-events: none; opacity: 1">
-<span style="font-family: 'Caveat', cursive; font-weight: 700; font-size: 32px; line-height: 1">Leave a note</span>
-<span style="font-family: 'Caveat', cursive; font-size: 20px; line-height: 1.1; color: #564D80">[Their message]</span>
+<a class="zp" href="#sec-photos" aria-label="Photos" style="left: 880px; top: 130px; width: 194px; height: 153px; transform: rotate(7deg)">
+<span aria-hidden="true" style="position: absolute; left: -66px; top: 22px; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: #EFFDD8; transform: rotate(-14deg); box-shadow: 0 14px 30px rgba(4,8,3,.55)">
+<span class="mono" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #3F3862; color: #EFFDD8; font-size: 11px">[Photo]</span>
+</span>
+<div style="position: absolute; left: 0; top: 0; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: #EFFDD8; color: #0D160B; box-shadow: -6px 6px 14px rgba(4,8,3,.4), 0 14px 30px rgba(4,8,3,.55)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #564D80">
+<div class="mono" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #EFFDD8; font-size: 11px">[Photo]</div>
 </div>
+<span class="mono" style="position: absolute; left: 11px; bottom: 10px; font-size: 11px; line-height: 1">03 · photos</span>
 </div>
-<span aria-hidden="true" style="position: absolute; left: 12px; top: 126px; width: 176px; border-top: 1px dashed #564D80"></span>
-<p class="mono" style="position: absolute; left: 16px; top: 136px; margin: 0; font-size: 10px; line-height: 1">06 · guestbook</p>
-<p style="position: absolute; left: 16px; top: 156px; margin: 0; font-weight: 800; font-size: 15px; line-height: 1">Sign with GitHub →</p>
-</div>
+</a>
 
-<div style="position: absolute; left: 920px; top: 710px; width: 180px; height: 180px; border-radius: 50%; transform: rotate(-8deg); transform-origin: 50% 50%; background-color: #564D80; color: #EFFDD8; box-shadow: 0 14px 30px rgba(4,8,3,.55); z-index: 10">
-<span aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: 166px; height: 166px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #C2F970"></span>
-<p class="mono" style="position: absolute; left: 0; top: 30px; width: 180px; margin: 0; text-align: center; font-size: 9px; line-height: 1">07 · say hi</p>
-<div style="position: absolute; left: 26px; top: 50px; width: 128px; height: 80px; overflow: hidden; background-color: #564D80">
-<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 36px; line-height: 1; letter-spacing: -0.03em; color: #C2F970; pointer-events: none; opacity: 1">Say hi.</div>
+<a class="zp" href="#sec-writing" aria-label="Writing and awards" style="left: 1150px; top: 420px; width: 220px; height: 148px; padding: 14px; background-color: #564D80; color: #EFFDD8; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-3deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
+<div class="zpanel" style="width: 192px; height: 120px; background-color: #564D80">
+<div class="ruled" style="position: absolute; inset: 0; box-sizing: border-box; padding-top: 2px">
+<span class="mono" style="display: block; font-size: 11px; line-height: 28px; color: #C2F970">04 · writing + awards</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Award name]</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
 </div>
-<p class="mono" style="position: absolute; left: 0; top: 140px; width: 180px; margin: 0; text-align: center; font-size: 9px; line-height: 1">EMAIL ME</p>
 </div>
+</a>
+
+<a class="zp" href="#sec-map" aria-label="Places" style="left: 840px; top: 575px; width: 240px; height: 150px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-5deg)">
+<div class="zpanel" style="width: 240px; height: 150px; background-color: #172315">
+<div class="mapgrid" style="position: absolute; inset: 0; color: #C2F970; box-shadow: inset 0 0 0 1px #C2F970">
+<span aria-hidden="true" style="position: absolute; left: 62px; top: 52px; width: 14px; height: 14px; border-radius: 50%; background: #C2F970; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 150px; top: 38px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span aria-hidden="true" style="position: absolute; left: 182px; top: 86px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span class="mono" style="position: absolute; left: 12px; bottom: 10px; font-size: 11px; line-height: 1">05 · places · Bayonne, NJ</span>
+</div>
+</div>
+</a>
+
+<a class="zp" href="#sec-guestbook" aria-label="Guestbook" style="left: 370px; top: 560px; width: 204px; height: 160px; padding: 14px; background: #C2F970; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(8deg)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #C2F970">
+<div style="position: absolute; inset: 0; font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; line-height: 1">sign my guestbook →</div>
+</div>
+<span class="mono" style="position: absolute; left: 14px; bottom: 12px; font-size: 11px; line-height: 1; color: #564D80">06 · guestbook</span>
+</a>
+
+<a class="zp" href="#sec-contact" aria-label="Say hi" style="left: 1230px; top: 120px; width: 170px; height: 170px; border-radius: 50%; background: #0D160B; color: #C2F970; box-shadow: inset 0 0 0 3px #C2F970, 0 14px 30px rgba(4,8,3,.55); transform: rotate(-12deg)">
+<div class="zpanel" style="position: absolute; left: 21px; top: 45px; width: 128px; height: 80px; background-color: #0D160B">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+<span class="mono" style="font-size: 11px; line-height: 1.2">07 · say hi</span>
+<span style="font-weight: 800; font-size: 28px; line-height: 1">EMAIL</span>
+<span style="font-weight: 800; font-size: 28px; line-height: 1">ME</span>
+</div>
+</div>
+</a>
 </div>
 </div>
 <div id="sec-projects" style="border-top: 1px solid #263424"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
@@ -440,36 +429,46 @@ Sign with GitHub
 <div id="zm-track" style="position: relative; height: 12000px">
 <div id="zm-stage" style="position: sticky; top: 0; height: 100vh; overflow: hidden; background-color: #0D160B">
 
-<div class="grain" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: none" id="zm-world">
-<h1 style="position: absolute; left: 0; top: 112px; width: 1440px; margin: 0; text-align: center; font-weight: 800; font-size: 180px; line-height: 1; letter-spacing: -0.045em; color: #EFFDD8; z-index: 1">TANISHQ</h1>
+<div class="grain" id="zm-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: none; background-color: #0D160B">
+<div id="zm-whead" style="position: absolute; left: 43px; right: 43px; top: 22px; height: 44px; display: flex; align-items: center; justify-content: space-between; z-index: 25">
+<a href="#zm-root" data-fly="home" style="font-weight: 800; font-size: 18px; color: #EFFDD8; text-decoration: none; letter-spacing: -0.01em">Tanishq</a>
+<nav aria-label="Collage" class="mono" style="display: flex; align-items: center; gap: 4px 22px; font-size: 13px">
+<a href="#projects" data-fly="projects" style="color: #A8B595; text-decoration: none">Work</a>
+<a href="#writing" data-fly="writing" style="color: #A8B595; text-decoration: none">Writing</a>
+<a href="#photos" data-fly="photos" style="color: #A8B595; text-decoration: none">Photos</a>
+<a href="#map" data-fly="map" style="color: #A8B595; text-decoration: none">Map</a>
+<a href="#guestbook" data-fly="guestbook" style="color: #A8B595; text-decoration: none">Guestbook</a>
+<a href="#contact" data-fly="contact" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: #C2F970; color: #0D160B; font-weight: 500; text-decoration: none">Email me</a>
+</nav>
+</div>
+<p aria-hidden="true" style="position: absolute; left: 36px; top: 92px; z-index: 1; margin: 0; font-weight: 800; font-size: 270px; line-height: 0.85; letter-spacing: -0.05em; color: #EFFDD8; white-space: nowrap">TANISHQ</p>
 
-<div aria-hidden="true" style="position: absolute; left: 550px; top: 300px; width: 340px; height: 340px; border-radius: 50%; background-color: #564D80; overflow: hidden; z-index: 2">
-<div class="halftone" style="position: absolute; inset: 0"></div>
-<svg width="340" height="340" viewBox="0 0 340 340" fill="none" stroke="#8F86C0" stroke-width="1.5" style="position: absolute; inset: 0">
-<ellipse cx="170" cy="170" rx="150" ry="52"></ellipse>
-<ellipse cx="170" cy="170" rx="150" ry="104"></ellipse>
-<ellipse cx="170" cy="170" rx="52" ry="150"></ellipse>
-<ellipse cx="170" cy="170" rx="104" ry="150"></ellipse>
-<line x1="20" y1="170" x2="320" y2="170"></line>
-<line x1="170" y1="20" x2="170" y2="320"></line>
+<div aria-hidden="true" style="position: absolute; left: 520px; top: 210px; z-index: 2; width: 400px; height: 400px; border-radius: 50%; background: #564D80; display: flex; align-items: center; justify-content: center; box-shadow: 0 18px 40px rgba(4,8,3,.55)">
+<svg width="294" height="294" viewBox="0 0 260 260" fill="none">
+<circle cx="130" cy="130" r="110" stroke="#8F86C0" stroke-width="2"></circle>
+<ellipse cx="130" cy="130" rx="110" ry="38" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="38" ry="110" stroke="#8F86C0" stroke-width="2"></ellipse>
+<ellipse cx="130" cy="130" rx="110" ry="74" stroke="#8F86C0" stroke-width="2" transform="rotate(32 130 130)"></ellipse>
+<circle cx="222" cy="72" r="9" fill="#C2F970"></circle>
 </svg>
-<span class="mono" style="position: absolute; left: 0; right: 0; top: 64px; text-align: center; font-size: 12px; color: #EFFDD8">[3D model]</span>
+<span class="mono" style="position: absolute; top: 46px; font-size: 13px; color: #EFFDD8">[3D model]</span>
 </div>
 
-<div class="gr-me" style="position: absolute; left: 638px; top: 560px; height: 340px; z-index: 3"><img src="tanishq-grape.png" alt="Tanishq"></div>
-
-<p aria-hidden="true" style="position: absolute; left: 0; top: 615px; width: 1440px; margin: 0; text-align: center; font-weight: 800; font-size: 88px; line-height: 1; letter-spacing: -0.03em; color: transparent; -webkit-text-stroke: 2px #C2F970; z-index: 4">makes things.</p>
-
-<div class="mono" style="position: absolute; left: 626px; top: 710px; width: 360px; height: 40px; transform: rotate(-88deg); transform-origin: 50% 50%; background-color: #C2F970; color: #0D160B; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; white-space: nowrap; box-shadow: 0 8px 18px rgba(4,8,3,.45); z-index: 5">Bayonne, NJ · 11th grade · Hack Club</div>
-
-<div data-jump="projects" style="position: absolute; left: 100px; top: 119px; width: 260px; height: 232px; box-sizing: border-box; padding: 12px; transform: rotate(-6deg); transform-origin: 50% 50%; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<span class="tape" aria-hidden="true" style="top: -11px; left: 92px; width: 76px; transform: rotate(-4deg); background: rgba(143,134,192,.55)"></span>
-<div style="position: relative; width: 236px; height: 147.5px; overflow: hidden; background-color: #3F3862">
-<div class="halftone" style="position: absolute; inset: 0; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; color: #EFFDD8; pointer-events: none; opacity: 1" data-cover="projects">
-<span class="mono" style="font-size: 9px; line-height: 1">01 · projects</span>
-<span style="font-weight: 800; font-size: 26px; line-height: 0.95; letter-spacing: -0.02em">Things<br>I've built</span>
+<div class="gr-me" style="position: absolute; left: 700px; top: 436px; z-index: 3; width: 228px; height: 470px">
+<img src="tanishq-grape.png" alt="Tanishq">
+<span aria-hidden="true" class="mono" style="position: absolute; right: -28px; top: 46px; width: 44px; height: 380px; box-sizing: border-box; background: #C2F970; color: #0D160B; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; font-size: 14px; font-weight: 500; transform: rotate(2deg); box-shadow: 0 10px 22px rgba(4,8,3,.55)">Bayonne, NJ · 11th grade · Hack Club</span>
 </div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.163889); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="projects" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+
+<p aria-hidden="true" style="position: absolute; right: 43px; bottom: 30px; z-index: 4; margin: 0; font-weight: 800; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px #C2F970; white-space: nowrap; pointer-events: none">makes things.</p>
+
+<h1 style="position: absolute; left: 43px; bottom: 36px; z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: #EFFDD8">Tanishq, 11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
+<p id="zm-hint" class="mono" style="position: absolute; left: 43px; bottom: 108px; z-index: 4; margin: 0; font-size: 14px; color: #C2F970">scroll to zoom in ↓</p>
+
+<div class="zp" data-jump="projects" data-rot="-6" style="left: 66px; top: 390px; width: 248px; height: 216px; padding: 12px; background: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-6deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 79px; width: 90px; transform: rotate(-4deg)"></span>
+<div class="zpanel" style="width: 224px; height: 140px; background-color: #564D80">
+<div class="halftone mono" data-cover="projects" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #EFFDD8">[Holos screenshot]</div>
+<div class="zpage" data-page="projects" aria-hidden="true" inert style="transform: scale(0.155556)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">01 · projects</p>
@@ -540,19 +539,19 @@ Sign with GitHub
 </ul>
 </article>
 </div>
-</div></div></div>
-<p style="margin: 10px 0 0; font-weight: 800; font-size: 20px; line-height: 1.1">Projects</p>
-<p class="mono" style="margin: 2px 0 0; font-size: 10px; color: #564D80">Holos, AppTrack, Inkbadge +3</p>
+</div></div>
+</div>
+<span style="display: block; margin-top: 10px; font-weight: 800; font-size: 22px; line-height: 1">Holos</span>
+<span class="mono" style="display: block; margin-top: 3px; font-size: 11px; color: #564D80">01 · projects</span>
 </div>
 
-<div data-jump="timeline" style="position: absolute; left: 1095px; top: 140px; width: 240px; height: 120px; display: flex; transform: rotate(5deg); transform-origin: 50% 50%; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<div style="position: relative; flex: none; width: 192px; height: 120px; overflow: hidden; background-color: #C2F970">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 12px 14px; display: flex; flex-direction: column; justify-content: space-between; color: #0D160B; pointer-events: none; opacity: 1" data-cover="timeline">
-<span class="mono" style="font-size: 9px; line-height: 1">02 · timeline</span>
-<span style="font-weight: 800; font-size: 36px; line-height: 0.9; letter-spacing: -0.03em">So far</span>
-<span class="mono" style="font-size: 8px; line-height: 1">ADMIT ONE · 2024 → now</span>
+<div class="zp" data-jump="timeline" data-rot="4" style="left: 300px; top: 150px; width: 236px; height: 110px; display: flex; border-radius: 6px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(4deg)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #C2F970; border-radius: 6px 0 0 6px">
+<div data-cover="timeline" style="position: absolute; inset: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; color: #0D160B">
+<span class="mono" style="font-size: 11px; line-height: 1">ADMIT ONE · 02</span>
+<span style="font-weight: 800; font-size: 32px; line-height: 1; letter-spacing: -0.02em">Timeline</span>
 </div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.133333); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="timeline" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zpage" data-page="timeline" aria-hidden="true" inert style="transform: scale(0.122222)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">02 · timeline</p>
@@ -591,24 +590,19 @@ Sign with GitHub
 </li>
 </ol>
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">ADMIT ONE · 2024 → now</p>
-</div></div></div>
-<div style="flex: none; width: 48px; height: 120px; box-sizing: border-box; border-left: 2px dashed #0D160B; background-color: #564D80; color: #EFFDD8; display: flex; align-items: center; justify-content: center">
-<span class="mono" style="display: block; font-size: 10px; white-space: nowrap; transform: rotate(-90deg)">No. 002</span>
+</div></div>
 </div>
+<span aria-hidden="true" class="mono" style="flex: none; width: 60px; box-sizing: border-box; border-left: 2px dashed #0D160B; background: #C2F970; color: #0D160B; border-radius: 0 6px 6px 0; display: flex; align-items: center; justify-content: center; font-size: 12px; writing-mode: vertical-rl">2024→now</span>
 </div>
 
-<div data-jump="photos" style="position: absolute; left: 125px; top: 490px; width: 180px; height: 140px; transform: rotate(4deg); transform-origin: 50% 50%; cursor: pointer; z-index: 10">
-<div aria-hidden="true" style="position: absolute; left: -34px; top: 16px; width: 180px; height: 140px; box-sizing: border-box; padding: 10px; background-color: #EFFDD8; transform: rotate(-11deg); box-shadow: 0 12px 26px rgba(4,8,3,.5)">
-<div style="height: 100px; background-color: #3F3862"></div>
-</div>
-<div style="position: absolute; left: 0; top: 0; width: 180px; height: 140px; box-sizing: border-box; padding: 10px; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55)">
-<div style="position: relative; width: 160px; height: 100px; overflow: hidden; background-color: #564D80">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; color: #EFFDD8; pointer-events: none; opacity: 1" data-cover="photos">
-<span class="mono" style="font-size: 9px; line-height: 1">03 · photos</span>
-<span class="mono" style="align-self: center; font-size: 9px; line-height: 1">[Photo]</span>
-<span></span>
-</div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.111111); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="photos" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zp" data-jump="photos" data-rot="7" style="left: 880px; top: 130px; width: 194px; height: 153px; transform: rotate(7deg)">
+<span aria-hidden="true" style="position: absolute; left: -66px; top: 22px; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: #EFFDD8; transform: rotate(-14deg); box-shadow: 0 14px 30px rgba(4,8,3,.55)">
+<span class="mono" style="display: flex; align-items: center; justify-content: center; height: 100%; background: #3F3862; color: #EFFDD8; font-size: 11px">[Photo]</span>
+</span>
+<div style="position: absolute; left: 0; top: 0; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: #EFFDD8; color: #0D160B; box-shadow: -6px 6px 14px rgba(4,8,3,.4), 0 14px 30px rgba(4,8,3,.55)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #564D80">
+<div class="mono" data-cover="photos" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #EFFDD8; font-size: 11px">[Photo]</div>
+<div class="zpage" data-page="photos" aria-hidden="true" inert style="transform: scale(0.122222)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">03 · photos</p>
@@ -642,22 +636,22 @@ Sign with GitHub
 <figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
 </figure>
 </div>
-</div></div></div>
-<p style="margin: 1px 0 0; font-family: 'Caveat', cursive; font-size: 21px; line-height: 1.2">Camera roll</p>
+</div></div>
+</div>
+<span class="mono" style="position: absolute; left: 11px; bottom: 10px; font-size: 11px; line-height: 1">03 · photos</span>
 </div>
 </div>
 
-<div data-jump="writing" style="position: absolute; left: 1110px; top: 365px; width: 240px; height: 190px; transform: rotate(-5deg); transform-origin: 50% 50%; background-color: #EFFDD8; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<span class="tape" aria-hidden="true" style="top: -11px; left: 150px; width: 70px; transform: rotate(6deg); background: rgba(143,134,192,.55)"></span>
-<p class="mono" style="position: absolute; left: 16px; top: 16px; margin: 0; font-size: 10px; line-height: 1; color: #564D80">04 · writing + awards</p>
-<div style="position: absolute; left: 16px; top: 44px; width: 208px; height: 130px; overflow: hidden; background-color: #EFFDD8">
-<div class="ruled" style="position: absolute; inset: 0; box-sizing: border-box; padding: 0 6px; font-family: 'Caveat', cursive; font-size: 22px; line-height: 28px; color: #0D160B; pointer-events: none; opacity: 1" data-cover="writing">
-<div style="font-weight: 700">Notes and wins</div>
-<div style="color: #564D80">[Post title]</div>
-<div style="color: #564D80">[Award name]</div>
-<div style="color: #564D80">[Post title]</div>
+<div class="zp" data-jump="writing" data-rot="-3" style="left: 1150px; top: 420px; width: 220px; height: 148px; padding: 14px; background-color: #564D80; color: #EFFDD8; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-3deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
+<div class="zpanel" style="width: 192px; height: 120px; background-color: #564D80">
+<div class="ruled" data-cover="writing" style="position: absolute; inset: 0; box-sizing: border-box; padding-top: 2px">
+<span class="mono" style="display: block; font-size: 11px; line-height: 28px; color: #C2F970">04 · writing + awards</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Award name]</span>
+<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
 </div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.144444); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="writing" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zpage" data-page="writing" aria-hidden="true" inert style="transform: scale(0.133333)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">04 · writing + awards</p>
@@ -688,20 +682,19 @@ Sign with GitHub
 </li>
 </ul>
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">Posts and awards, newest first.</p>
-</div></div></div>
+</div></div>
+</div>
 </div>
 
-<div data-jump="map" style="position: absolute; left: 172px; top: 710px; width: 256px; height: 160px; transform: rotate(-3deg); transform-origin: 50% 50%; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<div style="position: absolute; left: 0; top: 0; width: 256px; height: 160px; overflow: hidden; background-color: #564D80">
-<div class="mapgrid" style="position: absolute; inset: 0; color: #EFFDD8; pointer-events: none; opacity: 1" data-cover="map">
-<span aria-hidden="true" style="position: absolute; left: 27%; top: 36%; width: 10px; height: 10px; border-radius: 50%; background-color: #C2F970; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 48%; top: 30%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 70%; top: 46%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span aria-hidden="true" style="position: absolute; left: 56%; top: 62%; width: 10px; height: 10px; border-radius: 50%; background-color: #8F86C0; border: 2px solid #0D160B"></span>
-<span class="mono" style="position: absolute; left: 12px; top: 10px; font-size: 9px; line-height: 1">05 · places</span>
-<span style="position: absolute; left: 12px; bottom: 10px; font-weight: 800; font-size: 22px; line-height: 1">Where I've been</span>
+<div class="zp" data-jump="map" data-rot="-5" style="left: 840px; top: 575px; width: 240px; height: 150px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-5deg)">
+<div class="zpanel" style="width: 240px; height: 150px; background-color: #172315">
+<div class="mapgrid" data-cover="map" style="position: absolute; inset: 0; color: #C2F970; box-shadow: inset 0 0 0 1px #C2F970">
+<span aria-hidden="true" style="position: absolute; left: 62px; top: 52px; width: 14px; height: 14px; border-radius: 50%; background: #C2F970; border: 3px solid #0D160B"></span>
+<span aria-hidden="true" style="position: absolute; left: 150px; top: 38px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span aria-hidden="true" style="position: absolute; left: 182px; top: 86px; width: 10px; height: 10px; border-radius: 50%; background: #8F86C0"></span>
+<span class="mono" style="position: absolute; left: 12px; bottom: 10px; font-size: 11px; line-height: 1">05 · places · Bayonne, NJ</span>
 </div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.177778); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="map" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zpage" data-page="map" aria-hidden="true" inert style="transform: scale(0.166667)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">05 · places</p>
@@ -736,17 +729,14 @@ Sign with GitHub
 </li>
 </ul>
 </div>
-</div></div></div>
-<span class="tape" aria-hidden="true" style="top: -10px; left: -14px; width: 64px; transform: rotate(-32deg)"></span>
+</div></div>
+</div>
 </div>
 
-<div data-jump="guestbook" style="position: absolute; left: 1170px; top: 640px; width: 200px; height: 200px; transform: rotate(7deg); transform-origin: 50% 50%; background-color: #C2F970; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<div style="position: absolute; left: 12px; top: 12px; width: 176px; height: 110px; overflow: hidden; background-color: #C2F970">
-<div style="position: absolute; inset: 0; box-sizing: border-box; padding: 4px 4px; display: flex; flex-direction: column; gap: 2px; pointer-events: none; opacity: 1" data-cover="guestbook">
-<span style="font-family: 'Caveat', cursive; font-weight: 700; font-size: 32px; line-height: 1">Leave a note</span>
-<span style="font-family: 'Caveat', cursive; font-size: 20px; line-height: 1.1; color: #564D80">[Their message]</span>
-</div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.122222); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="guestbook" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zp" data-jump="guestbook" data-rot="8" style="left: 370px; top: 560px; width: 204px; height: 160px; padding: 14px; background: #C2F970; color: #0D160B; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(8deg)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: #C2F970">
+<div data-cover="guestbook" style="position: absolute; inset: 0; font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; line-height: 1">sign my guestbook →</div>
+<div class="zpage" data-page="guestbook" aria-hidden="true" inert style="transform: scale(0.122222)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">06 · guestbook</p>
@@ -784,18 +774,19 @@ Sign with GitHub
 </button>
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">Leave a note. It shows up here.</p>
 </div>
-</div></div></div>
-<span aria-hidden="true" style="position: absolute; left: 12px; top: 126px; width: 176px; border-top: 1px dashed #564D80"></span>
-<p class="mono" style="position: absolute; left: 16px; top: 136px; margin: 0; font-size: 10px; line-height: 1">06 · guestbook</p>
-<p style="position: absolute; left: 16px; top: 156px; margin: 0; font-weight: 800; font-size: 15px; line-height: 1">Sign with GitHub →</p>
+</div></div>
+</div>
+<span class="mono" style="position: absolute; left: 14px; bottom: 12px; font-size: 11px; line-height: 1; color: #564D80">06 · guestbook</span>
 </div>
 
-<div data-jump="contact" style="position: absolute; left: 920px; top: 710px; width: 180px; height: 180px; border-radius: 50%; transform: rotate(-8deg); transform-origin: 50% 50%; background-color: #564D80; color: #EFFDD8; box-shadow: 0 14px 30px rgba(4,8,3,.55); cursor: pointer; z-index: 10">
-<span aria-hidden="true" style="position: absolute; left: 7px; top: 7px; width: 166px; height: 166px; box-sizing: border-box; border-radius: 50%; border: 2px dashed #C2F970"></span>
-<p class="mono" style="position: absolute; left: 0; top: 30px; width: 180px; margin: 0; text-align: center; font-size: 9px; line-height: 1">07 · say hi</p>
-<div style="position: absolute; left: 26px; top: 50px; width: 128px; height: 80px; overflow: hidden; background-color: #564D80">
-<div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 36px; line-height: 1; letter-spacing: -0.03em; color: #C2F970; pointer-events: none; opacity: 1" data-cover="contact">Say hi.</div>
-<div style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform: scale(0.088889); transform-origin: 0 0; background-color: #172315; opacity: 0; pointer-events: none" data-page="contact" aria-hidden="true" inert><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
+<div class="zp" data-jump="contact" data-rot="-12" style="left: 1230px; top: 120px; width: 170px; height: 170px; border-radius: 50%; background: #0D160B; color: #C2F970; box-shadow: inset 0 0 0 3px #C2F970, 0 14px 30px rgba(4,8,3,.55); transform: rotate(-12deg)">
+<div class="zpanel" style="position: absolute; left: 21px; top: 45px; width: 128px; height: 80px; background-color: #0D160B">
+<div data-cover="contact" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px">
+<span class="mono" style="font-size: 11px; line-height: 1.2">07 · say hi</span>
+<span style="font-weight: 800; font-size: 28px; line-height: 1">EMAIL</span>
+<span style="font-weight: 800; font-size: 28px; line-height: 1">ME</span>
+</div>
+<div class="zpage" data-page="contact" aria-hidden="true" inert style="transform: scale(0.088889)"><div class="zs" style="box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: #172315; color: #EFFDD8; font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif; font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px">
 <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px">
 <div style="display: flex; flex-direction: column; gap: 6px">
 <p class="mono" style="margin: 0; font-size: 13px; color: #A8B595">07 · say hi</p>
@@ -819,42 +810,41 @@ Sign with GitHub
 <span style="font-weight: 800; font-size: 48px; line-height: 1">ME</span>
 </div>
 </div>
-</div></div></div>
-<p class="mono" style="position: absolute; left: 0; top: 140px; width: 180px; margin: 0; text-align: center; font-size: 9px; line-height: 1">EMAIL ME</p>
+</div></div>
+</div>
 </div>
 </div>
 
-<div style="position: absolute; left: 0; top: 0; right: 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 24px; pointer-events: none; z-index: 30">
-<a href="#zm-root" id="zm-home" style="pointer-events: auto; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: #EFFDD8; font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
-<div style="pointer-events: auto; display: flex; align-items: center; gap: 10px; padding: 2px 6px 2px 16px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
-<span class="mono" style="font-size: 12px; color: #EFFDD8; white-space: nowrap"><span id="hud-num">01</span> / 07 · <span id="hud-name">Projects</span></span>
-<div style="display: flex">
-<button type="button" data-dot="0" aria-label="Go to Projects" aria-current="true" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<a href="#zm-root" id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: #EFFDD8; font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none; opacity: 0; visibility: hidden">Tanishq</a>
+
+<div id="zm-hud" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 2px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
+<span class="mono" id="hud-num" style="font-size: 11px; color: #EFFDD8">01</span>
+<div style="display: flex; flex-direction: column">
+<button type="button" data-dot="0" aria-label="Go to Projects" aria-current="true" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 10px; height: 10px; border-radius: 50%; background-color: #C2F970"></span>
 </button>
-<button type="button" data-dot="1" aria-label="Go to Timeline" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="1" aria-label="Go to Timeline" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
-<button type="button" data-dot="2" aria-label="Go to Photos" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="2" aria-label="Go to Photos" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
-<button type="button" data-dot="3" aria-label="Go to Writing" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="3" aria-label="Go to Writing" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
-<button type="button" data-dot="4" aria-label="Go to Places" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="4" aria-label="Go to Places" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
-<button type="button" data-dot="5" aria-label="Go to Guestbook" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="5" aria-label="Go to Guestbook" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
-<button type="button" data-dot="6" aria-label="Go to Say hi" aria-current="false" style="width: 24px; height: 32px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<button type="button" data-dot="6" aria-label="Go to Say hi" aria-current="false" style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
 <span style="display: block; width: 7px; height: 7px; border-radius: 50%; background-color: #8F86C0"></span>
 </button>
 </div>
-</div>
+<span class="mono" id="hud-name" style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: #EFFDD8; padding-top: 4px">Projects</span>
 </div>
 
-<p class="mono" style="position: absolute; left: 0; right: 0; bottom: 22px; margin: 0; text-align: center; font-size: 12px; color: #EFFDD8; pointer-events: none; z-index: 30; opacity: 1" id="zm-hint"><span style="padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85)">scroll to zoom in ↓</span></p>
 
 </div>
 </div>
@@ -866,35 +856,198 @@ Sign with GitHub
 </div>
 <script>
 (function () {
-  var PIECES = [
-    { key: 'projects', name: 'Projects', cx: 230, cy: 235, rot: -6, ox: 0, oy: -30.25, pw: 236, ph: 147.5 },
-    { key: 'timeline', name: 'Timeline', cx: 1215, cy: 200, rot: 5, ox: -24, oy: 0, pw: 192, ph: 120 },
-    { key: 'photos', name: 'Photos', cx: 215, cy: 560, rot: 4, ox: 0, oy: -10, pw: 160, ph: 100 },
-    { key: 'writing', name: 'Writing', cx: 1230, cy: 460, rot: -5, ox: 0, oy: 14, pw: 208, ph: 130 },
-    { key: 'map', name: 'Places', cx: 300, cy: 790, rot: -3, ox: 0, oy: 0, pw: 256, ph: 160 },
-    { key: 'guestbook', name: 'Guestbook', cx: 1270, cy: 740, rot: 7, ox: 0, oy: -33, pw: 176, ph: 110 },
-    { key: 'contact', name: 'Say hi', cx: 1010, cy: 800, rot: -8, ox: 0, oy: 0, pw: 128, ph: 80 }
-  ].map(function (p) {
-    var a = p.rot * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
-    p.px = p.cx + p.ox * c - p.oy * s;
-    p.py = p.cy + p.ox * s + p.oy * c;
-    return p;
-  });
+  'use strict';
+  var ORDER = ['projects', 'timeline', 'photos', 'writing', 'map', 'guestbook', 'contact'];
+  var NAMES = { projects: 'Projects', timeline: 'Timeline', photos: 'Photos', writing: 'Writing', map: 'Places', guestbook: 'Guestbook', contact: 'Say hi' };
 
   var $ = function (id) { return document.getElementById(id); };
-  var root = $('zm-root'), track = $('zm-track'), stage = $('zm-stage'), world = $('zm-world');
-  var phWorld = $('ph-world'), hint = $('zm-hint'), hudNum = $('hud-num'), hudName = $('hud-name');
-  var covers = {}, pages = {};
-  document.querySelectorAll('[data-cover]').forEach(function (el) { covers[el.getAttribute('data-cover')] = el; });
-  document.querySelectorAll('[data-page]').forEach(function (el) { pages[el.getAttribute('data-page')] = el; });
+  var root = $('zm-root'), track = $('zm-track'), world = $('zm-world');
+  var phWorld = $('ph-world'), hint = $('zm-hint'), home = $('zm-home'), whead = $('zm-whead');
+  var hudNum = $('hud-num'), hudName = $('hud-name');
+  var stage = $('zm-stage');
+  var els = {}, covers = {}, pages = {}, live = {};
+  ORDER.forEach(function (k) {
+    els[k] = world.querySelector('[data-jump="' + k + '"]');
+    covers[k] = world.querySelector('[data-cover="' + k + '"]');
+    pages[k] = world.querySelector('[data-page="' + k + '"]');
+    live[k] = false;
+  });
   var dots = Array.prototype.slice.call(document.querySelectorAll('[data-dot]'));
+  // Camera targets: the 16:10 panel of each piece, measured from the markup so it never drifts.
+  var PIECES = ORDER.map(function (k) {
+    return { key: k, name: NAMES[k], rot: Number(els[k].getAttribute('data-rot')) || 0, cx: 720, cy: 450, px: 720, py: 450, pw: 1440, ph: 900 };
+  });
 
-  var vw = 1440, stageH = 900, last = { z: 0, i: 0 }, raf = 0;
+  var vw = 1440, stageH = 900, cur = null, hudI = -1, raf = 0, fl = null, bl = null;
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var ss = function (t) { return t * t * (3 - 2 * t); };
   var f = function (n) { return Number(n.toFixed(4)); };
+  var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var easeIO = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
+  var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
   var reduce = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
   var isPhone = function () { return vw < 760; };
+  var now = function () { return (window.performance && performance.now) ? performance.now() : Date.now(); };
+
+  function geom() {
+    PIECES.forEach(function (p) {
+      var el = els[p.key], pan = el.querySelector('.zpanel');
+      if (!el.offsetWidth || !pan) return;
+      var x = 0, y = 0, n = pan;
+      while (n && n !== el) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+      var W = el.offsetWidth, H = el.offsetHeight;
+      p.pw = pan.offsetWidth; p.ph = pan.offsetHeight;
+      p.cx = el.offsetLeft + W / 2; p.cy = el.offsetTop + H / 2;
+      var ox = x + p.pw / 2 - W / 2, oy = y + p.ph / 2 - H / 2;
+      var a = p.rot * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+      p.px = p.cx + ox * c - oy * s;
+      p.py = p.cy + ox * s + oy * c;
+      if (pages[p.key]) pages[p.key].style.transform = 'scale(' + f(p.pw / 1440) + ')';
+    });
+  }
+
+  function s0() { return Math.min(vw / 1440, stageH / 900); }
+  function zoomness(c) { return clamp(Math.log(c.s / s0()) / Math.log(1.8), 0, 1); }
+
+  // Scroll-driven camera: 7 segments of 1.6 screens, each zooms in, holds, zooms out.
+  function camAtP(P) {
+    P = clamp(P, 0, 7);
+    var i = Math.min(Math.floor(P), 6), u = P - i;
+    var z = u < 0.35 ? ss(u / 0.35) : (u <= 0.65 ? 1 : ss((1 - u) / 0.35));
+    var tp = PIECES[i], a = s0(), b = Math.min(vw / tp.pw, stageH / tp.ph);
+    var s = Math.pow(a, 1 - z) * Math.pow(b, z);
+    var den = 1 - a / b, g = Math.abs(den) < 1e-9 ? z : (1 - a / s) / den;
+    var ops = {}; ops[tp.key] = clamp((z - 0.7) / 0.25, 0, 1);
+    return { i: i, s: s, cx: 720 + (tp.px - 720) * g, cy: 450 + (tp.py - 450) * g, r: tp.rot * g, ops: ops };
+  }
+  function scrollP() { return clamp(-track.getBoundingClientRect().top / (stageH * 1.6), 0, 7); }
+  function topForP(P) { return window.pageYOffset + track.getBoundingClientRect().top + P * stageH * 1.6; }
+
+  function setHud(i) {
+    if (i === hudI) return;
+    hudI = i;
+    hudNum.textContent = String(i + 1).padStart(2, '0');
+    hudName.textContent = PIECES[i].name;
+    dots.forEach(function (b, k) {
+      var on = k === i, dot = b.firstElementChild;
+      b.setAttribute('aria-current', on ? 'true' : 'false');
+      dot.style.width = dot.style.height = on ? '10px' : '7px';
+      dot.style.backgroundColor = on ? '#C2F970' : '#8F86C0';
+    });
+  }
+
+  function applyCam(c) {
+    cur = c;
+    world.style.transform = 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(c.s) + ') rotate(' + f(-c.r) + 'deg) translate(' + f(-c.cx) + 'px, ' + f(-c.cy) + 'px)';
+    ORDER.forEach(function (k) {
+      var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
+      pg.style.opacity = String(f(op));
+      if (covers[k]) covers[k].style.opacity = String(f(1 - op));
+      if (on !== live[k]) {
+        live[k] = on;
+        pg.style.pointerEvents = on ? 'auto' : 'none';
+        if (on) { pg.removeAttribute('aria-hidden'); pg.inert = false; } else { pg.setAttribute('aria-hidden', 'true'); pg.inert = true; }
+      }
+    });
+    var zn = zoomness(c);
+    if (hint) hint.style.opacity = String(f(1 - zn));
+    home.style.opacity = String(f(zn));
+    home.style.visibility = zn > 0.02 ? 'visible' : 'hidden';
+    if (whead) whead.inert = zn > 0.3;
+    setHud(c.i);
+  }
+
+  function mix(a, b, t) {
+    var ops = {};
+    ORDER.forEach(function (k) { ops[k] = lerp(a.ops[k] || 0, b.ops[k] || 0, t); });
+    return { i: b.i, s: Math.exp(lerp(Math.log(a.s), Math.log(b.s), t)), cx: lerp(a.cx, b.cx, t), cy: lerp(a.cy, b.cy, t), r: lerp(a.r, b.r, t), ops: ops };
+  }
+
+  // One frame loop for all three modes: flight (click), blend (flight cancelled by scrolling), scroll.
+  function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+  function tick() {
+    raf = 0;
+    if (isPhone()) return;
+    if (fl) { flightFrame(); return; }
+    if (bl) {
+      var t = clamp((now() - bl.t0) / bl.dur, 0, 1);
+      applyCam(mix(bl.from, camAtP(scrollP()), easeOut(t)));
+      if (t < 1) kick(); else bl = null;
+      return;
+    }
+    applyCam(camAtP(scrollP()));
+  }
+
+  // Direct camera flight to scroll position P (k + 0.5 = holding on piece k, 0 = overview).
+  // Scale moves in log space; piece-to-piece flights pull out partway mid-flight (a fly-to arc).
+  // The centre is weighted by 1/scale so it travels while zoomed out, not while zoomed in.
+  function flyTo(P, focusAfter) {
+    if (isPhone() || fl || !cur) return;
+    var dest = camAtP(P);
+    if (reduce()) { jumpScroll(P); afterLand(P, focusAfter, cur); return; }
+    if (!bl && Math.abs(scrollP() - P) < 0.002) { afterLand(P, focusAfter, cur); return; }
+    bl = null;
+    var from = cur, a = s0(), la = Math.log(from.s), lb = Math.log(dest.s);
+    var inA = from.s > a * 1.25, inB = dest.s > a * 1.25, h = 0;
+    if (inA && inB) {
+      var lmid = 0.5 * (Math.log(a) + Math.min(la, lb));
+      h = Math.max(0, (la + lb) / 2 - lmid);
+    }
+    var N = 64, U = [0], acc = 0, prev = Math.exp(-la);
+    for (var k = 1; k <= N; k++) {
+      var e = k / N, w = Math.exp(-(la + (lb - la) * e - h * 4 * e * (1 - e)));
+      acc += (prev + w) / 2; U.push(acc); prev = w;
+    }
+    for (k = 0; k <= N; k++) U[k] = acc > 0 ? U[k] / acc : k / N;
+    var dist = Math.hypot(dest.cx - from.cx, dest.cy - from.cy);
+    var dur = inA && inB ? 900 : (dist < 1 && Math.abs(la - lb) < 0.01 ? 300 : 780);
+    fl = { from: from, dest: dest, la: la, lb: lb, h: h, U: U, N: N, t0: now(), dur: dur, P: P, focus: focusAfter, fromI: from.i };
+    setHud(dest.i);
+    kick();
+  }
+
+  function flightFrame() {
+    var t = clamp((now() - fl.t0) / fl.dur, 0, 1), e = easeIO(t);
+    var A = fl.from, B = fl.dest;
+    var x = e * fl.N, k = Math.min(Math.floor(x), fl.N - 1);
+    var u = fl.U[k] + (fl.U[k + 1] - fl.U[k]) * (x - k);
+    var fo = 1 - clamp(t / 0.22, 0, 1), fi = clamp((t - 0.78) / 0.22, 0, 1);
+    var ops = {};
+    ORDER.forEach(function (key) { ops[key] = Math.max((A.ops[key] || 0) * fo, (B.ops[key] || 0) * fi); });
+    applyCam({ i: B.i, s: Math.exp(fl.la + (fl.lb - fl.la) * e - fl.h * 4 * e * (1 - e)), cx: lerp(A.cx, B.cx, u), cy: lerp(A.cy, B.cy, u), r: lerp(A.r, B.r, e), ops: ops });
+    if (t < 1) { kick(); return; }
+    var done = fl; fl = null;
+    jumpScroll(done.P);
+    afterLand(done.P, done.focus, done);
+  }
+
+  function jumpScroll(P) {
+    var top = Math.round(topForP(P));
+    try { window.scrollTo({ top: top, left: 0, behavior: 'instant' }); } catch (err) { window.scrollTo(0, top); }
+    applyCam(camAtP(scrollP()));
+  }
+
+  function afterLand(P, focusAfter, info) {
+    if (!focusAfter) return;
+    var c = camAtP(P), key = PIECES[c.i].key;
+    var target = (c.ops[key] || 0) >= 0.5 ? pages[key].querySelector('[data-back]') : dots[info && info.fromI != null ? info.fromI : 0];
+    if (target) { try { target.focus({ preventScroll: true }); } catch (err) { target.focus(); } }
+    if (stage) { stage.scrollTop = 0; stage.scrollLeft = 0; }
+  }
+
+  // Any user scrolling during a flight cancels it and eases back to the scroll-driven camera.
+  function cancelFlight() {
+    if (!fl) return;
+    fl = null;
+    bl = { from: cur, t0: now(), dur: 320 };
+    kick();
+  }
+  window.addEventListener('scroll', function () { if (fl) cancelFlight(); kick(); }, { passive: true });
+  window.addEventListener('wheel', cancelFlight, { passive: true });
+  window.addEventListener('touchstart', cancelFlight, { passive: true });
+  window.addEventListener('keydown', function (e) {
+    if (fl && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| |Spacebar)$/.test(e.key)) cancelFlight();
+  });
 
   function measure() {
     vw = Math.round(root.clientWidth || window.innerWidth || 1440);
@@ -902,79 +1055,34 @@ Sign with GitHub
     track.style.height = f(stageH * (1 + 7 * 1.6)) + 'px';
     stage.style.height = stageH + 'px';
     if (phWorld) phWorld.style.transform = 'scale(' + f(vw / 1440) + ')';
-    render();
-  }
-
-  function progress() {
-    var top = -track.getBoundingClientRect().top;
-    return clamp(top / (stageH * 1.6), 0, 7);
-  }
-
-  function render() {
     if (isPhone()) return;
-    var P = progress();
-    var i = Math.min(Math.floor(P), 6);
-    var u = P - i;
-    var z = u < 0.35 ? ss(u / 0.35) : (u <= 0.65 ? 1 : ss((1 - u) / 0.35));
-    var tp = PIECES[i];
-    var s0 = Math.min(vw / 1440, stageH / 900);
-    var s1 = Math.min(vw / tp.pw, stageH / tp.ph);
-    var s = Math.pow(s0, 1 - z) * Math.pow(s1, z);
-    var den = 1 - s0 / s1;
-    var g = Math.abs(den) < 1e-9 ? z : (1 - s0 / s) / den;
-    var cx = 720 + (tp.px - 720) * g;
-    var cy = 450 + (tp.py - 450) * g;
-    var r = tp.rot * g;
-    var pageOp = clamp((z - 0.7) / 0.25, 0, 1);
-    world.style.transform = 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(s) + ') rotate(' + f(-r) + 'deg) translate(' + f(-cx) + 'px, ' + f(-cy) + 'px)';
-    PIECES.forEach(function (p, k) {
-      var op = k === i ? pageOp : 0;
-      var pg = pages[p.key], cv = covers[p.key];
-      if (pg) {
-        pg.style.opacity = String(f(op));
-        pg.style.pointerEvents = op >= 0.5 ? 'auto' : 'none';
-        if (op >= 0.5) { pg.removeAttribute('aria-hidden'); pg.inert = false; } else { pg.setAttribute('aria-hidden', 'true'); pg.inert = true; }
-      }
-      if (cv) cv.style.opacity = String(f(1 - op));
-    });
-    if (i !== last.i || !last.hud) {
-      hudNum.textContent = String(i + 1).padStart(2, '0');
-      hudName.textContent = tp.name;
-      dots.forEach(function (b, k) {
-        var on = k === i, dot = b.firstElementChild;
-        b.setAttribute('aria-current', on ? 'true' : 'false');
-        dot.style.width = dot.style.height = on ? '10px' : '7px';
-        dot.style.backgroundColor = on ? '#C2F970' : '#8F86C0';
-      });
-      last.hud = true;
-    }
-    hint.style.opacity = String(f(1 - z));
-    last.z = z; last.i = i;
+    geom();
+    if (!fl) { bl = null; applyCam(camAtP(scrollP())); }
   }
-
-  function jumpTo(target) {
-    var top = window.scrollY + track.getBoundingClientRect().top + target * stageH * 1.6;
-    try { window.scrollTo({ top: top, behavior: reduce() ? 'auto' : 'smooth' }); }
-    catch (e) { window.scrollTo(0, top); }
-  }
-
-  window.addEventListener('scroll', function () {
-    if (raf) return;
-    raf = requestAnimationFrame(function () { raf = 0; render(); });
-  }, { passive: true });
   window.addEventListener('resize', measure);
+  window.addEventListener('load', measure);
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measure).observe(root);
 
-  document.querySelectorAll('[data-jump]').forEach(function (el) {
-    var k = PIECES.findIndex(function (p) { return p.key === el.getAttribute('data-jump'); });
-    el.addEventListener('click', function () { if (last.z > 0.2) return; jumpTo(k + 0.5); });
+  var kb = function (e) { return e && e.detail === 0; };
+  ORDER.forEach(function (key, idx) {
+    els[key].addEventListener('click', function (e) {
+      if (fl || !cur || zoomness(cur) > 0.2) return;
+      flyTo(idx + 0.5, kb(e));
+    });
   });
-  document.querySelectorAll('[data-back]').forEach(function (el) {
-    var k = PIECES.findIndex(function (p) { return p.key === el.getAttribute('data-back'); });
-    el.addEventListener('click', function (e) { e.stopPropagation(); jumpTo(k); });
+  document.querySelectorAll('[data-back]').forEach(function (b) {
+    b.addEventListener('click', function (e) { e.stopPropagation(); if (!fl) flyTo(0, kb(e)); });
   });
-  dots.forEach(function (b, k) { b.addEventListener('click', function () { jumpTo(k + 0.5); }); });
-  $('zm-home').addEventListener('click', function (e) { e.preventDefault(); jumpTo(0); });
+  dots.forEach(function (b, k) { b.addEventListener('click', function (e) { if (!fl) flyTo(k + 0.5, kb(e)); }); });
+  document.querySelectorAll('[data-fly]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (fl) return;
+      var t = a.getAttribute('data-fly');
+      flyTo(t === 'home' ? 0 : ORDER.indexOf(t) + 0.5, kb(e));
+    });
+  });
+  home.addEventListener('click', function (e) { e.preventDefault(); if (!fl) flyTo(0, kb(e)); });
 
   measure();
 })();
