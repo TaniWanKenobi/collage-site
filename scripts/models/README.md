@@ -36,7 +36,7 @@ node --max-old-space-size=12288 scripts/models/step-to-glb.mjs $env:TEMP\big-raw
 Optimize an existing GLB (here Hack Club's Sprig, MIT, from `hackclub/sprig` `public/sprig.glb`):
 
 ```powershell
-node scripts/models/optimize-glb.mjs C:\path	o\in.glb public\models\sprig.glb --ratio 0.5 --error 0.004 --longest 0.12 --tex 1024
+node scripts/models/optimize-glb.mjs C:\path\to\in.glb public\models\sprig.glb --ratio 0.5 --error 0.004 --longest 0.12 --tex 1024
 node scripts/models/render.mjs sprig --az 20 --el 38 --fit 0.8
 ```
 
