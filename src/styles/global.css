@@ -31,14 +31,20 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--lime); outline-
 
 /* Phone (<760px) gets the static collage + stacked pages; desktop gets the zoom track. */
 .only-phone { display: none; }
-@media (max-width: 759.98px) { .only-phone { display: block; } .only-desk { display: none; } }
+/* Keep in sync with STACKED_MQ in scripts/slot-view.js. */
+@media (max-width: 759.98px), (max-aspect-ratio: 17/20) { .only-phone { display: block; } .only-desk { display: none; } }
 
 /* Collage pieces */
 .zp { position: absolute; z-index: 10; box-sizing: border-box; transform-origin: 50% 50%; }
 #zm-world .zp { cursor: pointer; }
 a.zp { display: block; color: inherit; text-decoration: none; }
-.zpanel { position: relative; flex: none; overflow: hidden; }
+.zpanel { position: relative; flex: none; }
+/* Section page inside a card: laid out at the real viewport size by the camera (zoom-camera.js geom), scrolls once landed. */
 .zpage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; background-color: var(--onyx-2); opacity: 0; pointer-events: none; }
+.zpage.is-held { overflow-y: auto; overscroll-behavior-y: auto; }
+.zpage .zs { padding-right: max(clamp(24px, 4.4vw, 64px), 64px); } /* clear the HUD */
+#zm-home { opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
+#zm-home.is-on { opacity: 1; visibility: visible; transition: opacity .25s ease; }
 #zm-whead a:hover { color: var(--lime-tint); }
 
 /* Section pages */

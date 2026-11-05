@@ -3,4 +3,4 @@
 interface Props { as?: 'h1' | 'p' }
 const Tag = Astro.props.as ?? 'p';
 ---
-<Tag aria-hidden={Tag === 'p' ? 'true' : undefined} style="position: absolute; left: 36px; top: 92px; z-index: 1; margin: 0; font-weight: 800; font-size: 270px; line-height: 0.85; letter-spacing: -0.05em; color: var(--lime-tint); white-space: nowrap">TANISHQ</Tag>
+<Tag aria-hidden={Tag === 'p' ? 'true' : undefined} style="position: absolute; left: calc(36px - var(--ex, 0px) * 0.25); top: 92px; z-index: 1; margin: 0; font-weight: 800; font-size: 270px; line-height: 0.85; letter-spacing: -0.05em; color: var(--lime-tint); white-space: nowrap">TANISHQ</Tag>

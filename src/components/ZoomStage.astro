@@ -6,12 +6,12 @@ import { ORDER, NAMES, url } from '../lib/sections';
 ---
 <div class="only-desk">
   <div id="zm-track" style="position: relative; height: 12000px">
-    <div id="zm-stage" style="position: sticky; top: 0; height: 100vh; overflow: hidden; background-color: var(--onyx)">
-      <div class="grain" id="zm-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; transform: none; background-color: var(--onyx)">
+    <div id="zm-stage" class="grain" style="position: sticky; top: 0; height: 100vh; overflow: hidden; background-color: var(--onyx)">
+      <div id="zm-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; transform: none; --ex: 0px; --ey: 0px">
         <CollageWorld mode="desk" />
       </div>
 
-      <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none; opacity: 0; visibility: hidden">Tanishq</a>
+      <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
 
       <div id="zm-hud" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 2px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
         <span class="mono" id="hud-num" style="font-size: 11px; color: var(--lime-tint)">01</span>
