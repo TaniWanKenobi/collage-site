@@ -1,0 +1,63 @@
+---
+// A live 3D model: the transparent .webp poster shows at once, then the shared WebGL runtime
+// (src/scripts/model-stage.ts, lazy) draws the .glb into the canvas and the poster fades out.
+//   kind="world": a cutout object inside the zoom collage (#zm-world); spins, drag to orbit, a click flies to `fly`.
+//   kind="page":  inside a section page in the zoom world; renders only while that page is open.
+//   kind="flow":  in normal page flow (phone sections); phones get a "spin in 3D" button instead of autoload.
+//   kind="poster": picture only (the phone collage thumbnail).
+import models from '../data/models.json';
+import { url } from '../lib/sections';
+interface Props {
+  id: 'ice3dp' | 'tamagotchi';
+  kind: 'world' | 'page' | 'flow' | 'poster';
+  style?: string;
+  fly?: string;
+  elev?: number; azim?: number; fill?: number;
+}
+const { id, kind, style = '', fly, elev = 22, azim = 35, fill = 0.9 } = Astro.props;
+const m = models.find((x) => x.id === id)!;
+const live = kind !== 'poster';
+const label = `${m.title} 3D model`;
+---
+<div
+  class={`m3d m3d--${kind}`}
+  style={style}
+  data-m3d={live ? kind : undefined}
+  data-src={url(m.glb)}
+  data-elev={elev} data-azim={azim} data-fill={fill}
+  data-fly-to={fly}
+  role={kind === 'world' ? 'link' : undefined}
+  tabindex={kind === 'world' ? 0 : undefined}
+  aria-label={kind === 'world' ? `${m.title}: open Projects` : undefined}
+>
+  <img class="m3d-poster" src={url(m.poster)} alt={live ? '' : label} width="1200" height="900" decoding="async" draggable="false" loading={kind === 'world' ? 'eager' : 'lazy'} />
+  {live && <canvas class="m3d-canvas" role="img" aria-label={`${label}. Drag to rotate.`}></canvas>}
+  {kind === 'flow' && <button type="button" class="m3d-load mono" hidden>Spin in 3D</button>}
+</div>
+{live && <script>import '../scripts/models-boot.js';</script>}
+
+<style>
+  .m3d { position: relative; }
+  .m3d > img, .m3d > canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .m3d-poster { object-fit: contain; transition: opacity .4s ease; pointer-events: none; user-select: none; }
+  .m3d-canvas { opacity: 0; transition: opacity .5s ease; cursor: grab; touch-action: pan-y; }
+  .m3d-canvas:active { cursor: grabbing; }
+  .m3d.is-live .m3d-canvas { opacity: 1; }
+  .m3d.is-live .m3d-poster { opacity: 0; }
+
+  .m3d--world, .m3d--poster { position: absolute; }
+  .m3d--world { cursor: pointer; transition: translate .25s ease, filter .25s ease; filter: drop-shadow(0 16px 18px rgba(4, 8, 3, .6)); outline-offset: 6px; }
+  .m3d--world .m3d-canvas { touch-action: none; }
+  .m3d--world:hover { translate: 0 -6px; filter: drop-shadow(0 24px 22px rgba(4, 8, 3, .55)) drop-shadow(0 0 18px rgba(194, 249, 112, .18)); }
+  .m3d--world:focus-visible { outline: 3px solid var(--lime); }
+  .m3d--poster { filter: drop-shadow(0 16px 18px rgba(4, 8, 3, .6)); }
+
+  .m3d--page, .m3d--flow { width: 100%; aspect-ratio: 16 / 10; border-radius: 4px; background: radial-gradient(closest-side, rgba(143, 134, 192, .35), transparent), var(--onyx); }
+  .m3d-load { position: absolute; left: 50%; bottom: 12px; translate: -50% 0; min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--lime); color: var(--onyx); font-size: 13px; cursor: pointer; }
+  .m3d.is-live .m3d-load, .m3d.is-loading .m3d-load { display: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .m3d--world, .m3d-poster, .m3d-canvas { transition: none; }
+    .m3d--world:hover { translate: none; }
+  }
+</style>

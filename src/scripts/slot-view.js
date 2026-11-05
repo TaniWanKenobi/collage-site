@@ -41,10 +41,13 @@ export function zoomDpr(cam, cssSize) {
   return Math.min(cap, Math.max(1, Math.round(base * (cam ? cam.s : 1) * 4) / 4));
 }
 
-/** Phones and reduced-motion visitors keep the static fallbacks. */
+/** Narrow or portrait screens get the stacked layout (static collage + stacked pages). Keep in sync with global.css. */
+export const STACKED_MQ = '(max-width: 759.98px), (max-aspect-ratio: 17/20)';
+
+/** Stacked-layout and reduced-motion visitors keep the static fallbacks. */
 export function prefersStatic() {
   if (typeof window === 'undefined') return true;
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.innerWidth < 760;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches || window.matchMedia(STACKED_MQ).matches;
 }
 
 /** Run `fn` once the page has loaded and the main thread is idle (3D is never on the critical path). */

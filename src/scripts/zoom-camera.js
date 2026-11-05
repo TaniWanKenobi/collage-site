@@ -1,6 +1,8 @@
 // Scroll-driven zoom camera for the collage (ported as-is from the legacy zoom.html, plus:
 //  - publishes the camera to 3D slots (window "zoomcam" event + window.__zoomCam),
 //  - deep links: /<section> routes start zoomed in, and the URL follows what you are looking at.
+import { STACKED_MQ } from './slot-view.js';
+
 export function initZoomCamera() {
   'use strict';
   if (!document.getElementById('zm-root')) return;
@@ -35,7 +37,9 @@ export function initZoomCamera() {
   var easeIO = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
   var easeOut = function (t) { return 1 - Math.pow(1 - t, 3); };
   var reduce = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
-  var isPhone = function () { return vw < 760; };
+  // Stacked (phone) layout: narrow or portrait screens. Same query as the CSS (.only-phone / .only-desk).
+  var stackedMq = window.matchMedia(STACKED_MQ);
+  var isPhone = function () { return stackedMq.matches; };
   var now = function () { return (window.performance && performance.now) ? performance.now() : Date.now(); };
 
   function geom() {
@@ -45,17 +49,35 @@ export function initZoomCamera() {
       var x = 0, y = 0, n = pan;
       while (n && n !== el) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
       var W = el.offsetWidth, H = el.offsetHeight;
-      p.pw = pan.offsetWidth; p.ph = pan.offsetHeight;
+      // The section page is laid out at the real viewport size (vw x stageH) and scaled to the panel's width,
+      // so when the camera lands (scale vw / pw) it is pixel-for-pixel the screen. It may hang below the panel.
+      p.pw = pan.offsetWidth; p.ph = p.pw * stageH / vw;
       p.cx = el.offsetLeft + W / 2; p.cy = el.offsetTop + H / 2;
       var ox = x + p.pw / 2 - W / 2, oy = y + p.ph / 2 - H / 2;
       var a = p.rot * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
       p.px = p.cx + ox * c - oy * s;
       p.py = p.cy + ox * s + oy * c;
-      if (pages[p.key]) pages[p.key].style.transform = 'scale(' + f(p.pw / 1440) + ')';
+      var pg = pages[p.key];
+      if (pg) { pg.style.width = vw + 'px'; pg.style.height = stageH + 'px'; pg.style.transform = 'scale(' + f(p.pw / vw) + ')'; }
     });
   }
 
   function s0() { return Math.min(vw / 1440, stageH / 900); }
+  // World point -> screen point under camera c.
+  function toScreen(c, x, y) {
+    var a = -c.r * Math.PI / 180, co = Math.cos(a), si = Math.sin(a), dx = x - c.cx, dy = y - c.cy;
+    return { x: vw / 2 + c.s * (dx * co - dy * si), y: stageH / 2 + c.s * (dx * si + dy * co) };
+  }
+  var homeAt = { x: 80, y: 44 };
+  // Screens that are not 16:10 see more than the 1440x900 world at the overview. --ex/--ey (world px) push the
+  // edge pieces (header, intro, "makes things.", stamp...) out to the real screen edges, so there are no dead bands.
+  function extend() {
+    var a = s0(), ex = clamp((vw / a - 1440) / 2, 0, 420), ey = clamp((stageH / a - 900) / 2, 0, 160);
+    world.style.setProperty('--ex', f(ex) + 'px');
+    world.style.setProperty('--ey', f(ey) + 'px');
+    var hl = whead && whead.querySelector('a');
+    if (hl) homeAt = { x: whead.offsetLeft + hl.offsetLeft + hl.offsetWidth / 2, y: whead.offsetTop + hl.offsetTop + hl.offsetHeight / 2 };
+  }
   function zoomness(c) { return clamp(Math.log(c.s / s0()) / Math.log(1.8), 0, 1); }
 
   // Scroll-driven camera: 7 segments of 1.6 screens, each zooms in, holds, zooms out.
@@ -99,6 +121,9 @@ export function initZoomCamera() {
     ORDER.forEach(function (k) {
       var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
       put(pg, 'opacity', String(f(op)), 'p' + k);
+      // Fully landed: the page scrolls on its own (and hands the wheel back to the camera at either end).
+      var held = op >= 0.99;
+      if (held !== pg.classList.contains('is-held')) { pg.classList.toggle('is-held', held); if (!held) pg.scrollTop = 0; }
       put(covers[k], 'opacity', String(f(1 - op)), 'c' + k);
       if (on !== live[k]) {
         live[k] = on;
@@ -108,8 +133,12 @@ export function initZoomCamera() {
     });
     var zn = zoomness(c);
     put(hint, 'opacity', String(f(1 - zn)), 'hint');
-    put(home, 'opacity', String(f(zn)), 'home');
-    put(home, 'visibility', zn > 0.02 ? 'visible' : 'hidden', 'homeV');
+    // The fixed "Tanishq" pill only appears once the in-world header's "Tanishq" has left the screen.
+    // Hidden while a section page is open: the page has its own "back to collage" button.
+    var anyOpen = false;
+    ORDER.forEach(function (k) { if ((c.ops[k] || 0) > 0.05) anyOpen = true; });
+    var hp = toScreen(c, homeAt.x, homeAt.y), off = !anyOpen && (hp.x < 0 || hp.y < 0 || hp.x > vw || hp.y > stageH);
+    if (home.classList.contains('is-on') !== off) home.classList.toggle('is-on', off);
     if (whead && whead.inert !== (zn > 0.3)) whead.inert = zn > 0.3;
     setHud(c.i);
     publish(c, zn);
@@ -228,17 +257,19 @@ export function initZoomCamera() {
 
   function measure() {
     vw = Math.round(root.clientWidth || window.innerWidth || 1440);
-    stageH = Math.round(Math.min(window.innerHeight || 900, 1000));
+    stageH = Math.round(window.innerHeight || 900);
     track.style.height = f(stageH * (1 + 7 * 1.6)) + 'px';
     stage.style.height = stageH + 'px';
     if (phWorld) phWorld.style.transform = 'scale(' + f(vw / 1440) + ')';
     if (isPhone()) return;
+    extend();
     geom();
     if (!fl) { bl = null; applyCam(camAtP(scrollP())); }
   }
   window.addEventListener('resize', measure);
   window.addEventListener('load', measure);
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measure).observe(root);
+  stackedMq.addEventListener('change', function () { measure(); kick(); });
 
   var kb = function (e) { return e && e.detail === 0; };
   ORDER.forEach(function (key, idx) {
@@ -261,6 +292,12 @@ export function initZoomCamera() {
     });
   });
   home.addEventListener('click', function (e) { e.preventDefault(); if (!fl) flyTo(0, kb(e)); });
+  // For other islands (3D objects in the collage): fly to a section by key, or 'home'.
+  window.__zoomFly = function (key) {
+    if (fl || !cur || isPhone()) return;
+    var i = ORDER.indexOf(key);
+    if (key === 'home') flyTo(0); else if (i >= 0 && !live[key]) flyTo(i + 0.5);
+  };
 
   // Deep link (/projects etc.): start already holding on that section, no flight.
   var initial = root.getAttribute('data-initial');
