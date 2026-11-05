@@ -1,0 +1,10 @@
+---
+// A 1440x900 collage world scaled to fit its box. fit="page": as large as the window allows (variant pages);
+// fit="width": fills the parent's width (thumbnails). Scaling runs inline so there is no flash at full size.
+interface Props { fit?: 'page' | 'width'; label?: string }
+const { fit = 'page', label } = Astro.props;
+---
+<div class={`lab-stage lab-stage--${fit}`} role={label ? 'img' : undefined} aria-label={label}>
+  <div class="lab-world grain"><slot /></div>
+</div>
+<script is:inline>window.__labFit && window.__labFit(document.currentScript.previousElementSibling);</script>

@@ -1,0 +1,30 @@
+---
+// 04 · ICE3DP hero: the full ICE3DP model, live in 3D, is the centrepiece; the cards frame it.
+import Place from '../Place.astro';
+import ModelView from '../ModelView.astro';
+import { MODELS } from '../lab';
+import Wordmark from '../../collage/Wordmark.astro';
+import GlobeDisc from '../../collage/GlobeDisc.astro';
+import MePhoto from '../../collage/MePhoto.astro';
+import Polaroid from '../../collage/Polaroid.astro';
+import Ticket from '../../collage/Ticket.astro';
+import PhotoStack from '../../collage/PhotoStack.astro';
+import RuledNote from '../../collage/RuledNote.astro';
+import MapScrap from '../../collage/MapScrap.astro';
+import StickyNote from '../../collage/StickyNote.astro';
+import Stamp from '../../collage/Stamp.astro';
+interface Props { thumb?: boolean }
+const live = !Astro.props.thumb;
+---
+<div aria-hidden="true" style="position:absolute;left:400px;top:150px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle at 40% 35%,var(--grape) 0%,var(--grape-deep) 70%);box-shadow:0 0 0 14px var(--onyx-2),0 0 0 15px var(--onyx-3);z-index:2" class="halftone"></div>
+<ModelView k="ice3dp" left={360} top={90} width={720} height={720} z={5} fill={0.95} elev={20} azim={40} live={live} />
+<p style="position:absolute;left:420px;top:832px;width:600px;z-index:9;margin:0;text-align:center;color:var(--lime-tint)" class="mono">ICE3DP · full model · drag to rotate · <a href={MODELS.ice3dp.repo} style="color:var(--lime)">repo ↗</a></p>
+<Place k="word" x={233} y={82} s={0.4} z={9}><Wordmark as="p" /></Place>
+<Place k="polaroid" x={190} y={270} rot={-6} s={0.85}><Polaroid mode="phone" /></Place>
+<Place k="ticket" x={180} y={520} rot={4} s={0.85}><Ticket mode="phone" /></Place>
+<Place k="sticky" x={205} y={750} rot={7} s={0.85}><StickyNote mode="phone" /></Place>
+<Place k="photos" x={1255} y={250} rot={7} s={0.85}><PhotoStack mode="phone" /></Place>
+<Place k="note" x={1250} y={520} rot={-3} s={0.85}><RuledNote mode="phone" /></Place>
+<Place k="map" x={1240} y={760} rot={-5} s={0.85}><MapScrap mode="phone" /></Place>
+<Place k="stamp" x={1060} y={120} rot={-12} s={0.8} z={8}><Stamp mode="phone" /></Place>
+<Place k="me" x={420} y={690} s={0.55} z={7}><MePhoto /></Place>

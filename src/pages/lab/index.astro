@@ -1,0 +1,43 @@
+---
+// /lab/: index of the design lab. noindex, and nothing in the site links here.
+import LabBase from '../../components/lab/LabBase.astro';
+import Stage from '../../components/lab/Stage.astro';
+import { VARIANTS } from '../../components/lab/lab';
+import { url } from '../../lib/sections';
+import Collage1 from '../../components/lab/variants/Collage1.astro';
+import Collage2 from '../../components/lab/variants/Collage2.astro';
+import Collage3 from '../../components/lab/variants/Collage3.astro';
+import Collage4 from '../../components/lab/variants/Collage4.astro';
+import Collage5 from '../../components/lab/variants/Collage5.astro';
+import Collage6 from '../../components/lab/variants/Collage6.astro';
+const COMPONENTS = [Collage1, Collage2, Collage3, Collage4, Collage5, Collage6];
+---
+<LabBase title="Lab" description="Collage experiments and a 3D file viewer.">
+  <main class="lab-index">
+    <h1>Design <span>lab</span></h1>
+    <p>Six collage compositions for the home banner, plus a drop-in viewer for STEP, STL, OBJ, GLB, 3MF and PLY files. Nothing here is linked from the site.</p>
+    <ul class="lab-grid">
+      {VARIANTS.map((v, i) => {
+        const C = COMPONENTS[i];
+        return (
+          <li class="lab-tile">
+            <div class="lab-tile-thumb" inert aria-hidden="true"><Stage fit="width"><C thumb /></Stage></div>
+            <div class="lab-tile-body">
+              <span class="lab-k mono">{String(i + 1).padStart(2, '0')}</span>
+              <h2><a href={url(`lab/${v.slug}`)}>{v.title}</a></h2>
+              <p>{v.idea}</p>
+            </div>
+          </li>
+        );
+      })}
+      <li class="lab-tile">
+        <div class="lab-tile-thumb lab-viewer-thumb" aria-hidden="true"><span class="mono">.step .stl .obj .glb .3mf .ply</span></div>
+        <div class="lab-tile-body">
+          <span class="lab-k mono">3D</span>
+          <h2><a href={url('lab/viewer')}>File viewer</a></h2>
+          <p>Drop a CAD or mesh file to look at it in the site palette, then export a PNG or GLB. Runs entirely in the browser.</p>
+        </div>
+      </li>
+    </ul>
+  </main>
+</LabBase>

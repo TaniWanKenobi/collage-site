@@ -1,0 +1,33 @@
+---
+// A live 3D model in a lab collage. Shows the .webp poster (or a dashed placeholder if the poster is missing)
+// until three.js has loaded the .glb and drawn a frame; then the canvas fades in. Drag to orbit.
+// All slots on a page share one WebGL renderer (model-slots.ts), which is only downloaded when a slot
+// scrolls near the viewport. live={false} (thumbnails) keeps the poster and never loads three.js.
+import { MODELS, type ModelKey } from './lab';
+import { url } from '../../lib/sections';
+interface Props {
+  k: ModelKey;
+  left: number; top: number; width: number; height: number;
+  rot?: number; z?: number;
+  shape?: 'rect' | 'circle' | 'sticker';
+  live?: boolean;
+  /** Camera elevation/azimuth in degrees and how much of the slot the model fills (0-1). */
+  elev?: number; azim?: number; fill?: number;
+}
+const { k, left, top, width, height, rot = 0, z = 6, shape = 'rect', live = true, elev = 22, azim = 35, fill = 0.9 } = Astro.props;
+const m = MODELS[k];
+const style = `left:${left}px;top:${top}px;width:${width}px;height:${height}px;z-index:${z};transform:rotate(${rot}deg)`;
+---
+<div
+  class={`lab-model lab-model--${shape}`}
+  style={style}
+  data-lab-model={live ? k : undefined}
+  data-src={url(m.glb)}
+  data-elev={elev} data-azim={azim} data-fill={fill}
+>
+  <img class="lab-model-poster" src={url(m.poster)} alt="" loading="lazy" decoding="async" draggable="false"
+    onerror="this.parentNode.classList.add('no-poster')">
+  <div class="lab-model-ph" aria-hidden="true">{m.label}<br>3D model</div>
+  {live && <canvas class="lab-model-canvas" role="img" aria-label={`${m.label} 3D model. Drag to rotate.`}></canvas>}
+</div>
+{live && <script>import './model-slots';</script>}
