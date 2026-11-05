@@ -89,9 +89,11 @@ export function addSlots(els: HTMLElement[]) {
     slots.push(s);
     if (kind !== 'world') io.observe(el);
     if (kind === 'world') wireClick(s);
-    load(el.dataset.src!).then((obj) => {
+    load(el.dataset.src!).then(async (obj) => {
       frame(s, obj);
       scene.add(obj);
+      // Compile the model's shaders off the main thread where the browser supports it (KHR_parallel_shader_compile).
+      try { await renderer!.compileAsync(scene, camera); } catch { /* falls back to compiling on first render */ }
       s.ready = true;
       kick();
     }).catch(() => el.classList.add('is-missing'));

@@ -20,10 +20,13 @@ all.filter((el) => el.dataset.flyTo).forEach((el) => {
 });
 
 if (all.length && !reduce) {
-  whenIdle(() => {
+  // A few seconds after load (posters cover the wait), then on an idle frame: decoding ~5 MB of meshes and
+  // compiling shaders is real main-thread work, so it stays well clear of first paint and interactivity.
+  const start = () => {
     const auto = all.filter((el) => el.dataset.m3d !== 'flow' && shown(el));
     if (auto.length) runtime().then((m) => m.addSlots(auto));
-  });
+  };
+  whenIdle(() => setTimeout(() => whenIdle(start, 2000), 2500));
   all.filter((el) => el.dataset.m3d === 'flow').forEach((el) => {
     const btn = el.querySelector('.m3d-load');
     if (!btn) return;
