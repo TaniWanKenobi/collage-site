@@ -10,7 +10,7 @@ const attrs = desk
   : { href: '#sec-timeline', 'aria-label': 'Timeline' };
 const Tag = desk ? 'div' : 'a';
 ---
-<Tag class="zp" {...attrs} style="left: 300px; top: 150px; width: 236px; height: 110px; display: flex; border-radius: 6px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(4deg)">
+<Tag class="zp" {...attrs} style="left: calc(70px - var(--ex, 0px) * 0.6); top: 336px; width: 236px; height: 110px; display: flex; border-radius: 6px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-4deg)">
 <div class="zpanel" style="width: 176px; height: 110px; background-color: var(--lime); border-radius: 6px 0 0 6px">
 <div data-cover={desk ? 'timeline' : undefined} style="position: absolute; inset: 0; box-sizing: border-box; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between; color: var(--onyx)">
 <span class="mono" style="font-size: 11px; line-height: 1">ADMIT ONE · 02</span>

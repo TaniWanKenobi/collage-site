@@ -13,8 +13,9 @@ import StickyNote from './StickyNote.astro';
 import Stamp from './Stamp.astro';
 import Model3D from '../Model3D.astro';
 import { url } from '../../lib/sections';
-interface Props { mode: 'desk' | 'phone' }
-const { mode } = Astro.props;
+interface Props { mode: 'desk' | 'phone'; center?: 'globe' | 'printer' }
+const { mode, center = 'globe' } = Astro.props;
+const printer = center === 'printer';
 const desk = mode === 'desk';
 const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'], ['map', 'Map'], ['guestbook', 'Guestbook']];
 ---
@@ -28,7 +29,8 @@ const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'],
   </div>
 )}
 <Wordmark as={desk ? 'p' : 'h1'} />
-<GlobeDisc mode={mode} />
+<GlobeDisc mode={mode} empty={printer} />
+{printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 630px; top: 200px; width: 420px; height: 450px; z-index: 2" />}
 <MePhoto />
 <p aria-hidden="true" style="position: absolute; right: calc(43px - var(--ex, 0px)); bottom: calc(30px - var(--ey, 0px)); z-index: 4; margin: 0; font-weight: 800; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px var(--lime); white-space: nowrap; pointer-events: none">makes things.</p>
 {desk && (
@@ -42,7 +44,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'],
 <PhotoStack mode={mode} />
 <RuledNote mode={mode} />
 <MapScrap mode={mode} />
-<StickyNote mode={mode} />
+<StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
-<Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.1} elev={18} style="left: 300px; top: 250px; width: 250px; height: 290px; z-index: 6" />
-<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" elev={30} azim={48} fill={1.25} style="left: calc(226px - var(--ex, 0px) * 0.5); top: 606px; width: 136px; height: 136px; z-index: 6" />
+{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.1} elev={18} style="left: 380px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
+<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" elev={30} azim={-40} fill={1.25} style="left: calc(1140px + var(--ex, 0px)); top: 515px; width: 245px; height: 235px; z-index: 6" />

@@ -3,11 +3,12 @@
 import ZoomStage from './ZoomStage.astro';
 import PhoneCollage from './PhoneCollage.astro';
 import type { SectionKey } from '../lib/sections';
-interface Props { initial?: SectionKey }
-const { initial } = Astro.props;
+// center: what sits in the grape disc ('globe' default; 'printer' = the ICE3DP model, see /printer).
+interface Props { initial?: SectionKey; center?: 'globe' | 'printer' }
+const { initial, center = 'globe' } = Astro.props;
 ---
 <div id="zm-root" data-base={import.meta.env.BASE_URL} data-initial={initial} style="position: relative; min-height: 100%; background-color: var(--onyx); color: var(--lime-tint); font-family: var(--font-display); font-size: 16px; line-height: 1.55">
   <p class="sr-only">Tanishq, 11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</p>
-  <PhoneCollage />
-  <ZoomStage />
+  <PhoneCollage center={center} />
+  <ZoomStage center={center} />
 </div>

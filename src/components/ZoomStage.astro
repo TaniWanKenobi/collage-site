@@ -3,12 +3,14 @@
 // turns scroll position into a camera over the 1440x900 collage world and flies between pieces on click.
 import CollageWorld from './collage/CollageWorld.astro';
 import { ORDER, NAMES, url } from '../lib/sections';
+interface Props { center?: 'globe' | 'printer' }
+const { center = 'globe' } = Astro.props;
 ---
 <div class="only-desk">
   <div id="zm-track" style="position: relative; height: 12000px">
     <div id="zm-stage" class="grain" style="position: sticky; top: 0; height: 100vh; overflow: hidden; background-color: var(--onyx)">
       <div id="zm-world" style="position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; transform: none; --ex: 0px; --ey: 0px">
-        <CollageWorld mode="desk" />
+        <CollageWorld mode="desk" center={center} />
       </div>
 
       <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
