@@ -9,7 +9,8 @@ const SIZE = 294; // CSS px of the slot
 const CAM_Z = 3.05, FOV = 40; // the old three.js camera
 const TILT_X = 0.35, TILT_Z = -0.18; // group rotation [0.35, 0, -0.18] (Euler XYZ)
 const SPIN = 0.18; // rad/s around Y
-const FRAME_MS = 1000 / 30 - 2; // a slow spin: 30 fps is plenty
+const FRAME_MS = 1000 / 24 - 2; // a slow spin: 24 fps is plenty
+const SLEEP_MS = 20000; // no input this long: stop spinning (idle tab costs ~0); any input wakes it
 const REST_MS = 160; // the zoom camera counts as moving until this long after its last frame
 // Backing store at most 2x the device pixel ratio: thin lines stay crisp enough when zoomed in, and a redraw is
 // a ~600px canvas instead of up to 2048px (that redraw took 0.1-0.5 s on a slow CPU).
@@ -79,6 +80,7 @@ function mount(slot) {
   function frame(t) {
     raf = 0;
     if (!visible) return;
+    if (performance.now() - lastInput > SLEEP_MS) { last = 0; return; } // asleep until wake()
     if (!last || (t - last >= FRAME_MS && performance.now() - camAt > REST_MS)) {
       angle += Math.min((t - (last || t)) / 1000, 0.1) * SPIN;
       last = t;
@@ -109,6 +111,9 @@ function mount(slot) {
   }
 
   window.addEventListener('zoomcam', sync);
+  let lastInput = performance.now();
+  const wake = () => { lastInput = performance.now(); if (visible && !raf) raf = requestAnimationFrame(frame); };
+  for (const ev of ['pointermove', 'pointerdown', 'wheel', 'scroll', 'keydown', 'touchstart']) window.addEventListener(ev, wake, { passive: true, capture: true });
   window.addEventListener('resize', () => { wr = worldRect(slot); sync(); });
   sync();
 }

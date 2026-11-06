@@ -81,7 +81,6 @@ Look and variants live in `STYLES` in `src/scripts/toon.js` (`cel+ink` is the si
 
 | Model | Source | Command flags |
 |---|---|---|
-| `sprig.glb` | hackclub/sprig `public/sprig.glb` (9.3MB, 77k tris, 22 materials, two 4556² PNGs) | `optimize-glb.mjs --ratio 0.5 --error 0.004 --longest 0.12` (1.39MB, 75k tris, 15 materials) |
 | `tamagotchi.glb` | TaniWanKenobi/tamagotchi `CAD/Tamagotchi.step` | `--ratio 0.6` (281k → 170k triangles), then `shrink.mjs --ratio 0.35 --error 0.01` (→ 62k, 0.44 MB) |
 | `ice3dp.glb` | TaniWanKenobi/ICE3DP `ICE3DP.step` | native: `0.08` mm / `0.3` rad, then `--ratio 0.18 --error 0.0015` (2.19M → 436k triangles), then `shrink.mjs --ratio 0.15 --error 0.02` (→ 165k, 1.29 MB) |
 

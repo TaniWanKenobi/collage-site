@@ -8,7 +8,7 @@ const projects = (await getCollection('projects')).sort((a, b) => a.data.order -
 const TILT = [-1.2, 0.8, -0.4, 1.4, -1, 0.5];
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // Camera per model in the 16:10 cards (elevation, azimuth in degrees; fill = share of the card's height).
-const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 30, azim: 48, fill: 1.1 }, sprig: { elev: 36, azim: 20, fill: 1.25 } };
+const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 30, azim: 48, fill: 1.1 } };
 ---
 <Section id="projects" label="01 · projects" title="Things I've built" back={Astro.props.back}>
   <p class="mono" style="margin: 0 0 -10px; font-size: 13px; color: var(--muted)">in 3D · drag to rotate</p>
@@ -16,11 +16,10 @@ const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 3
     {models.map((m, i) => (
       <article class="proj-card" style={`transform: rotate(${i ? 0.6 : -0.8}deg)`}>
         <span aria-hidden="true" class="proj-tape"></span>
-        <Model3D id={m.id as 'ice3dp' | 'tamagotchi' | 'sprig'} kind={Astro.props.back ? 'page' : 'flow'} {...VIEW[m.id as keyof typeof VIEW]} />
+        <Model3D id={m.id as 'ice3dp' | 'tamagotchi'} kind={Astro.props.back ? 'page' : 'flow'} {...VIEW[m.id as keyof typeof VIEW]} />
         <h3 style="margin: 6px 0 0; font-weight: 800; font-size: 24px; line-height: 1.1">{m.title}</h3>
         <p style="margin: 0; font-size: 14px; color: var(--onyx-3)">{m.caption}</p>
         <a class="mono" href={m.repo} style="font-size: 13px; color: var(--grape)">{m.repo.replace('https://', '')} →</a>
-        {m.credit && <a class="mono proj-credit" href={m.repo} style="font-size: 11px; color: var(--onyx-3); text-decoration: none" title="3D model by Hack Club, MIT license">{m.credit.replace(', ', ' · ')}</a>}
       </article>
     ))}
   </div>

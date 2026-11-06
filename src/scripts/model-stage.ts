@@ -30,7 +30,10 @@ interface Slot {
 }
 
 const MAX_PX = 1536; // largest backing-store edge per slot
-const SPIN_MS = 1000 / 30 - 2; // idle auto-rotate frame interval (30 fps, with a little slack for rAF jitter)
+const SPIN_MS = 1000 / 24 - 2; // idle auto-rotate frame interval (24 fps, with a little slack for rAF jitter)
+// No input for this long: auto-spin stops and the loop sleeps (an idle open tab costs ~0 CPU/GPU); any input wakes it.
+const SLEEP_MS = 20000;
+let lastInput = performance.now();
 // The camera counts as moving until this long after its last frame. Longer than the world's own settle delay in
 // zoom-camera.js (180 ms), so the sharp redraw at rest does not land on the same frame as the world's repaint.
 const REST_MS = 320;
@@ -76,6 +79,8 @@ function init(): boolean {
   window.addEventListener('zoomcam', onCam);
   window.addEventListener('resize', () => { slots.forEach((s) => { if (s.kind === 'world') s.wr = worldRect(s.el); }); kick(); });
   document.addEventListener('visibilitychange', kick);
+  const wake = () => { lastInput = performance.now(); kick(); };
+  for (const ev of ['pointermove', 'pointerdown', 'wheel', 'scroll', 'keydown', 'touchstart']) window.addEventListener(ev, wake, { passive: true, capture: true });
   return true;
 }
 
@@ -195,8 +200,10 @@ function tick() {
     if (scale > 0 && !s.requested) request(s);
     s.active = s.ready && scale > 0;
     if (!s.active) { s.drawn = 0; continue; }
-    again = true; // auto-rotate keeps visible slots moving
     const user = s.dragging || (t < s.userUntil && !moving);
+    // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
+    if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
+    again = true; // auto-rotate keeps visible slots moving
     // Camera in motion: keep the last frame (CSS scales it); nothing to redraw unless the user is dragging.
     if (moving && s.drawn && !user) { needW = Math.max(needW, s.w); needH = Math.max(needH, s.h); continue; }
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.
