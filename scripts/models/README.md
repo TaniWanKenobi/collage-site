@@ -8,7 +8,8 @@ Turns CAD exports into small, web-ready GLB files for `public/models/`, plus a p
    It also accepts a `.glb` input: it skips tessellation and runs only the optimize steps.
 2. **`step-to-gltf-native.py`** is for big assemblies that the wasm build can't mesh. ICE3DP came back with 0 triangles from `occt-import-js`. This script uses native OpenCascade (`pip install cadquery-ocp`) to write a raw Y-up, meter-scale GLB with part names and colors. Feed that GLB to `step-to-glb.mjs`.
 3. **`optimize-glb.mjs`** optimizes any existing GLB (no STEP step), e.g. a model downloaded from GitHub. It bakes node transforms and the meter scale into the vertices, then runs dedup → join by material → weld → simplify (meshoptimizer) → textures to webp (≤1024px) → center → prune → quantize, and writes meshopt-compressed output. It assumes the input is already Y-up.
-4. **`render.mjs`** renders a 1200×900 poster `.webp` headlessly. It uses `render.html` (three.js) through `agent-browser`, served by `serve.mjs`.
+4. **`stylize-bake.mjs`** bakes the "cel + ink" look's data into a finished GLB (runtime half: `src/scripts/toon.js`). It adds crease-edge ink lines as a `LINES` primitive, bakes vertex ambient occlusion into `COLOR_0` alpha, maps the CAD colours onto the site palette (OKLCH hue-snap, kept in `COLOR_0`; the original colour stays in `_ORIG`), merges every opaque untextured part into one primitive, drops invisible (alpha 0) parts and ink that can never be seen, and meshopt-compresses. Textures (Sprig's PCB) are kept; the shader maps them onto the palette.
+5. **`render.mjs`** renders a 1200×900 poster `.webp` headlessly, in the site's look by default. It uses `render.html` (three.js + `toon.js`) through `agent-browser`, served by `serve.mjs`.
 
 ## Output conventions
 
@@ -22,7 +23,7 @@ Turns CAD exports into small, web-ready GLB files for `public/models/`, plus a p
 ```powershell
 npm install
 node --max-old-space-size=12288 scripts/models/step-to-glb.mjs C:\path\to\Part.step public\models\part.glb --ratio 0.5
-node scripts/models/render.mjs part --az 35 --el 22
+node scripts/models/render.mjs part --az 35 --el 22   # add --style original for the plain PBR look
 ```
 
 For a big assembly, go through native OpenCascade first:
@@ -43,6 +44,28 @@ node scripts/models/render.mjs sprig --az 20 --el 38 --fit 0.8
 `--longest` is the target length of the longest side in meters (`0` keeps the source scale).
 
 Then add an entry to `src/data/models.json`.
+
+### Stylize (cel + ink)
+
+The input is the plain web GLB (the shipped ones before styling are in git at `201e83c:public/models/<id>.glb`). The ray-cast AO takes 10 s to 2 min; `--ao-cache` keeps it for palette or line tweaks.
+
+```powershell
+cmd /c "git show 201e83c:public/models/ice3dp.glb > %TEMP%\ice3dp-plain.glb"   # cmd keeps the bytes intact; same for the other two
+node scripts/models/stylize-bake.mjs $env:TEMP\ice3dp-plain.glb public\models\ice3dp.glb --angle 40 --min-part 0.03
+node scripts/models/stylize-bake.mjs $env:TEMP	amagotchi-plain.glb public\models	amagotchi.glb --angle 40 --min-part 0.05 --hint c_0.658,0.407,0.015=screen
+node scripts/models/stylize-bake.mjs $env:TEMP\sprig-plain.glb public\models\sprig.glb
+```
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--angle` | `30` | Crease angle in degrees: sharper edges get ink. Raise it if lines read as hatching. |
+| `--min-part` | `0.02` | Parts smaller than this share of the model's diagonal get no ink (screws, SMD parts). |
+| `--rays` / `--ao-dist` | `32` / `0.08` | AO rays per vertex and their length (share of the diagonal). |
+| `--hint mat=cls` | | Force a source material's palette class: `lime`, `grape`, `neutral`, or `screen` (flat, unlit lime). |
+| `--hero-max` | `0.3` | The largest saturated colour group becomes the lime accent only if it covers less than this share. |
+| `--ao-cache file` | | Reuse the AO from an earlier run with the same input. |
+
+Look and variants live in `STYLES` in `src/scripts/toon.js` (`cel+ink` is the site's; `cel+ink bold`, `cel+ink soft`, `clay` and `original` are in the lab viewer's Style menu). `render.html?…&bench=200` reports the median ms per frame for a model.
 
 ## Options for `step-to-glb.mjs`
 

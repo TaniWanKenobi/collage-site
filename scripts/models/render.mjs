@@ -1,5 +1,5 @@
 // Render a poster .webp for a GLB using agent-browser (headless Chrome) and render.html.
-// Usage: node scripts/models/render.mjs <id> [--az 35] [--el 22] [--fit 0.82] [--bg transparent|0d160b]
+// Usage: node scripts/models/render.mjs <id> [--az 35] [--el 22] [--fit 0.82] [--bg transparent|0d160b] [--style cel+ink|clay|original]
 //   Reads public/models/<id>.glb, writes public/models/<id>.webp (1200×900).
 // Needs: agent-browser on PATH. Starts serve.mjs on port 4390 for the duration.
 import { spawn, execFileSync } from 'node:child_process';
@@ -23,14 +23,19 @@ function agentBrowserBin() {
   return exe;
 }
 const AB = agentBrowserBin();
-const server = spawn(process.execPath, [path.join(here, 'serve.mjs'), String(PORT)], { stdio: 'ignore' });
+// Wait for our own server: if the port is taken, another server (maybe another checkout) would answer instead.
+const server = spawn(process.execPath, [path.join(here, 'serve.mjs'), String(PORT)], { stdio: ['ignore', 'pipe', 'pipe'] });
+await new Promise((ok, fail) => {
+  server.stdout.on('data', (d) => { if (String(d).includes('render server on')) ok(); });
+  server.on('exit', () => fail(new Error(`serve.mjs could not start on port ${PORT} (in use?)`)));
+});
 const ab = (...a) => execFileSync(AB, ['--session', 'model-render', ...a], { encoding: 'utf8' }).trim();
 try {
-  await new Promise((r) => setTimeout(r, 800));
-  const qs = new URLSearchParams({ model: `/public/models/${id}.glb`, save: `${id}.webp`, az: opt('az', '35'), el: opt('el', '22'), fit: opt('fit', '0.82'), bg: opt('bg', 'transparent') });
+  // ?v= keeps the browser from drawing a cached copy of an older .glb
+  const qs = new URLSearchParams({ model: `/public/models/${id}.glb?v=${Date.now()}`, save: `${id}.webp`, az: opt('az', '35'), el: opt('el', '22'), fit: opt('fit', '0.82'), bg: opt('bg', 'transparent'), style: opt('style', 'cel+ink') });
   ab('set', 'viewport', '1200', '900');
   ab('open', `http://127.0.0.1:${PORT}/scripts/models/render.html?${qs}`);
-  ab('wait', '--fn', 'window.__stats && window.__stats.ready && (window.__stats.saved || window.__stats.error)');
+  ab('wait', '--timeout', '60000', '--fn', 'window.__stats && window.__stats.ready && (window.__stats.saved || window.__stats.error)');
   console.log(ab('eval', 'JSON.stringify(window.__stats)'));
 } finally {
   try { ab('close'); } catch {}

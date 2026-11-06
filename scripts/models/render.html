@@ -15,7 +15,7 @@
 <script type="module">
 // Headless render page for scripts/models/render.mjs.
 // Query: ?model=/public/models/x.glb&bg=transparent|0d160b&az=35&el=22&single=0&save=name.webp&w=1200&h=900
-//        &style=cel+ink|clay|original|...   (src/scripts/toon.js; default cel+ink)  &blob=1  &px=1 (line pixel ratio)
+//        &style=cel+ink|clay|original|...   (src/scripts/toon.js; default cel+ink)  &blob=0 (no contact shadow)  &bench=N
 import * as THREE from 'three';
 import { prepare, applyStyle, contactBlob, DEFAULT_STYLE } from '/src/scripts/toon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -78,6 +78,21 @@ try {
   cam.lookAt(sphere.center);
   key.position.copy(cam.position).add(new THREE.Vector3(sphere.radius * 2, sphere.radius * 3, 0));
   renderer.render(scene, cam);
+  // &bench=N: draw N frames (orbiting) and report the median GPU+CPU ms per frame (a 1 px readback syncs each one).
+  const bench = +(q.get('bench') || 0);
+  if (bench) {
+    const gl = renderer.getContext(), px = new Uint8Array(4), times = [], d0 = cam.position.clone().sub(sphere.center);
+    for (let i = 0; i < bench + 10; i++) {
+      cam.position.copy(sphere.center).add(d0.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), i * 0.05));
+      cam.lookAt(sphere.center);
+      const t = performance.now();
+      renderer.render(scene, cam);
+      gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+      if (i >= 10) times.push(performance.now() - t);
+    }
+    times.sort((a, b) => a - b);
+    window.__bench = { median: +times[times.length >> 1].toFixed(3), p90: +times[Math.floor(times.length * 0.9)].toFixed(3), calls: renderer.info.render.calls, programs: renderer.info.programs.length };
+  }
   window.__debug = { THREE, root, scene, cam, renderer, rerender: () => renderer.render(scene, cam), toon: await import('/src/scripts/toon.js') };
 
   const size = box.getSize(new THREE.Vector3());
@@ -85,7 +100,7 @@ try {
 
   const save = q.get('save');
   if (save) {
-    const blob = await new Promise((r) => renderer.domElement.toBlob(r, 'image/webp', 0.86));
+    const blob = await new Promise((r) => renderer.domElement.toBlob(r, 'image/webp', 0.8));
     const res = await fetch('/__save?name=' + encodeURIComponent(save), { method: 'POST', body: blob });
     window.__stats.saved = res.ok ? blob.size : 'failed';
   }
