@@ -1,0 +1,90 @@
+[
+  {
+    "file": "placeholder/photos/hackathon-desk.jpg",
+    "caption": "hour 20 of the hackathon, still shipping",
+    "place": "Jersey City, NJ",
+    "date": "Oct 2025",
+    "placeholder": true,
+    "focus": "50% 50%",
+    "bucket": "landscape",
+    "width": 1600,
+    "height": 1067
+  },
+  {
+    "file": "placeholder/photos/manhattan-bridge.jpg",
+    "caption": "the classic bridge shot (had to)",
+    "place": "Brooklyn, NY",
+    "date": "Jul 2025",
+    "placeholder": true,
+    "focus": "50% 54%",
+    "bucket": "portrait",
+    "width": 1067,
+    "height": 1600
+  },
+  {
+    "file": "placeholder/photos/planning-notebook.jpg",
+    "caption": "planning the next build on paper first",
+    "place": "Bayonne, NJ",
+    "date": "Jan 2026",
+    "placeholder": true,
+    "focus": "50% 50%",
+    "bucket": "square",
+    "width": 1200,
+    "height": 1200
+  },
+  {
+    "file": "placeholder/photos/trail-overlook.jpg",
+    "caption": "worth every switchback",
+    "place": "Hudson Valley, NY",
+    "date": "Aug 2025",
+    "placeholder": true,
+    "focus": "44% 50%",
+    "bucket": "landscape",
+    "width": 1600,
+    "height": 1067
+  },
+  {
+    "file": "placeholder/photos/coffee-study.jpg",
+    "caption": "study session, coffee number three",
+    "place": "Hoboken, NJ",
+    "date": "Mar 2026",
+    "placeholder": true,
+    "focus": "50% 50%",
+    "bucket": "landscape",
+    "width": 1600,
+    "height": 1067
+  },
+  {
+    "file": "placeholder/photos/city-street.jpg",
+    "caption": "golden hour downtown",
+    "place": "New York, NY",
+    "date": "May 2026",
+    "placeholder": true,
+    "focus": "50% 44%",
+    "bucket": "portrait",
+    "width": 1067,
+    "height": 1600
+  },
+  {
+    "file": "placeholder/photos/ferry-sky.jpg",
+    "caption": "sky from the ferry ride home",
+    "place": "Hudson River",
+    "date": "Jun 2026",
+    "placeholder": true,
+    "focus": "50% 50%",
+    "bucket": "square",
+    "width": 1200,
+    "height": 1200
+  },
+  {
+    "file": "placeholder/photos/creek-day.jpg",
+    "caption": "creek day, no laptop allowed",
+    "place": "Delaware Water Gap, PA",
+    "date": "Sep 2025",
+    "placeholder": true,
+    "focus": "50% 50%",
+    "bucket": "landscape",
+    "width": 1600,
+    "height": 1067
+  }
+]
