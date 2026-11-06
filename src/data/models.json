@@ -22,5 +22,18 @@
     "caption": "A custom PCB-based Tamagotchi virtual pet built on the XIAO ESP32-C6, with a 0.96\" OLED display, three buttons, and a buzzer. Case designed in Onshape, PCB in KiCad.",
     "units": "meters, Y-up, centered on bounding box",
     "settings": { "tessellator": "occt-import-js", "linearDeflectionBboxRatio": 0.0008, "angularDeflectionRad": 0.35, "simplifyRatio": 0.6, "simplifyError": 0.0005, "trianglesBeforeSimplify": 281039, "shrink": "scripts/models/shrink.mjs --ratio 0.35 --error 0.01 (170k -> 62k)" }
+  },
+  {
+    "id": "sprig",
+    "title": "Sprig",
+    "repo": "https://github.com/hackclub/sprig",
+    "glb": "models/sprig.glb",
+    "poster": "models/sprig.webp",
+    "triangles": 75025,
+    "bytes": 1388344,
+    "caption": "Hack Club's custom handheld game console, given to teenagers who build a tile-based game in the web editor and share it in the community gallery; this is the open-source board with its screen and buttons.",
+    "credit": "Hack Club, MIT",
+    "units": "meters, Y-up, centered on bounding box",
+    "settings": {"tool": "scripts/models/optimize-glb.mjs", "simplifyRatio": 0.5, "simplifyError": 0.004, "textureMaxPx": 1024, "longestSideM": 0.12, "trianglesBeforeSimplify": 77272}
   }
 ]

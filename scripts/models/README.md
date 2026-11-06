@@ -7,7 +7,8 @@ Turns CAD exports into small, web-ready GLB files for `public/models/`, plus a p
 1. **`step-to-glb.mjs`** tessellates the STEP with OpenCascade (`occt-import-js`, wasm). It keeps each part's colors and builds a glTF with one shared material per color. Then it runs dedup → flatten → join → weld → simplify (meshoptimizer) → center → quantize, and writes the file with meshopt compression (`EXT_meshopt_compression`).
    It also accepts a `.glb` input: it skips tessellation and runs only the optimize steps.
 2. **`step-to-gltf-native.py`** is for big assemblies that the wasm build can't mesh. ICE3DP came back with 0 triangles from `occt-import-js`. This script uses native OpenCascade (`pip install cadquery-ocp`) to write a raw Y-up, meter-scale GLB with part names and colors. Feed that GLB to `step-to-glb.mjs`.
-3. **`render.mjs`** renders a 1200×900 poster `.webp` headlessly. It uses `render.html` (three.js) through `agent-browser`, served by `serve.mjs`.
+3. **`optimize-glb.mjs`** optimizes any existing GLB (no STEP step), e.g. a model downloaded from GitHub. It bakes node transforms and the meter scale into the vertices, then runs dedup → join by material → weld → simplify (meshoptimizer) → textures to webp (≤1024px) → center → prune → quantize, and writes meshopt-compressed output. It assumes the input is already Y-up.
+4. **`render.mjs`** renders a 1200×900 poster `.webp` headlessly. It uses `render.html` (three.js) through `agent-browser`, served by `serve.mjs`.
 
 ## Output conventions
 
@@ -32,6 +33,15 @@ python -m venv .occ-venv; .\.occ-venv\Scripts\pip install cadquery-ocp
 node --max-old-space-size=12288 scripts/models/step-to-glb.mjs $env:TEMP\big-raw.glb public\models\big.glb --ratio 0.18 --error 0.0015
 ```
 
+Optimize an existing GLB (here Hack Club's Sprig, MIT, from `hackclub/sprig` `public/sprig.glb`):
+
+```powershell
+node scripts/models/optimize-glb.mjs C:\path\to\in.glb public\models\sprig.glb --ratio 0.5 --error 0.004 --longest 0.12 --tex 1024
+node scripts/models/render.mjs sprig --az 20 --el 38 --fit 0.8
+```
+
+`--longest` is the target length of the longest side in meters (`0` keeps the source scale).
+
 Then add an entry to `src/data/models.json`.
 
 ## Options for `step-to-glb.mjs`
@@ -48,6 +58,7 @@ Then add an entry to `src/data/models.json`.
 
 | Model | Source | Command flags |
 |---|---|---|
+| `sprig.glb` | hackclub/sprig `public/sprig.glb` (9.3MB, 77k tris, 22 materials, two 4556² PNGs) | `optimize-glb.mjs --ratio 0.5 --error 0.004 --longest 0.12` (1.39MB, 75k tris, 15 materials) |
 | `tamagotchi.glb` | TaniWanKenobi/tamagotchi `CAD/Tamagotchi.step` | `--ratio 0.6` (281k → 170k triangles), then `shrink.mjs --ratio 0.35 --error 0.01` (→ 62k, 0.44 MB) |
 | `ice3dp.glb` | TaniWanKenobi/ICE3DP `ICE3DP.step` | native: `0.08` mm / `0.3` rad, then `--ratio 0.18 --error 0.0015` (2.19M → 436k triangles), then `shrink.mjs --ratio 0.15 --error 0.02` (→ 165k, 1.29 MB) |
 
