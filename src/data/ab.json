@@ -1,0 +1,3 @@
+[
+  { "id": "hover", "label": "Hover style", "variants": { "a": "Text nudges right", "b": "Sliding highlight + spring" } }
+]

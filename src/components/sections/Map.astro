@@ -19,9 +19,9 @@ interface Props { back?: boolean }
       <p class="places-note" data-f="note"></p>
     </div>
   </div>
-  <ul class="places-list">
+  <ul class="places-list" data-hover-list>
     {places.map((p) => (
-      <li><button type="button" data-place={p.id} aria-pressed="false"><span>{p.name}</span><span class="mono">{p.when}</span></button></li>
+      <li data-ph={p.placeholder ? '' : undefined}><button type="button" data-place={p.id} aria-pressed="false"><span>{p.name}</span><span class="mono">{p.when}</span></button></li>
     ))}
   </ul>
 </div>

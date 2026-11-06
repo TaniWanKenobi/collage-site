@@ -1,17 +1,33 @@
 ---
 import '../styles/global.css';
+// A/B review tool (temporary): tests in src/data/ab.json, styles in styles/ab.css, behaviour in scripts/ab.ts.
+import '../styles/ab.css';
+import abTests from '../data/ab.json';
 interface Props { title?: string; description?: string }
 const {
   title = 'Tanishq',
   description = 'Tanishq, 11th grade in Bayonne, NJ and part of Hack Club. Scroll to zoom into each piece of the collage: projects, timeline, photos, writing, places, guestbook and contact.',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const abIds = abTests.map((t) => t.id);
+const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- A/B: pick each test's variant before first paint. Priority: ?ab-<id>=a|b, then ?ab=a|b (all tests), then localStorage, then "a". -->
+  <script is:inline define:vars={{ abIds }}>
+    (function () {
+      var q = new URLSearchParams(location.search), all = q.get('ab'), d = document.documentElement;
+      abIds.forEach(function (id) {
+        var v = q.get('ab-' + id) || all, s = null;
+        try { s = localStorage.getItem('ab-' + id); } catch (e) {}
+        if (v !== 'a' && v !== 'b') v = s === 'a' || s === 'b' ? s : 'a';
+        d.setAttribute('data-ab-' + id, v);
+      });
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{title}</title>
   <meta name="description" content={description}>
@@ -28,5 +44,23 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 </head>
 <body>
   <slot />
+  <div class="ab-tool" data-ab-tool>
+    <div class="ab-panel" id="ab-panel" hidden>
+      <h2>A/B review</h2>
+      <p class="ab-note">Temporary tool: pick a variant, then delete the loser.</p>
+      {abTests.map((t) => (
+        <fieldset class="ab-test" data-ab-test={t.id}>
+          <legend>{t.label}</legend>
+          <div class="ab-opts">
+            {(['a', 'b'] as const).map((v) => (
+              <button type="button" data-ab-v={v} aria-pressed="false"><b>{v.toUpperCase()}</b>{t.variants[v]}</button>
+            ))}
+          </div>
+        </fieldset>
+      ))}
+    </div>
+    <button type="button" class="ab-toggle" aria-expanded="false" aria-controls="ab-panel" aria-label="A/B review (temporary tool)" title="A/B review (temporary)">A/B</button>
+  </div>
+  <script>import '../scripts/ab';</script>
 </body>
 </html>

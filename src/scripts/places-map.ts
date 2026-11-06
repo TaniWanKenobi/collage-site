@@ -62,6 +62,7 @@ async function init(el: HTMLElement) {
     const m = L.marker([p.lat, p.lng], { icon, title: p.name, keyboard: true }).addTo(map);
     m.bindTooltip(p.name, { direction: 'top', offset: [0, -12], className: 'places-tip' });
     m.on('click', () => (openId === p.id ? close() : open(p)));
+    if (p.placeholder) m.getElement()?.setAttribute('data-ph', '');
     pins[p.id] = m;
   }
   card.querySelector('[data-places-close]')?.addEventListener('click', close);

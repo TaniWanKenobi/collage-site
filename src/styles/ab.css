@@ -1,0 +1,53 @@
+/* A/B review tool (temporary). Tests are declared in src/data/ab.json; the live variant is html[data-ab-<id>="a|b"].
+   To remove a test: delete it from ab.json and delete its losing variant's CSS below (keep the winner, drop the html[data-ab-…] prefix). */
+
+/* Spring curve from hexOS (github.com/Hex-4/hexOS, src/styles/global.css, .ease-spring), reused with permission. */
+:root { --ab-spring: linear(0, 0.039 2%, 0.155 4.2%, 0.986 15.2%, 1.133 18.6%, 1.201 22%, 1.193 26.8%, 1.011 38.4%, 0.959 45.4%, 1.008 68.6%, 1); }
+
+/* ---------- Test "hover": rows of any [data-hover-list] (direct li children, or direct button/a rows) ---------- */
+
+/* Variant A: text turns lime and nudges right (was `.places-list button:hover` in global.css). */
+html[data-ab-hover="a"] [data-hover-list] > li > :is(button, a),
+html[data-ab-hover="a"] [data-hover-list] > :is(button, a),
+html[data-ab-hover="a"] [data-hover-list] > li:not(:has(> :is(button, a))) { transition: color .15s, padding .18s; }
+html[data-ab-hover="a"] [data-hover-list] > li > :is(button, a):is(:hover, :focus-visible),
+html[data-ab-hover="a"] [data-hover-list] > :is(button, a):is(:hover, :focus-visible),
+html[data-ab-hover="a"] [data-hover-list] > li:not(:has(> :is(button, a))):hover { color: var(--lime); padding-left: 12px; }
+
+/* Variant B: one rounded onyx-3 pill behind the hovered/focused row, sliding between rows on a spring
+   (ported from hexaa.sh's AnimatedBackground, CC0). Positioned by scripts/ab.ts in the list's own coordinates. */
+html[data-ab-hover="b"] [data-hover-list] > :not(.ab-hl) { position: relative; z-index: 1; }
+html[data-ab-hover="b"] [data-hover-list] > li > :is(button, a):focus-visible,
+html[data-ab-hover="b"] [data-hover-list] > :is(button, a):focus-visible { outline: none; }
+.ab-hl {
+  position: absolute; z-index: 0; left: 0; top: 0; margin: 0; padding: 0; list-style: none; pointer-events: none;
+  width: calc(var(--ab-w, 0px) + 2 * var(--ab-hl-pad, 10px));
+  height: var(--ab-h, 0px);
+  transform: translate(calc(var(--ab-x, 0px) - var(--ab-hl-pad, 10px)), var(--ab-y, 0px));
+  border-radius: 12px; background-color: var(--ab-hl-bg, var(--onyx-3));
+  box-shadow: inset 0 0 0 1px rgba(194,249,112,.08);
+  opacity: 0;
+  transition: transform .5s var(--ab-spring), width .5s var(--ab-spring), height .5s var(--ab-spring), opacity .18s ease;
+}
+.ab-hl.is-on { opacity: 1; }
+.ab-hl.is-snap { transition: opacity .18s ease; }
+html:not([data-ab-hover="b"]) .ab-hl { display: none; }
+@media (prefers-reduced-motion: reduce) { .ab-hl { transition: opacity .12s linear; } }
+
+/* ---------- The floating A/B pill (bottom-left: clear of the right-hand HUD and the top-left "Tanishq" pill) ---------- */
+.ab-tool { position: fixed; left: 10px; bottom: 8px; z-index: 2000; font-family: var(--font-mono); font-size: 12px; line-height: 1.3; color: var(--lime-tint); }
+.ab-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px dashed var(--lime); border-radius: 999px; background-color: var(--onyx-2); color: var(--lime); font: inherit; font-weight: 500; cursor: pointer; box-shadow: 0 14px 30px rgba(4,8,3,.5); }
+.ab-toggle:hover, .ab-toggle[aria-expanded="true"] { background-color: var(--onyx-3); }
+.ab-toggle:focus-visible, .ab-panel button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.ab-panel { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: min(320px, calc(100vw - 28px)); box-sizing: border-box; padding: 12px 14px 14px; border: 1px solid var(--onyx-3); border-radius: 14px; background-color: var(--onyx-2); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(-.6deg); }
+.ab-panel[hidden] { display: none; }
+.ab-panel h2 { margin: 0 0 2px; font: inherit; font-size: 12px; color: var(--lime); }
+.ab-note { margin: 0 0 10px; font-size: 10px; color: var(--muted); }
+.ab-test { margin: 0; padding: 8px 0 0; border: 0; border-top: 1px solid var(--onyx-3); }
+.ab-test + .ab-test { margin-top: 8px; }
+.ab-test legend { padding: 0; font-size: 11px; color: var(--lime-tint); }
+.ab-opts { display: flex; gap: 6px; margin-top: 6px; }
+.ab-opts button { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 6px 9px; border: 1px solid var(--onyx-3); border-radius: 10px; background: transparent; color: var(--lime-tint); font: inherit; font-size: 10px; text-align: left; cursor: pointer; }
+.ab-opts button b { font-size: 13px; }
+.ab-opts button[aria-pressed="true"] { border-color: var(--lime); background-color: var(--lime); color: var(--onyx); }
+.ab-opts button:not([aria-pressed="true"]):hover { background-color: var(--onyx-3); }
