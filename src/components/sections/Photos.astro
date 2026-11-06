@@ -11,13 +11,17 @@ import '../../styles/photos.css';
 import photos from '../../data/photos.json';
 interface Props { back?: boolean }
 
-type Photo = { file: string; caption: string; place: string; date: string; placeholder?: boolean; focus?: string; bucket?: string };
+type Photo = { file: string; caption: string; place: string; date: string; placeholder?: boolean; focus?: string; bucket?: string; size?: 'sm' | 'lg' };
 const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/{photos,placeholder/photos}/*.{jpg,jpeg,png,webp,avif}', { eager: true });
 
-// Scrapbook "mess": a fixed pattern of tilts / nudges / tape so the album looks hand-placed but renders the same every build.
-const TILT = [-3.2, 2.4, -1.6, 3, -2.2, 1.4, -0.8, 2.6];
-const NUDGE = [0, 34, -6, 22, 10, -12, 28, 4];
+// Layout: a dense mosaic of mixed-size polaroids (the claynicholson.com gallery idea, our own code).
+// Each photo's shape bucket (landscape / portrait / square) sets its tile shape; a hash of the file name picks
+// small or large (or set "size": "sm" | "lg" in photos.json), and CSS grid's dense flow packs the gaps.
+// A fixed pattern of small tilts and tape keeps the scrapbook feel but renders the same every build.
+const TILT = [-1.4, 1.1, -0.6, 1.5, -1.0, 0.7, -0.3, 1.2];
 const TAPE = ['l', '', 'c', 'r', '', 'c', 'l', ''];
+const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+const sizeOf = (p: { file: string; size?: string }) => p.size ?? (hash(p.file) % 3 === 0 ? 'lg' : 'sm');
 const bucketOf = (w: number, h: number) => (w / h > 1.15 ? 'landscape' : w / h < 0.87 ? 'portrait' : 'square');
 
 const items = await Promise.all(
@@ -28,7 +32,8 @@ const items = await Promise.all(
     return {
       ...p, src, full,
       bucket: p.bucket ?? bucketOf(src.width, src.height),
-      style: `--tilt:${TILT[i % TILT.length]}deg;--nudge:${NUDGE[i % NUDGE.length]}px;--focus:${p.focus ?? '50% 50%'}`,
+      size: sizeOf(p),
+      style: `--tilt:${TILT[i % TILT.length]}deg;--focus:${p.focus ?? '50% 50%'}`,
       tape: TAPE[i % TAPE.length],
     };
   }),
@@ -38,7 +43,7 @@ const items = await Promise.all(
 <div class="album-wrap">
   <ul class="album" data-album data-hover-list>
     {items.map((p) => (
-      <li class={`pol is-${p.bucket}`} style={p.style} data-ph={p.placeholder ? '' : undefined}>
+      <li class={`pol is-${p.bucket} is-${p.size}`} style={p.style} data-ph={p.placeholder ? '' : undefined}>
         {p.tape && <span aria-hidden="true" class={`tape pol-tape is-${p.tape}`}></span>}
         <a
           class="pol-link"
@@ -56,8 +61,8 @@ const items = await Promise.all(
               alt={p.caption}
               formats={['avif', 'webp']}
               fallbackFormat="webp"
-              widths={[320, 480, 720]}
-              sizes="(max-width: 760px) 46vw, 320px"
+              widths={[320, 480, 720, 960]}
+              sizes="(max-width: 760px) 92vw, 520px"
               loading="lazy"
               decoding="async"
               style={`object-position: ${p.focus ?? '50% 50%'}`}
