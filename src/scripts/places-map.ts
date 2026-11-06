@@ -22,7 +22,7 @@ export function mountPlaces() {
 }
 
 async function init(el: HTMLElement) {
-  const [{ default: L }] = await Promise.all([import('leaflet'), import('leaflet/dist/leaflet.css')]);
+  const { default: L } = await import('leaflet');
   const root = el.closest('.places') as HTMLElement;
   const data: Place[] = JSON.parse(root.parentElement?.querySelector('[data-places-data]')?.textContent || '[]');
   el.querySelector('.places-fallback')?.remove();

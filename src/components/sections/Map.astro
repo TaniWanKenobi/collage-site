@@ -2,6 +2,8 @@
 // Places: a real pannable world map (Leaflet, loaded only when this page is opened) with a pin per place.
 // Clicking a pin (or a row in the list) opens a card about that place. Edit src/data/places.json to add places.
 import Section from './Section.astro';
+// Leaflet's own CSS is bundled with the page (~3 KB gz): a lazily imported CSS chunk 404s on GitHub Pages.
+import 'leaflet/dist/leaflet.css';
 import places from '../../data/places.json';
 interface Props { back?: boolean }
 ---
