@@ -15,7 +15,9 @@
 <script type="module">
 // Headless render page for scripts/models/render.mjs.
 // Query: ?model=/public/models/x.glb&bg=transparent|0d160b&az=35&el=22&single=0&save=name.webp&w=1200&h=900
+//        &style=cel+ink|clay|original|...   (src/scripts/toon.js; default cel+ink)  &blob=1  &px=1 (line pixel ratio)
 import * as THREE from 'three';
+import { prepare, applyStyle, contactBlob, DEFAULT_STYLE } from '/src/scripts/toon.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -33,11 +35,15 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
 
+const style = q.get('style') || DEFAULT_STYLE;
 const scene = new THREE.Scene();
 if (bg !== 'transparent') scene.background = new THREE.Color('#' + bg);
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-scene.environmentIntensity = 0.9;
+// The toon styles carry their own lighting; only 'original' needs the environment map.
+if (style === 'original') {
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environmentIntensity = 0.9;
+}
 const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(3, 5, 4); scene.add(key);
 scene.add(new THREE.HemisphereLight(0xeffdd8, 0x172315, 0.5));
 
@@ -54,7 +60,10 @@ try {
     // single=1 renders front faces only, to expose inverted normals / missing faces.
     if (q.get('single') === '1') { o.material = o.material.clone(); o.material.side = THREE.FrontSide; }
   });
+  prepare(root);
+  applyStyle(root, style);
   scene.add(root);
+  if (q.get('blob') !== '0' && style !== 'original') scene.add(contactBlob(new THREE.Box3().setFromObject(root)));
 
   // Fit a camera to the bounding sphere at a 3/4 view.
   const box = new THREE.Box3().setFromObject(root);
@@ -69,6 +78,7 @@ try {
   cam.lookAt(sphere.center);
   key.position.copy(cam.position).add(new THREE.Vector3(sphere.radius * 2, sphere.radius * 3, 0));
   renderer.render(scene, cam);
+  window.__debug = { THREE, root, scene, cam, renderer, rerender: () => renderer.render(scene, cam), toon: await import('/src/scripts/toon.js') };
 
   const size = box.getSize(new THREE.Vector3());
   window.__stats = { ready: true, ms: Math.round(performance.now() - t0), tris, meshes, size: size.toArray().map((v) => +v.toFixed(4)), center: sphere.center.toArray().map((v) => +v.toFixed(4)) };
