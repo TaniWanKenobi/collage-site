@@ -5,6 +5,7 @@
 import { getCollection } from 'astro:content';
 import Section from './Section.astro';
 import { url } from '../../lib/sections';
+import summary from '../../data/accomplishments-summary.json';
 import '../../styles/accomplishments.css';
 interface Props { back?: boolean }
 const items = (await getCollection('timeline')).sort((a, b) => a.data.order - b.data.order);
@@ -23,6 +24,13 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
     ))}
   </div>
   <p class="sr-only" aria-live="polite" data-acc-status></p>
+  <div class="acc-layout">
+  <aside class="acc-summary" aria-label="Summary" data-ph={summary.placeholder ? '' : undefined}>
+    <span aria-hidden="true" class="tape acc-summary-tape"></span>
+    <p class="mono acc-summary-head">{summary.heading}</p>
+    {summary.paragraphs.map((t) => <p class="acc-summary-p">{t}</p>)}
+    {summary.signoff && <p class="acc-summary-sign">{summary.signoff}</p>}
+  </aside>
   <ol class="acc-list" data-hover-list>
     {items.map((t, i) => (
       <li class="acc-item" data-kind={t.data.kind} data-current={t.data.current ? '' : undefined} data-ph={t.data.placeholder ? '' : undefined}>
@@ -43,6 +51,7 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
       </li>
     ))}
   </ol>
+  </div>
   <p class="mono acc-empty" data-acc-empty hidden>Nothing here yet.</p>
   <p class="mono acc-foot">ADMIT ONE · newest first</p>
 </div>

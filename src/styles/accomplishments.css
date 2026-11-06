@@ -48,3 +48,19 @@
 @media (prefers-reduced-motion: reduce) {
   .acc-item[data-current] .acc-dot { animation: none; }
 }
+
+/* Summary panel: a paper note beside the list that stays in view while the list scrolls.
+   Below 1100px it sits above the list instead. Text lives in src/data/accomplishments-summary.json. */
+.acc-layout { display: grid; grid-template-columns: minmax(0, 920px) minmax(260px, 340px); gap: 28px 44px; align-items: start; }
+.acc-layout > .acc-list { grid-column: 1; grid-row: 1; }
+.acc-summary { grid-column: 2; grid-row: 1; position: sticky; top: 24px; margin: 0; padding: 26px 24px 20px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(1.2deg); }
+.acc-summary-tape { top: -12px; left: 50%; width: 84px; transform: translateX(-50%) rotate(-3deg); }
+.acc-summary-head { margin: 0 0 12px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--grape); }
+.acc-summary-p { margin: 0 0 12px; font-size: 16px; line-height: 1.55; }
+.acc-summary-sign { margin: 4px 0 0; font-family: 'Caveat', cursive; font-size: 24px; color: var(--grape); transform: rotate(-2deg); }
+@media (max-width: 1100px) {
+  .acc-layout { grid-template-columns: minmax(0, 1fr); }
+  .acc-summary { grid-column: 1; grid-row: 1; position: static; max-width: 640px; transform: rotate(-0.6deg); }
+  .acc-layout > .acc-list { grid-row: 2; }
+}
+@media (prefers-reduced-motion: reduce) { .acc-summary, .acc-summary-sign { transform: none; } }

@@ -49,10 +49,11 @@ if (mode === 'src') {
     if (r.endsWith('.json')) {
       let data;
       try { data = JSON.parse(text); } catch { data = null; }
-      const items = Array.isArray(data) ? data : data && typeof data === 'object' ? Object.values(data) : [];
+      // a flagged top-level object (e.g. accomplishments-summary.json), or an array / map of flagged items
+      const items = Array.isArray(data) ? data : data && typeof data === 'object' ? (data.placeholder === true ? [data] : Object.values(data)) : [];
       items.forEach((it, i) => {
         if (it && typeof it === 'object' && it.placeholder === true) {
-          const label = it.name || it.title || it.what || it.caption || it.id || it.file || `item ${i + 1}`;
+          const label = it.name || it.title || it.what || it.caption || it.heading || it.id || it.file || `item ${i + 1}`;
           const at = text.indexOf(JSON.stringify(it.id ?? it.file ?? it.name ?? '').slice(1, -1));
           hits.push({ where: `${r}${at > 0 ? ':' + lineOf(text, at) : ''}`, what: `"${label}"` });
         }

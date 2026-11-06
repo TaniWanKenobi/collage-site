@@ -1,0 +1,10 @@
+{
+  "placeholder": true,
+  "heading": "the short version",
+  "paragraphs": [
+    "I'm a junior at Bayonne High School who likes building things people actually use: small apps, automation scripts, and the occasional piece of hardware.",
+    "Most of my time right now goes into Holos, a personal health app that pulls in data from wearables. Before that I mostly built tools for myself, like a screen-time tracker, a Slack reminder bot, and a script that summarizes the morning announcements.",
+    "A lot of it started with Hack Club. Hackathons taught me to ship something by the deadline, and writing about my projects taught me to explain them."
+  ],
+  "signoff": "more soon"
+}
