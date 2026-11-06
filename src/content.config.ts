@@ -9,6 +9,8 @@ const projects = defineCollection({
     title: z.string(),
     blurb: z.string(),
     tags: z.array(z.string()).default([]),
+    // Which home-tagline verbs this project answers ("Tanishq ships things."): see src/data/kinds.json.
+    kinds: z.array(z.enum(['ships', 'prints', 'solders', 'automates'])).default([]),
     order: z.number(),
     image: z.string().optional(), // path under public/, e.g. "projects/holos.png"
     model: z.string().optional(), // GLB under public/models/, e.g. "models/inkbadge.glb"

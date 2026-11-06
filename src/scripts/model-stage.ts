@@ -13,7 +13,7 @@
 // Look: "cel + ink" (src/scripts/toon.js): the models carry baked crease lines, AO and palette colours
 // (scripts/models/stylize-bake.mjs), and two tiny shaders with their own lighting draw them. No lights, no
 // environment map, one draw per model plus one for its lines and one for its contact shadow.
-import { WebGLRenderer, Scene, PerspectiveCamera, Box3, Vector3, Sphere, SRGBColorSpace, MathUtils, type Object3D } from 'three';
+import { WebGLRenderer, Scene, PerspectiveCamera, Box3, Vector3, Sphere, SRGBColorSpace, MathUtils, Group, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -27,6 +27,8 @@ interface Slot {
   scene: Scene; camera: PerspectiveCamera; controls: OrbitControls;
   wr: ReturnType<typeof worldRect> | null; inView: boolean; ready: boolean; active: boolean;
   requested: boolean; drawn: number; userUntil: number; dragging: boolean; turned: boolean; w: number; h: number; cost: number;
+  // data-spin="0": no auto-rotate, a gentle sway around the front instead (the pivot turns, not the camera).
+  pivot: Group | null; sway: boolean;
 }
 
 const MAX_PX = 1536; // largest backing-store edge per slot
@@ -104,9 +106,10 @@ export function addSlots(els: HTMLElement[]) {
     controls.enableZoom = false;
     controls.enablePan = false;
     controls.enableDamping = true;
-    controls.autoRotate = true;
+    const sway = el.dataset.spin === '0';
+    controls.autoRotate = !sway;
     controls.autoRotateSpeed = 1.1;
-    const s: Slot = { el, kind, canvas, ctx, scene, camera, controls, wr: kind === 'world' ? worldRect(el) : null, inView: false, ready: false, active: false, requested: false, drawn: 0, userUntil: 0, dragging: false, turned: false, w: 0, h: 0, cost: 0 };
+    const s: Slot = { el, kind, canvas, ctx, scene, camera, controls, wr: kind === 'world' ? worldRect(el) : null, inView: false, ready: false, active: false, requested: false, drawn: 0, userUntil: 0, dragging: false, turned: false, w: 0, h: 0, cost: 0, pivot: null, sway };
     // A drag draws at full frame rate, and keeps doing so while the damping settles. A plain click (which
     // flies the camera to the section) is not a drag and must not hold the slot at full rate.
     controls.addEventListener('start', () => { s.dragging = true; s.turned = false; });
@@ -124,8 +127,18 @@ export function addSlots(els: HTMLElement[]) {
 function request(s: Slot) {
   s.requested = true;
   load(s.el.dataset.src!).then(async (obj) => {
-    const box = frame(s, obj);
-    s.scene.add(obj);
+    // data-upright: the CAD lies flat with its face up (+Y); stand it up so that face looks at the camera (+Z).
+    if (s.el.dataset.upright) obj.rotation.x = Math.PI / 2;
+    const pivot = new Group();
+    pivot.add(obj);
+    const box = frame(s, pivot);
+    s.pivot = pivot;
+    s.scene.add(pivot);
+    // data-toy: a clickable screen and buttons on the model (src/scripts/tama-toy.ts).
+    if (s.el.dataset.toy) {
+      const { attachToy } = await import('./tama-toy.ts');
+      attachToy({ el: s.el, canvas: s.canvas, camera: s.camera, model: obj, redraw: () => { s.userUntil = now() + 400; kick(); } });
+    }
     if (s.el.dataset.blob !== '0') s.scene.add(contactBlob(box));
     // Compile the model's shaders off the main thread where the browser supports it (KHR_parallel_shader_compile).
     try { await renderer!.compileAsync(s.scene, s.camera); } catch { /* falls back to compiling on first render */ }
@@ -146,7 +159,8 @@ function wireClick(s: Slot) {
 function frame(s: Slot, obj: Object3D): Box3 {
   const box = new Box3().setFromObject(obj);
   const c = box.getCenter(new Vector3());
-  obj.position.sub(c);
+  // Centre the model inside its pivot, so a sway turns it about its own middle.
+  (obj.children[0] ?? obj).position.sub(c);
   box.translate(c.negate());
   const r = box.getBoundingSphere(new Sphere()).radius || 1;
   const fill = Number(s.el.dataset.fill ?? 0.9);
@@ -233,6 +247,7 @@ function tick() {
     if (s.camera.aspect !== w / h) { s.camera.aspect = w / h; s.camera.updateProjectionMatrix(); }
     // deltaTime keeps the spin speed the same at 30, 60 or 120 Hz.
     s.controls.update(s.drawn ? Math.min(t - s.drawn, 250) / 1000 : 0);
+    if (s.sway && s.pivot) s.pivot.rotation.y = Math.sin(t / 1900) * 0.2;
     s.drawn = t; s.w = w; s.h = h;
     renderer.setViewport(0, 0, w, h);
     renderer.setScissor(0, 0, w, h);

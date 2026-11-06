@@ -1,0 +1,22 @@
+[
+  {
+    "verb": "makes",
+    "label": "all"
+  },
+  {
+    "verb": "ships",
+    "label": "apps"
+  },
+  {
+    "verb": "prints",
+    "label": "3D printing"
+  },
+  {
+    "verb": "solders",
+    "label": "hardware"
+  },
+  {
+    "verb": "automates",
+    "label": "automations"
+  }
+]

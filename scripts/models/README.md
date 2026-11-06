@@ -41,6 +41,12 @@ node scripts/models/optimize-glb.mjs C:\path\to\in.glb public\models\sprig.glb -
 node scripts/models/render.mjs sprig --az 20 --el 38 --fit 0.8
 ```
 
+Front view of a flat-lying model, saved under another name (the Tamagotchi's collage poster):
+
+```powershell
+node scripts/models/render.mjs tamagotchi --az -18 --el 8 --fit 0.8 --upright --out tamagotchi-front.webp
+```
+
 `--longest` is the target length of the longest side in meters (`0` keeps the source scale).
 
 Then add an entry to `src/data/models.json`.

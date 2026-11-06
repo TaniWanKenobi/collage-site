@@ -1,0 +1,88 @@
+---
+// The outlined "makes things." in the collage's bottom-right corner. The verb shuffles (makes → ships → prints →
+// solders → automates) and the whole line is a link: clicking it opens Projects filtered to that kind of work
+// (src/data/kinds.json; projects list their kinds in frontmatter). Reduced motion: it stays on "makes".
+// Desktop flies the zoom camera (data-fly); the phone collage links to /projects/?kind=… instead.
+import KINDS from '../../data/kinds.json';
+import { url } from '../../lib/sections';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const first = KINDS[0];
+---
+<a
+  class="tagline"
+  href={url('projects')}
+  data-fly={desk ? 'projects' : undefined}
+  data-tagline
+  data-kinds={JSON.stringify(KINDS.map((k) => [k.verb, k.label]))}
+  aria-label="See the things I make"
+  style="right: calc(43px - var(--ex, 0px)); bottom: calc(30px - var(--ey, 0px))"
+><span class="tagline-verb" aria-hidden="true">{first.verb}</span><span aria-hidden="true"> things.</span><span class="tagline-hint mono" aria-hidden="true">see {first.label} →</span></a>
+
+<script>
+  // Every copy (desktop zoom world + phone collage) shuffles in step.
+  const lines = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-tagline]')).filter((a) => !a.dataset.ready);
+  if (lines.length) {
+    const kinds: [string, string][] = JSON.parse(lines[0].dataset.kinds!);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let i = 0, held = false;
+    const base = lines[0].href.split('?')[0];
+    const paint = (animate: boolean) => {
+      const [verb, label] = kinds[i];
+      lines.forEach((a) => {
+        const v = a.querySelector<HTMLElement>('.tagline-verb')!;
+        const h = a.querySelector<HTMLElement>('.tagline-hint')!;
+        // Word, link and label change together, so a click always goes where the visible word says.
+        const swap = () => {
+          v.textContent = verb;
+          a.href = i ? `${base}?kind=${verb}` : base;
+          a.setAttribute('aria-label', i ? `See the things I ${verb.replace(/s$/, '')}: ${label}` : 'See the things I make');
+          h.textContent = `see ${label} →`;
+        };
+        if (!animate) { swap(); return; }
+        v.classList.add('is-out');
+        setTimeout(() => { swap(); v.classList.remove('is-out'); v.classList.add('is-in'); requestAnimationFrame(() => requestAnimationFrame(() => v.classList.remove('is-in'))); }, 220);
+      });
+    };
+    lines.forEach((a) => {
+      a.dataset.ready = '1';
+      a.addEventListener('mouseenter', () => (held = true));
+      a.addEventListener('mouseleave', () => (held = false));
+      a.addEventListener('focus', () => (held = true));
+      a.addEventListener('blur', () => (held = false));
+      // Filter Projects to the word on screen, then the zoom camera's own data-fly handler flies there.
+      a.addEventListener('click', () => window.dispatchEvent(new CustomEvent('proj-kind', { detail: new URL(a.href).searchParams.get('kind') ?? 'makes' })));
+    });
+    if (!reduce) setInterval(() => { if (held || document.hidden) return; i = (i + 1) % kinds.length; paint(true); }, 2600);
+  }
+</script>
+
+<style>
+  .tagline {
+    position: absolute; z-index: 5; margin: 0; /* over the photo of me (3): longer verbs reach it */
+    font-weight: 800; font-size: 118px; line-height: 0.9;
+    /* Looser than the old -0.04em: at that spacing the outlines of k / e / s crossed each other. */
+    letter-spacing: -0.012em;
+    color: transparent; -webkit-text-stroke: 2px var(--lime);
+    /* A thin dark halo keeps the lime outline readable where it crosses lime pieces (the Bayonne strip). */
+    filter: drop-shadow(0 0 1px var(--onyx)) drop-shadow(0 0 1px var(--onyx));
+    white-space: nowrap; text-decoration: none; cursor: pointer;
+    transition: color .2s ease;
+  }
+  .tagline-verb { display: inline-block; transition: transform .22s ease, opacity .22s ease; }
+  .tagline-verb.is-out { transform: translateY(-0.25em); opacity: 0; }
+  .tagline-verb.is-in { transform: translateY(0.25em); opacity: 0; transition: none; }
+  .tagline-hint {
+    position: absolute; right: 4px; top: -26px;
+    font-size: 13px; font-weight: 500; letter-spacing: 0; line-height: 1;
+    color: var(--onyx); background: var(--lime); -webkit-text-stroke: 0;
+    padding: 5px 10px; border-radius: 999px;
+    opacity: 0; translate: 0 4px; transition: opacity .2s ease, translate .2s ease; pointer-events: none;
+  }
+  .tagline:hover, .tagline:focus-visible { color: rgba(194, 249, 112, .14); }
+  .tagline:hover .tagline-hint, .tagline:focus-visible .tagline-hint { opacity: 1; translate: 0 0; }
+  .tagline:focus-visible { outline: 3px solid var(--lime); outline-offset: 6px; }
+  @media (prefers-reduced-motion: reduce) {
+    .tagline, .tagline-verb, .tagline-hint { transition: none; }
+  }
+</style>

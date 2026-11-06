@@ -13,8 +13,12 @@ interface Props {
   style?: string;
   fly?: string;
   elev?: number; azim?: number; fill?: number;
+  poster?: string;   // override the models.json poster (e.g. a front view rendered for this slot)
+  upright?: boolean; // stand a flat-lying model up so its top face looks at the camera
+  spin?: boolean;    // false: no auto-rotate, a gentle sway around the front instead
+  toy?: boolean;     // the Tamagotchi's clickable screen and buttons (src/scripts/tama-toy.ts)
 }
-const { id, kind, style = '', fly, elev = 22, azim = 35, fill = 0.9 } = Astro.props;
+const { id, kind, style = '', fly, elev = 22, azim = 35, fill = 0.9, poster, upright, spin = true, toy } = Astro.props;
 const m = models.find((x) => x.id === id)!;
 const live = kind !== 'poster';
 const label = `${m.title} 3D model`;
@@ -26,11 +30,14 @@ const label = `${m.title} 3D model`;
   data-src={url(m.glb)}
   data-elev={elev} data-azim={azim} data-fill={fill}
   data-fly-to={fly}
+  data-upright={upright ? '1' : undefined}
+  data-spin={spin ? undefined : '0'}
+  data-toy={toy ? '1' : undefined}
   role={kind === 'world' ? 'link' : undefined}
   tabindex={kind === 'world' ? 0 : undefined}
-  aria-label={kind === 'world' ? `${m.title}: open Projects` : undefined}
+  aria-label={kind === 'world' ? `${m.title}: open Projects${toy ? '. Press 1, 2 or 3 to use its buttons' : ''}` : undefined}
 >
-  <img class="m3d-poster" src={url(m.poster)} alt={live ? '' : label} width="1200" height="900" decoding="async" draggable="false" loading={kind === 'world' ? 'eager' : 'lazy'} />
+  <img class="m3d-poster" src={url(poster ?? m.poster)} alt={live ? '' : label} width="1200" height="900" decoding="async" draggable="false" loading={kind === 'world' ? 'eager' : 'lazy'} />
   {live && <canvas class="m3d-canvas" role="img" aria-label={`${label}. Drag to rotate.`}></canvas>}
   {kind === 'flow' && <button type="button" class="m3d-load mono" hidden>Spin in 3D</button>}
 </div>

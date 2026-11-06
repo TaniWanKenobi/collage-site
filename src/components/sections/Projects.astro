@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 import Section from './Section.astro';
 import Model3D from '../Model3D.astro';
 import models from '../../data/models.json';
+import KINDS from '../../data/kinds.json';
+import '../../styles/accomplishments.css'; // shared filter-chip styles
 interface Props { back?: boolean }
 // Stand-in screenshots (tracked placeholders) for projects that have no `image` yet.
 const phShots = Object.values(import.meta.glob<{ default: ImageMetadata }>('../../assets/placeholder/projects/*.jpg', { eager: true })).map((m) => m.default.src);
@@ -13,10 +15,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 30, azim: 48, fill: 1.1 } };
 ---
 <Section id="projects" label="01 · projects" title="Things I've built" back={Astro.props.back}>
+<div class="proj" data-proj style="display: contents">
+  <div class="acc-filters" role="group" aria-label="Filter projects">
+    {KINDS.map((k) => (
+      <button type="button" class="mono acc-filter" data-kind-filter={k.verb} aria-pressed={k.verb === 'makes' ? 'true' : 'false'}>{k.label}</button>
+    ))}
+  </div>
+  <p class="sr-only" aria-live="polite" data-proj-status></p>
   <p class="mono" style="margin: 0 0 -10px; font-size: 13px; color: var(--muted)">in 3D · drag to rotate</p>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); gap: 26px 24px">
     {models.map((m, i) => (
-      <article class="proj-card" style={`transform: rotate(${i ? 0.6 : -0.8}deg)`}>
+      <article class="proj-card" data-kinds={m.kinds.join(' ')} style={`transform: rotate(${i ? 0.6 : -0.8}deg)`}>
         <span aria-hidden="true" class="proj-tape"></span>
         <Model3D id={m.id as 'ice3dp' | 'tamagotchi'} kind={Astro.props.back ? 'page' : 'flow'} {...VIEW[m.id as keyof typeof VIEW]} />
         <h3 style="margin: 6px 0 0; font-weight: 800; font-size: 24px; line-height: 1.1">{m.title}</h3>
@@ -27,7 +36,7 @@ const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 3
   </div>
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 26px 24px">
     {projects.map((p, i) => (
-      <article class="proj-card" data-ph={p.data.placeholder ? '' : undefined} style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
+      <article class="proj-card" data-kinds={p.data.kinds.join(' ')} data-ph={p.data.placeholder ? '' : undefined} style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
         <span aria-hidden="true" class="proj-tape"></span>
         {p.data.image
           ? <img src={`${base}/${p.data.image}`} alt="" class="proj-shot" loading="lazy" />
@@ -38,4 +47,31 @@ const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 3
       </article>
     ))}
   </div>
+</div>
 </Section>
+
+<script>
+  // Kind chips ("ships", "prints"...), also driven by the home tagline: clicking "prints things." sends a
+  // `proj-kind` event and flies here, and /projects/?kind=prints opens filtered. The section can be in the
+  // DOM twice (zoom world + phone layout), so every instance mounts once and follows the same events.
+  const roots = Array.from(document.querySelectorAll<HTMLElement>('[data-proj]')).filter((r) => !r.dataset.projReady);
+  const setKind = (root: HTMLElement, kind: string) => {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-kind-filter]');
+    if (![...buttons].some((b) => b.dataset.kindFilter === kind)) kind = 'makes';
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kindFilter === kind)));
+    let shown = 0;
+    root.querySelectorAll<HTMLElement>('.proj-card').forEach((c) => {
+      const on = kind === 'makes' || (c.dataset.kinds ?? '').split(' ').includes(kind);
+      c.hidden = !on; if (on) shown++;
+    });
+    const status = root.querySelector<HTMLElement>('[data-proj-status]');
+    if (status) status.textContent = `Showing ${shown} project${shown === 1 ? '' : 's'}`;
+  };
+  roots.forEach((root) => {
+    root.dataset.projReady = '1';
+    root.querySelectorAll<HTMLButtonElement>('[data-kind-filter]').forEach((b) => b.addEventListener('click', () => setKind(root, b.dataset.kindFilter!)));
+  });
+  const fromUrl = new URLSearchParams(location.search).get('kind');
+  if (fromUrl) roots.forEach((r) => setKind(r, fromUrl));
+  window.addEventListener('proj-kind', (e) => roots.forEach((r) => setKind(r, (e as CustomEvent<string>).detail)));
+</script>

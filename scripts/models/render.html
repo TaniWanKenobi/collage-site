@@ -60,6 +60,8 @@ try {
     // single=1 renders front faces only, to expose inverted normals / missing faces.
     if (q.get('single') === '1') { o.material = o.material.clone(); o.material.side = THREE.FrontSide; }
   });
+  // upright=1: stand a flat-lying model up (its +Y face toward +Z), as Model3D's `upright` does on the site.
+  if (q.get('upright') === '1') root.rotation.x = Math.PI / 2;
   prepare(root);
   applyStyle(root, style);
   scene.add(root);

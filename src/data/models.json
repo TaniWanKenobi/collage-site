@@ -17,7 +17,10 @@
       "simplifyError": 0.0015,
       "trianglesBeforeSimplify": 2190670,
       "shrink": "scripts/models/shrink.mjs --ratio 0.15 --error 0.02 (436k -> 165k)"
-    }
+    },
+    "kinds": [
+      "prints"
+    ]
   },
   {
     "id": "tamagotchi",
@@ -37,6 +40,10 @@
       "simplifyError": 0.0005,
       "trianglesBeforeSimplify": 281039,
       "shrink": "scripts/models/shrink.mjs --ratio 0.35 --error 0.01 (170k -> 62k)"
-    }
+    },
+    "kinds": [
+      "solders",
+      "prints"
+    ]
   }
 ]
