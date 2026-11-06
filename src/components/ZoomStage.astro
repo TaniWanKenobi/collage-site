@@ -14,15 +14,16 @@ import { ORDER, NAMES, url } from '../lib/sections';
       <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
 
       <div id="zm-hud" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 2px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
-        <span class="mono" id="hud-num" style="font-size: 11px; color: var(--lime-tint)">01</span>
+        <span class="mono" id="hud-num" style="font-size: 11px; color: var(--lime-tint)">00</span>
         <div style="display: flex; flex-direction: column">
           {ORDER.map((k, i) => (
-            <button type="button" data-dot={i} aria-label={`Go to ${NAMES[k]}`} aria-current={i === 0 ? 'true' : 'false'} style="width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
-              <span style={`display: block; width: ${i === 0 ? 10 : 7}px; height: ${i === 0 ? 10 : 7}px; border-radius: 50%; background-color: ${i === 0 ? 'var(--lime)' : 'var(--grape-lite)'}`}></span>
+            <button type="button" class="hud-dot" data-dot={i} aria-label={`Go to ${NAMES[k]}`} aria-current="false">
+              <span class="hud-pip"></span>
+              <span class="hud-tip mono" aria-hidden="true"><b>{String(i + 1).padStart(2, '0')}</b> {NAMES[k]}</span>
             </button>
           ))}
         </div>
-        <span class="mono" id="hud-name" style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--lime-tint); padding-top: 4px">Projects</span>
+        <span class="mono" id="hud-name" style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--lime-tint); padding-top: 4px">Collage</span>
       </div>
     </div>
   </div>

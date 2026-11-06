@@ -98,14 +98,10 @@ export function initZoomCamera() {
   function setHud(i) {
     if (i === hudI) return;
     hudI = i;
+    // i = -1: the zoomed-out collage, where no section is in view yet.
     hudNum.textContent = String(i + 1).padStart(2, '0');
-    hudName.textContent = PIECES[i].name;
-    dots.forEach(function (b, k) {
-      var on = k === i, dot = b.firstElementChild;
-      b.setAttribute('aria-current', on ? 'true' : 'false');
-      dot.style.width = dot.style.height = on ? '10px' : '7px';
-      dot.style.backgroundColor = on ? '#C2F970' : '#8F86C0';
-    });
+    hudName.textContent = i < 0 ? 'Collage' : PIECES[i].name;
+    dots.forEach(function (b, k) { b.setAttribute('aria-current', k === i ? 'true' : 'false'); });
   }
 
   // Style writes are skipped when the value has not changed, so a scroll frame touches only what moves.
@@ -160,7 +156,7 @@ export function initZoomCamera() {
     var hp = toScreen(c, homeAt.x, homeAt.y), off = !anyOpen && (hp.x < 0 || hp.y < 0 || hp.x > vw || hp.y > stageH);
     if (home.classList.contains('is-on') !== off) home.classList.toggle('is-on', off);
     if (whead && whead.inert !== (zn > 0.3)) whead.inert = zn > 0.3;
-    setHud(c.i);
+    setHud(zn >= 0.5 || anyOpen ? c.i : -1);
     publish(c, zn);
   }
 

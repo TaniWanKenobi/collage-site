@@ -78,3 +78,14 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .three-slot { position: absolute; inset: 0; }
 .three-slot canvas { display: block; }
 .three-live .css-fallback { visibility: hidden; }
+
+/* Section HUD dots (right edge). Hover/focus: the pip grows and a name tag slides out to the left. */
+.hud-dot { position: relative; width: 28px; height: 22px; padding: 0; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.hud-pip { display: block; width: 7px; height: 7px; border-radius: 50%; background-color: var(--grape-lite); box-shadow: 0 0 0 0 rgba(194,249,112,0); transition: transform .18s cubic-bezier(.3,1.6,.5,1), background-color .18s, box-shadow .18s; }
+.hud-dot[aria-current="true"] .hud-pip { width: 10px; height: 10px; background-color: var(--lime); }
+.hud-dot:hover .hud-pip, .hud-dot:focus-visible .hud-pip { transform: scale(1.5); background-color: var(--lime); box-shadow: 0 0 0 3px rgba(194,249,112,.22); }
+.hud-tip { position: absolute; right: calc(100% + 8px); top: 50%; white-space: nowrap; pointer-events: none; font-size: 11px; line-height: 1; padding: 6px 10px; border-radius: 999px; background-color: var(--lime); color: var(--onyx); opacity: 0; transform: translate(6px, -50%); transition: opacity .15s, transform .18s cubic-bezier(.3,1.4,.5,1); }
+.hud-tip b { font-weight: 700; opacity: .55; margin-right: 4px; }
+.hud-dot:hover .hud-tip, .hud-dot:focus-visible .hud-tip { opacity: 1; transform: translate(0, -50%); }
+.hud-dot:focus-visible { outline: none; }
+@media (prefers-reduced-motion: reduce) { .hud-pip, .hud-tip { transition: none; } }
