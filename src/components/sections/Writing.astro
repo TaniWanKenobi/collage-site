@@ -1,18 +1,31 @@
 ---
+// Blog (section id stays "writing" so routes and the zoom camera keep working).
+// Posts are Markdown files in src/content/blog; each one gets its own page at /blog/<id>/.
 import { getCollection } from 'astro:content';
 import Section from './Section.astro';
+import { url } from '../../lib/sections';
+import '../../styles/blog.css';
 interface Props { back?: boolean }
-const items = (await getCollection('writing')).sort((a, b) => a.data.order - b.data.order);
+const posts = (await getCollection('blog')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const month = (d: Date) => d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+const full = (d: Date) => d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
-<Section id="writing" label="04 · writing + awards" title="Notes and wins" back={Astro.props.back}>
-  <ul class="ruled writing-sheet">
-    {items.map((w) => (
-      <li>
-        <span class="mono" style="width: 80px; font-size: 13px; color: var(--grape)">{w.data.date}</span>
-        <span style="flex: 1 1 260px; font-family: 'Caveat', cursive; font-size: 34px; line-height: 1">{w.data.title}</span>
-        <span class="mono pill">{w.data.kind === 'award' ? 'Award' : 'Writing'}</span>
+<Section id="writing" label="04 · blog" title="Notes from the workbench" back={Astro.props.back}>
+  <ol class="blog-list" data-hover-list>
+    {posts.map((p) => (
+      <li class="blog-row" data-ph={p.data.placeholder ? '' : undefined}>
+        <time class="mono blog-stamp" datetime={p.data.date.toISOString().slice(0, 10)} aria-label={full(p.data.date)}>
+          <span class="blog-month" aria-hidden="true">{month(p.data.date)}</span>
+          <span class="blog-day" aria-hidden="true">{p.data.date.getUTCDate()}</span>
+        </time>
+        <div class="blog-main">
+          <h3 class="blog-title"><a href={url(`blog/${p.id}/`)}>{p.data.title}</a></h3>
+          <p class="blog-excerpt">{p.data.excerpt}</p>
+          <p class="mono blog-meta">{p.data.kind} · {p.data.readMins} min read</p>
+        </div>
+        {p.data.award && <span class="mono blog-won" title={p.data.award}>won<span class="sr-only">: {p.data.award}</span></span>}
       </li>
     ))}
-  </ul>
-  <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">Posts and awards, newest first.</p>
+  </ol>
+  <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">Essays, build logs and notes, newest first.</p>
 </Section>

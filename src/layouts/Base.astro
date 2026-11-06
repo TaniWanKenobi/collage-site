@@ -6,7 +6,7 @@ import abTests from '../data/ab.json';
 interface Props { title?: string; description?: string }
 const {
   title = 'Tanishq',
-  description = 'Tanishq, 11th grade in Bayonne, NJ and part of Hack Club. Scroll to zoom into each piece of the collage: projects, timeline, photos, writing, places, guestbook and contact.',
+  description = 'Tanishq, 11th grade in Bayonne, NJ and part of Hack Club. Scroll to zoom into each piece of the collage: projects, accomplishments, photos, blog, places, guestbook and contact.',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const abIds = abTests.map((t) => t.id);

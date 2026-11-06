@@ -1,0 +1,29 @@
+---
+// One blog post: /blog/<id>/, from src/content/blog/<id>.md.
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/sections';
+import '../../styles/blog.css';
+export async function getStaticPaths() {
+  return (await getCollection('blog')).map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+interface Props { post: CollectionEntry<'blog'> }
+const { post } = Astro.props;
+const { Content } = await render(post);
+const d = post.data.date;
+const date = d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+---
+<Base title={`${post.data.title} · Tanishq`} description={post.data.excerpt}>
+<main class="post-page">
+  <article class="post" data-ph={post.data.placeholder ? '' : undefined}>
+    <a class="mono post-back" href={url('writing/')}>← all posts</a>
+    <header class="post-head">
+      <p class="mono post-meta"><time datetime={d.toISOString().slice(0, 10)}>{date}</time> · {post.data.kind} · {post.data.readMins} min read</p>
+      <h1 class="post-title">{post.data.title}</h1>
+      {post.data.award && <p class="mono post-won">won · {post.data.award}</p>}
+    </header>
+    <div class="prose"><Content /></div>
+    <a class="mono post-back" href={url('writing/')}>← all posts</a>
+  </article>
+</main>
+</Base>

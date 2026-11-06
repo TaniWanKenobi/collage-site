@@ -1,23 +1,24 @@
 ---
-// Writing and awards card (zoom target "writing"). Used by both the desktop zoom world and the phone collage.
+// Blog card (zoom target "writing"). Used by both the desktop zoom world and the phone collage.
 // The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
+// Shows the newest post titles from src/content/blog.
+import { getCollection } from 'astro:content';
 import ZoomPage from '../sections/ZoomPage.astro';
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
 const PANEL_W = 192;
+const posts = (await getCollection('blog')).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).slice(0, 3);
 const attrs = desk
   ? { 'data-jump': 'writing', 'data-rot': '-3' }
-  : { href: '#sec-writing', 'aria-label': 'Writing and awards' };
+  : { href: '#sec-writing', 'aria-label': 'Blog' };
 const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp" {...attrs} style="left: calc(1036px + var(--ex, 0px) * 0.8); top: 128px; width: 220px; height: 148px; padding: 14px; background-color: var(--grape); color: var(--lime-tint); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-3deg)">
 <span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
 <div class="zpanel" style="width: 192px; height: 120px; background-color: var(--grape)">
 <div class="ruled" data-cover={desk ? 'writing' : undefined} style="position: absolute; inset: 0; box-sizing: border-box; padding-top: 2px">
-<span class="mono" style="display: block; font-size: 11px; line-height: 28px; color: var(--lime)">04 · writing + awards</span>
-<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
-<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Award name]</span>
-<span style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px">[Post title]</span>
+<span class="mono" style="display: block; font-size: 11px; line-height: 28px; color: var(--lime)">04 · blog</span>
+{posts.map((p) => <span data-ph={p.data.placeholder ? '' : undefined} style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{p.data.title}</span>)}
 </div>
 {desk && <ZoomPage section="writing" panelWidth={PANEL_W} />}
 </div>

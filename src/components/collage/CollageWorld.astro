@@ -17,7 +17,7 @@ interface Props { mode: 'desk' | 'phone'; center?: 'globe' | 'printer' }
 const { mode, center = 'globe' } = Astro.props;
 const printer = center === 'printer';
 const desk = mode === 'desk';
-const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'], ['map', 'Map'], ['guestbook', 'Guestbook']];
+const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['map', 'Map'], ['guestbook', 'Guestbook']];
 ---
 {desk && (
   <div id="zm-whead" style="position: absolute; left: calc(43px - var(--ex, 0px)); right: calc(43px - var(--ex, 0px)); top: calc(22px - var(--ey, 0px)); height: 44px; display: flex; align-items: center; justify-content: space-between; z-index: 25">

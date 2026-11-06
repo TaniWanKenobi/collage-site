@@ -2,7 +2,7 @@
 export const ORDER = ['projects', 'timeline', 'photos', 'writing', 'map', 'guestbook', 'contact'] as const;
 export type SectionKey = (typeof ORDER)[number];
 export const NAMES: Record<SectionKey, string> = {
-  projects: 'Projects', timeline: 'Timeline', photos: 'Photos', writing: 'Writing',
+  projects: 'Projects', timeline: 'Accomplishments', photos: 'Photos', writing: 'Blog',
   map: 'Places', guestbook: 'Guestbook', contact: 'Say hi',
 };
 /** Join a path onto the site base ("/collage-site"), e.g. url('projects') -> "/collage-site/projects". */

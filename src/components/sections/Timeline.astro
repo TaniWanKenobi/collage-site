@@ -1,21 +1,69 @@
 ---
+// Accomplishments (section id stays "timeline" so routes and the zoom camera keep working).
+// One dated list, newest first: timeline entries, projects, awards and events. Edit src/data/timeline.json.
+// Filter chips filter client-side; hover styles are keyed on [data-hover-list] elsewhere.
 import { getCollection } from 'astro:content';
 import Section from './Section.astro';
+import { url } from '../../lib/sections';
+import '../../styles/accomplishments.css';
 interface Props { back?: boolean }
 const items = (await getCollection('timeline')).sort((a, b) => a.data.order - b.data.order);
-const TILT = [0.8, -0.4, 1.4, -1];
+const posts = new Set((await getCollection('blog')).map((p) => p.id));
+for (const t of items) {
+  if (t.data.post && !posts.has(t.data.post)) throw new Error(`timeline.json "${t.id}": no blog post "${t.data.post}"`);
+}
+const FILTERS = [['all', 'all'], ['timeline', 'timeline'], ['project', 'projects'], ['award', 'awards'], ['event', 'events']];
+const TILT = [0.4, -0.3, 0.2, -0.5];
 ---
-<Section id="timeline" label="02 · timeline" title="So far" back={Astro.props.back}>
-  <ol style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 20px">
+<Section id="timeline" label="02 · accomplishments" title="Things I've done" back={Astro.props.back}>
+<div class="acc" data-acc>
+  <div class="acc-filters" role="group" aria-label="Filter accomplishments">
+    {FILTERS.map(([k, label]) => (
+      <button type="button" class="mono acc-filter" data-filter={k} aria-pressed={k === 'all' ? 'true' : 'false'}>{label}</button>
+    ))}
+  </div>
+  <p class="sr-only" aria-live="polite" data-acc-status></p>
+  <ol class="acc-list" data-hover-list>
     {items.map((t, i) => (
-      <li class={i === 0 ? 'ticket ticket-now' : 'ticket'} style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
-        <div style="flex: 1; padding: 22px 22px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px">
-          <span class="mono" style="font-size: 13px">{t.data.when}</span>
-          <span style="font-weight: 600; font-size: 22px; line-height: 1.25">{t.data.what}</span>
+      <li class="acc-item" data-kind={t.data.kind} data-current={t.data.current ? '' : undefined} data-ph={t.data.placeholder ? '' : undefined}>
+        <span aria-hidden="true" class="acc-dot"></span>
+        <div class="acc-card" style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
+          {t.data.current && <span aria-hidden="true" class="tape" style="top: -12px; right: 28px; width: 72px; transform: rotate(4deg)"></span>}
+          <p class="mono acc-stub">{t.data.when}{t.data.current && <span class="acc-now" aria-hidden="true">★ ongoing</span>}</p>
+          <div class="acc-body">
+            <span class={`mono acc-kind acc-kind--${t.data.kind}`}>{t.data.kind}</span>
+            <h3 class="acc-what">
+              {t.data.post ? <a href={url(`blog/${t.data.post}/`)}>{t.data.what}</a> : t.data.what}
+            </h3>
+            {t.data.detail && <p class="acc-detail">{t.data.detail}</p>}
+            {t.data.post && <p class="mono acc-read">read the post →</p>}
+            {t.data.note && <p class="acc-note">{t.data.note}</p>}
+          </div>
         </div>
-        <span aria-hidden="true" class="ticket-stub"></span>
       </li>
     ))}
   </ol>
-  <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">ADMIT ONE · 2024 → now</p>
+  <p class="mono acc-empty" data-acc-empty hidden>Nothing here yet.</p>
+  <p class="mono acc-foot">ADMIT ONE · newest first</p>
+</div>
 </Section>
+
+<script>
+  // Filter chips. The section can be in the DOM twice (zoom world + phone layout), so mount every instance once.
+  document.querySelectorAll<HTMLElement>('[data-acc]').forEach((root) => {
+    if (root.dataset.accReady) return;
+    root.dataset.accReady = '1';
+    const buttons = root.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const rows = root.querySelectorAll<HTMLElement>('.acc-item');
+    const status = root.querySelector<HTMLElement>('[data-acc-status]');
+    const empty = root.querySelector<HTMLElement>('[data-acc-empty]');
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      const f = b.dataset.filter;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      let shown = 0;
+      rows.forEach((r) => { const on = f === 'all' || r.dataset.kind === f; r.hidden = !on; if (on) shown++; });
+      if (empty) empty.hidden = shown > 0;
+      if (status) status.textContent = `Showing ${shown} ${shown === 1 ? 'entry' : 'entries'}`;
+    }));
+  });
+</script>
