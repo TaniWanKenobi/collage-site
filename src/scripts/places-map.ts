@@ -39,7 +39,7 @@ async function init(el: HTMLElement) {
   map.on('click', () => map.scrollWheelZoom.enable());
   map.on('mouseout', () => map.scrollWheelZoom.disable());
 
-  const card = el.querySelector('[data-places-card]') as HTMLElement;
+  const card = root.querySelector('[data-places-card]') as HTMLElement; // sits under the map, not on it
   const set = (k: string, v: string) => { (card.querySelector(`[data-f="${k}"]`) as HTMLElement).textContent = v; };
   const pins: Record<string, ReturnType<typeof L.marker>> = {};
   const rows = Array.from(root.querySelectorAll<HTMLElement>('[data-place]'));

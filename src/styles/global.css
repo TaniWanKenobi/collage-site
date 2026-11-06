@@ -92,7 +92,8 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 
 /* Places map (sections/Map.astro + scripts/places-map.ts) */
 .places { display: flex; flex-wrap: wrap; gap: 28px; }
-.places-map { flex: 2 1 520px; min-width: 0; height: min(520px, 62vh); min-height: 320px; position: relative; background-color: #10180e; box-shadow: 0 16px 34px rgba(4,8,3,.5), inset 0 0 0 2px var(--onyx-3); overflow: hidden; border-radius: 4px; }
+.places-main { flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.places-map { min-width: 0; height: min(520px, 62vh); min-height: 320px; position: relative; background-color: #10180e; box-shadow: 0 16px 34px rgba(4,8,3,.5), inset 0 0 0 2px var(--onyx-3); overflow: hidden; border-radius: 4px; }
 .places-fallback { margin: 0; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); }
 .places-map.leaflet-container { background-color: #10180e; font-family: 'JetBrains Mono', monospace; }
 /* OSM tiles recoloured: grey, then a hard contrast so water sinks to near-black and land sits at grape. */
@@ -112,7 +113,7 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 @keyframes places-ping { from { transform: scale(.6); opacity: .7; } to { transform: scale(1.9); opacity: 0; } }
 .leaflet-tooltip.places-tip { background: var(--lime); color: var(--onyx); border: 0; border-radius: 999px; box-shadow: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; }
 .leaflet-tooltip.places-tip::before { display: none; }
-.places-card { font-family: var(--font-display); position: absolute; z-index: 1000; left: 18px; top: 18px; width: min(300px, calc(100% - 36px)); box-sizing: border-box; padding: 16px 18px 18px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.5deg); animation: places-in .22s cubic-bezier(.3,1.4,.5,1); }
+.places-card { font-family: var(--font-display); position: relative; margin-left: 18px; width: min(420px, calc(100% - 36px)); box-sizing: border-box; padding: 16px 18px 18px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.5deg); animation: places-in .22s cubic-bezier(.3,1.4,.5,1); }
 .places-card[hidden] { display: none; }
 .places-card h3 { margin: 0 0 6px; font-size: 24px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
 .places-when { margin: 0 0 4px; font-size: 11px; color: var(--grape); }
