@@ -3,3 +3,8 @@ dist/
 .astro/
 .DS_Store
 .occ-venv/
+
+# Cloudflare Worker local state and secrets
+.wrangler/
+.dev.vars
+.env

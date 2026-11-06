@@ -1,0 +1,26 @@
+[
+  {
+    "id": "sample-1",
+    "placeholder": true,
+    "name": "Maya",
+    "message": "Found this through a Hack Club channel. The zoom collage is so fun to scroll through, I went back and forth like five times.",
+    "link": "",
+    "date": "Oct 12, 2026"
+  },
+  {
+    "id": "sample-2",
+    "placeholder": true,
+    "name": "Jordan",
+    "message": "Good luck with Holos! Would love to try it when it's out.",
+    "link": "https://example.com",
+    "date": "Oct 3, 2026"
+  },
+  {
+    "id": "sample-3",
+    "placeholder": true,
+    "name": "a fellow builder",
+    "message": "hi from the other side of the internet :) keep shipping",
+    "link": "",
+    "date": "Sep 27, 2026"
+  }
+]
