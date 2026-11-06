@@ -1,0 +1,12 @@
+name = "guestbook"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# IP_SALT is a secret: set it with `npx wrangler secret put IP_SALT` (production)
+# or in a local .dev.vars file (IP_SALT=anything) for `wrangler dev`.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "guestbook"
+# Paste the database_id printed by `npx wrangler d1 create guestbook` here.
+database_id = "00000000-0000-0000-0000-000000000000"
