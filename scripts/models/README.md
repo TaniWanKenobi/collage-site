@@ -48,8 +48,10 @@ Then add an entry to `src/data/models.json`.
 
 | Model | Source | Command flags |
 |---|---|---|
-| `tamagotchi.glb` | TaniWanKenobi/tamagotchi `CAD/Tamagotchi.step` | `--ratio 0.6` (281k → 170k triangles) |
-| `ice3dp.glb` | TaniWanKenobi/ICE3DP `ICE3DP.step` | native: `0.08` mm / `0.3` rad, then `--ratio 0.18 --error 0.0015` (2.19M → 436k triangles) |
+| `tamagotchi.glb` | TaniWanKenobi/tamagotchi `CAD/Tamagotchi.step` | `--ratio 0.6` (281k → 170k triangles), then `shrink.mjs --ratio 0.35 --error 0.01` (→ 62k, 0.44 MB) |
+| `ice3dp.glb` | TaniWanKenobi/ICE3DP `ICE3DP.step` | native: `0.08` mm / `0.3` rad, then `--ratio 0.18 --error 0.0015` (2.19M → 436k triangles), then `shrink.mjs --ratio 0.15 --error 0.02` (→ 165k, 1.29 MB) |
+
+**`shrink.mjs`** re-simplifies a finished GLB for the live collage (dequantize → weld → simplify → quantize → meshopt with filters): `node scripts/models/shrink.mjs in.glb out.glb --ratio 0.15 --error 0.02`. ICE3DP bottoms out near 165k triangles because the simplifier keeps the hard CAD edges.
 
 ## Notes
 

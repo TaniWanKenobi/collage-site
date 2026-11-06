@@ -29,6 +29,7 @@ export function initZoomCamera() {
     return { key: k, name: NAMES[k], rot: Number(els[k].getAttribute('data-rot')) || 0, cx: 720, cy: 450, px: 720, py: 450, pw: 1440, ph: 900 };
   });
 
+  var cur0 = false; // the first camera placement is not motion
   var vw = 1440, stageH = 900, cur = null, hudI = -1, raf = 0, fl = null, bl = null;
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var ss = function (t) { return t * t * (3 - 2 * t); };
@@ -110,14 +111,33 @@ export function initZoomCamera() {
   // Style writes are skipped when the value has not changed, so a scroll frame touches only what moves.
   var lastW = {};
   function put(el, prop, val, id) {
-    if (!el || lastW[id] === val) return;
+    if (!el || lastW[id] === val) return false;
     lastW[id] = val;
     el.style[prop] = val;
+    return true;
+  }
+
+  // While the camera moves, the world is its own compositor layer (will-change: transform), so a scroll or
+  // flight frame only re-composites it instead of repainting and re-rasterising the whole collage (that was
+  // ~25% dropped frames on scroll, mostly GPU raster). Such a layer keeps the scale it was rastered at, so:
+  // when the zoom drifts past RASTER_DRIFT from it, the layer is dropped for one frame and re-made at the
+  // new scale; and once the camera rests, it goes back to a normal layer and repaints pin-sharp.
+  // A one-off jump (a deep link, the scroll position snapping after a flight) is not motion: it repaints once.
+  var RASTER_DRIFT = 1.45, REST_MS = 180, wc = { on: false, s: 1, timer: 0, at: -1e9 };
+  function settleWorld() { wc.on = false; world.style.willChange = ''; }
+  function worldMoved(s) {
+    var t = now(), moving = t - wc.at < 100;
+    wc.at = t;
+    if (!wc.on) { if (moving) { wc.on = true; wc.s = s; world.style.willChange = 'transform'; } }
+    else if (s > wc.s * RASTER_DRIFT || s < wc.s / RASTER_DRIFT) settleWorld();
+    clearTimeout(wc.timer);
+    wc.timer = setTimeout(settleWorld, REST_MS);
   }
 
   function applyCam(c) {
     cur = c;
-    put(world, 'transform', 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(c.s) + ') rotate(' + f(-c.r) + 'deg) translate(' + f(-c.cx) + 'px, ' + f(-c.cy) + 'px)', 'world');
+    if (put(world, 'transform', 'translate(' + f(vw / 2) + 'px, ' + f(stageH / 2) + 'px) scale(' + f(c.s) + ') rotate(' + f(-c.r) + 'deg) translate(' + f(-c.cx) + 'px, ' + f(-c.cy) + 'px)', 'world') && cur0) worldMoved(c.s);
+    cur0 = true;
     ORDER.forEach(function (k) {
       var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
       put(pg, 'opacity', String(f(op)), 'p' + k);

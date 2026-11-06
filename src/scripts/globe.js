@@ -9,6 +9,11 @@ const SIZE = 294; // CSS px of the slot
 const CAM_Z = 3.05, FOV = 40; // the old three.js camera
 const TILT_X = 0.35, TILT_Z = -0.18; // group rotation [0.35, 0, -0.18] (Euler XYZ)
 const SPIN = 0.18; // rad/s around Y
+const FRAME_MS = 1000 / 30 - 2; // a slow spin: 30 fps is plenty
+const REST_MS = 160; // the zoom camera counts as moving until this long after its last frame
+// Backing store at most 2x the device pixel ratio: thin lines stay crisp enough when zoomed in, and a redraw is
+// a ~600px canvas instead of up to 2048px (that redraw took 0.1-0.5 s on a slow CPU).
+const MAX_DPR = 2;
 
 function loops() {
   const seg = 96, out = [];
@@ -45,7 +50,7 @@ function mount(slot) {
   const ctx = canvas.getContext('2d');
   const focal = SIZE / 2 / Math.tan(((FOV / 2) * Math.PI) / 180);
 
-  let wr = worldRect(slot), dpr = 0, visible = false, angle = 0, last = 0, raf = 0;
+  let wr = worldRect(slot), dpr = 0, visible = false, angle = 0, last = 0, raf = 0, camAt = 0, restTimer = 0;
 
   function draw() {
     const cy = Math.cos(angle), sy = Math.sin(angle), c = SIZE / 2;
@@ -69,20 +74,30 @@ function mount(slot) {
     ctx.fill();
   }
 
+  // Spin at 30 fps, and hold still while the camera moves (CSS scales the last frame), so scroll frames
+  // never redraw or reallocate a canvas that can be thousands of pixels across when zoomed in.
   function frame(t) {
     raf = 0;
     if (!visible) return;
-    angle += Math.min((t - (last || t)) / 1000, 0.05) * SPIN;
-    last = t;
-    draw();
+    if (!last || (t - last >= FRAME_MS && performance.now() - camAt > REST_MS)) {
+      angle += Math.min((t - (last || t)) / 1000, 0.1) * SPIN;
+      last = t;
+      draw();
+    }
     raf = requestAnimationFrame(frame);
   }
 
-  function sync() {
+  function sync(e) {
     const cam = window.__zoomCam;
     const vis = onScreen(wr, cam) && !(cam && cam.open);
-    const d = zoomDpr(cam, SIZE);
-    if (d !== dpr) {
+    const d = Math.min(zoomDpr(cam, SIZE), (window.devicePixelRatio || 1) * MAX_DPR);
+    if (e && e.type === 'zoomcam') {
+      camAt = performance.now();
+      clearTimeout(restTimer);
+      restTimer = setTimeout(sync, REST_MS + 10);
+    }
+    // Resolution follows the zoom only at rest (or the first time), never mid-motion.
+    if (d !== dpr && (!dpr || (vis && performance.now() - camAt > REST_MS))) {
       dpr = d;
       canvas.width = canvas.height = Math.round(SIZE * dpr);
       draw();

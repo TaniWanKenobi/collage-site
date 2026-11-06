@@ -4,7 +4,7 @@
 // never call getBoundingClientRect mid-frame (that forced a layout on every scroll frame).
 
 /** Largest canvas backing-store edge, so a 294px slot at 10x zoom does not allocate a 6000px canvas. */
-export const MAX_CANVAS_PX = 3072;
+export const MAX_CANVAS_PX = 2048;
 
 /** Untransformed box of `el` in world coordinates (offset chain up to #zm-world). Measure once, re-measure on resize. */
 export function worldRect(el) {
