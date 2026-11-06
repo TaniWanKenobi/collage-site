@@ -30,7 +30,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'],
 )}
 <Wordmark as={desk ? 'p' : 'h1'} />
 <GlobeDisc mode={mode} empty={printer} />
-{printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 565px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
+{printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 510px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
 <MePhoto />
 <p aria-hidden="true" style="position: absolute; right: calc(43px - var(--ex, 0px)); bottom: calc(30px - var(--ey, 0px)); z-index: 4; margin: 0; font-weight: 800; font-size: 150px; line-height: 0.9; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 2px var(--lime); white-space: nowrap; pointer-events: none">makes things.</p>
 {desk && (
@@ -46,5 +46,5 @@ const NAV = [['projects', 'Work'], ['writing', 'Writing'], ['photos', 'Photos'],
 <MapScrap mode={mode} />
 <StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
-{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.1} elev={18} style="left: 360px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
-<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" elev={30} azim={-40} fill={1.25} style="left: calc(1100px + var(--ex, 0px) * 0.6); top: 515px; width: 245px; height: 235px; z-index: 6" />
+{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.1} elev={18} style="left: 300px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
+<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" elev={30} azim={-40} fill={1.25} style="left: calc(1110px + var(--ex, 0px) * 0.6); top: 520px; width: 245px; height: 235px; z-index: 6" />

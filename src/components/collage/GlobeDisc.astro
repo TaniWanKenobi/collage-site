@@ -7,7 +7,7 @@ interface Props { mode: 'desk' | 'phone'; empty?: boolean }
 const desk = Astro.props.mode === 'desk';
 const empty = !!Astro.props.empty;
 ---
-<div aria-hidden="true" class="globe-disc" style="position: absolute; left: 575px; top: 262px; z-index: 2; width: 400px; height: 400px; border-radius: 50%; background: var(--grape); display: flex; align-items: center; justify-content: center; box-shadow: 0 18px 40px rgba(4,8,3,.55)">
+<div aria-hidden="true" class="globe-disc" style="position: absolute; left: 520px; top: 262px; z-index: 2; width: 400px; height: 400px; border-radius: 50%; background: var(--grape); display: flex; align-items: center; justify-content: center; box-shadow: 0 18px 40px rgba(4,8,3,.55)">
   {!empty && <div class="css-fallback" style="display: flex; align-items: center; justify-content: center">
     <svg width="294" height="294" viewBox="0 0 260 260" fill="none">
       <circle cx="130" cy="130" r="110" stroke="#8F86C0" stroke-width="2"></circle>
