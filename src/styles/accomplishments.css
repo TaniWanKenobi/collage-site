@@ -1,0 +1,50 @@
+/* Accomplishments (section id "timeline"): filter chips + a vertical line of ticket-stub cards.
+   Hover styles live elsewhere, keyed on [data-hover-list]; only focus styles here. */
+.acc { display: flex; flex-direction: column; gap: 24px; }
+
+.acc-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.acc-filter { min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--grape-lite); background: transparent; color: var(--lime-tint); font-size: 13px; cursor: pointer; }
+.acc-filter[aria-pressed="true"] { background: var(--lime); border-color: var(--lime); color: var(--onyx); font-weight: 500; }
+
+/* The line and its dots */
+.acc-list { position: relative; list-style: none; margin: 0; padding: 0 0 0 44px; display: flex; flex-direction: column; gap: 22px; max-width: 920px; }
+.acc-list::before { content: ''; position: absolute; left: 13px; top: 10px; bottom: 10px; width: 2px; background: var(--grape-lite); opacity: .55; }
+.acc-item { position: relative; }
+.acc-item[hidden] { display: none; }
+.acc-dot { position: absolute; left: -38px; top: 24px; width: 14px; height: 14px; border-radius: 50%; background: var(--onyx-2); border: 2px solid var(--grape-lite); }
+.acc-item[data-kind="award"] .acc-dot { background: var(--grape); border-color: var(--grape-lite); }
+.acc-item[data-current] .acc-dot { background: var(--lime); border-color: var(--lime); box-shadow: 0 0 0 5px rgba(194,249,112,.2); animation: acc-pulse 2.4s ease-in-out infinite; }
+@keyframes acc-pulse { 50% { box-shadow: 0 0 0 9px rgba(194,249,112,.06); } }
+
+/* Each entry is a ticket: a stub with the date, a dashed perforation, then the body. */
+.acc-card { position: relative; display: flex; background: var(--onyx); border-radius: 8px; box-shadow: 0 14px 30px rgba(4,8,3,.5); }
+.acc-stub { flex: none; width: 112px; box-sizing: border-box; margin: 0; padding: 20px 14px 20px 18px; border-right: 2px dashed var(--onyx-3); border-radius: 8px 0 0 8px; font-size: 13px; line-height: 1.4; color: var(--muted); display: flex; flex-direction: column; gap: 6px; }
+.acc-item[data-current] .acc-stub { background: var(--lime); color: var(--onyx); border-right-color: var(--onyx); font-weight: 500; }
+.acc-now { font-size: 11px; font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
+/* Ticket notches where the perforation meets the edges */
+.acc-stub::before, .acc-stub::after { content: ''; position: absolute; left: 105px; width: 14px; height: 14px; border-radius: 50%; background: var(--onyx-2); }
+.acc-stub::before { top: -7px; } .acc-stub::after { bottom: -7px; }
+
+.acc-body { flex: 1; min-width: 0; padding: 18px 22px 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.acc-kind { font-size: 12px; line-height: 1.5; padding: 1px 10px; border-radius: 999px; border: 1px solid var(--grape-lite); color: var(--lime-tint); }
+.acc-kind--award { background: var(--grape); border-color: var(--grape); }
+.acc-kind--project { background: var(--onyx); border-color: var(--lime); color: var(--lime); }
+.acc-what { margin: 0; font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; }
+.acc-what a { color: var(--lime-tint); text-decoration: underline; text-decoration-color: var(--grape-lite); text-underline-offset: 4px; }
+.acc-detail { margin: 0; color: var(--muted); }
+.acc-read { margin: 0; font-size: 12px; color: var(--grape-lite); }
+.acc-note { margin: 4px 0 0; font-family: var(--font-hand); font-size: 25px; line-height: 1.1; color: var(--lime); transform: rotate(-2deg); transform-origin: 0 50%; }
+
+.acc-empty, .acc-foot { margin: 0; font-size: 13px; color: var(--muted); }
+
+@media (max-width: 600px) {
+  .acc-list { padding-left: 34px; }
+  .acc-list::before { left: 8px; }
+  .acc-dot { left: -32px; }
+  .acc-stub { width: 84px; padding-left: 12px; }
+  .acc-stub::before, .acc-stub::after { left: 77px; }
+  .acc-what { font-size: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .acc-item[data-current] .acc-dot { animation: none; }
+}

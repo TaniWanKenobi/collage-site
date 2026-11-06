@@ -1,6 +1,10 @@
 [
-  { "id": "now", "order": 1, "when": "Now", "what": "Building Holos, a personal health app" },
-  { "id": "11th-grade", "order": 2, "when": "2026", "what": "Started 11th grade at Bayonne High School" },
-  { "id": "milestone", "order": 3, "when": "[Year]", "what": "[Hackathon, award, or milestone]" },
-  { "id": "first-ship", "order": 4, "when": "[Year]", "what": "[First project you shipped]" }
+  { "id": "now", "order": 1, "kind": "timeline", "current": true, "when": "Now", "what": "Building Holos, a personal health app", "detail": "Next.js, tRPC and Postgres, with wearable sync." },
+  { "id": "award-1", "order": 2, "kind": "award", "when": "Oct 2026", "what": "Regional essay contest, 1st place", "detail": "An essay on why small tools beat big apps.", "note": "did not see that coming", "post": "essay-placeholder", "placeholder": true },
+  { "id": "11th-grade", "order": 3, "kind": "timeline", "when": "2026", "what": "Started 11th grade at Bayonne High School" },
+  { "id": "event-1", "order": 4, "kind": "event", "when": "Aug 2026", "what": "Weekend hackathon, team of three", "detail": "Built a study-timer bot in 24 hours and demoed it live.", "placeholder": true },
+  { "id": "award-2", "order": 5, "kind": "award", "when": "May 2026", "what": "School science fair, honorable mention", "detail": "A low-cost air quality sensor for classrooms.", "placeholder": true },
+  { "id": "project-1", "order": 6, "kind": "project", "when": "Mar 2026", "what": "Shipped a cel-shaded 3D printer model viewer", "detail": "Loads STEP files in the browser and renders them toon-style.", "placeholder": true },
+  { "id": "milestone", "order": 7, "kind": "timeline", "when": "2025", "what": "Went to my first hackathon", "placeholder": true },
+  { "id": "first-ship", "order": 8, "kind": "timeline", "when": "2024", "what": "Shipped my first project: a tiny to-do app", "note": "where it all started", "placeholder": true }
 ]

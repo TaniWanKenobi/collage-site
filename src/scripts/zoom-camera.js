@@ -7,7 +7,7 @@ export function initZoomCamera() {
   'use strict';
   if (!document.getElementById('zm-root')) return;
   var ORDER = ['projects', 'timeline', 'photos', 'writing', 'map', 'guestbook', 'contact'];
-  var NAMES = { projects: 'Projects', timeline: 'Timeline', photos: 'Photos', writing: 'Writing', map: 'Places', guestbook: 'Guestbook', contact: 'Say hi' };
+  var NAMES = { projects: 'Projects', timeline: 'Accomplishments', photos: 'Photos', writing: 'Blog', map: 'Places', guestbook: 'Guestbook', contact: 'Say hi' };
 
   var $ = function (id) { return document.getElementById(id); };
   var root = $('zm-root'), track = $('zm-track'), world = $('zm-world');
