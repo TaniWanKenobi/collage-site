@@ -21,6 +21,7 @@ Ideas for later. Not started unless marked. Add new ones at the bottom of the ri
 
 ## Launch checklist
 
+- [ ] **Reminder: get photos from tobycm's shared Google Photos album** for the Photo album (to replace the sample photos). Album is linked in this Slack message: https://hackclub.slack.com/archives/C0BR742DQ0K/p1793944531504259?thread_ts=1793933442.290149&cid=C0BR742DQ0K (the album link itself is kept out of this public repo). Run `npm run photos` after adding them to `src/assets/photos/`.
 - [ ] Replace every placeholder. `npm run check:placeholders` lists them. Then set `"launch": true` in `src/data/site.json`; from then on the build fails if any placeholder is left.
 - [ ] Deploy the guestbook Worker (`guestbook-worker/README.md`) and set `PUBLIC_GUESTBOOK_URL`.
 - [ ] Pick the A/B winners and delete the losing variants.
