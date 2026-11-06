@@ -12,6 +12,7 @@ import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { duotoneMaterial } from './duotone';
+import { prepare, applyStyle } from '../../../scripts/toon.js';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const stage = $<HTMLDivElement>('vw-stage');
@@ -82,6 +83,7 @@ const opt = {
   get grid() { return $<HTMLInputElement>('vw-grid').checked; },
   get wire() { return $<HTMLInputElement>('vw-wire').checked; },
   get duo() { return $<HTMLInputElement>('vw-duo').checked; },
+  get style() { return $<HTMLSelectElement>('vw-style').value; },
   get spin() { return $<HTMLInputElement>('vw-spin').checked; },
   get bg() { return (document.querySelector('input[name="vw-bg"]:checked') as HTMLInputElement).value; },
   get quality() { return parseFloat($<HTMLSelectElement>('vw-quality').value); },
@@ -97,16 +99,19 @@ function applyBg() {
   (grid.material as THREE.LineBasicMaterial).opacity = light ? 0.45 : 0.7;
 }
 
+// Style (scripts/toon.js): cel+ink and its variants, clay, or the file's own materials. Duotone overrides it.
 function applyMaterials() {
-  original.forEach((mat, obj) => {
+  if (!model) return;
+  applyStyle(model, opt.duo ? 'original' : opt.style);
+  if (opt.duo) model.traverse((o) => { if ((o as THREE.LineSegments).isLineSegments) o.visible = false; });
+  original.forEach((_, obj) => {
     if (obj instanceof THREE.Points) return;
-    obj.material = opt.duo ? duo : mat;
+    if (opt.duo) obj.material = duo;
+    (Array.isArray(obj.material) ? obj.material : [obj.material]).forEach((m) => { if ('wireframe' in m) (m as THREE.MeshStandardMaterial).wireframe = opt.wire; });
   });
-  duo.wireframe = opt.wire;
-  original.forEach((mat) => (Array.isArray(mat) ? mat : [mat]).forEach((m) => { if ('wireframe' in m) (m as THREE.MeshStandardMaterial).wireframe = opt.wire; }));
 }
 
-for (const id of ['vw-grid', 'vw-wire', 'vw-duo', 'vw-spin']) $(id).addEventListener('change', sync);
+for (const id of ['vw-grid', 'vw-wire', 'vw-duo', 'vw-spin', 'vw-style']) $(id).addEventListener('change', sync);
 document.querySelectorAll('input[name="vw-bg"]').forEach((r) => r.addEventListener('change', sync));
 $('vw-up').addEventListener('change', () => { if (model) { orient(); frame(); } });
 function sync() {
@@ -309,6 +314,8 @@ async function load(list: FileList | File[]) {
       }
       original.set(m, m.material);
     });
+    // Toon materials (palette per material) and, for files without baked ink, crease edges computed here.
+    prepare(obj, { edges: true, angle: 30 });
     holder.add(obj);
     orient();
     frame();
@@ -382,8 +389,9 @@ $('vw-png').addEventListener('click', () => {
 });
 $('vw-glb').addEventListener('click', async () => {
   if (!model) return;
-  // export with the file's own materials, never the duotone shader
+  // export with the file's own materials, never the duotone or toon shaders, and without runtime ink
   original.forEach((mat, obj) => { obj.material = mat; });
+  model.traverse((o) => { if (o.userData.runtimeEdges) o.visible = false; });
   try {
     const out = await new GLTFExporter().parseAsync(holder, { binary: true });
     const b = new Blob([out as ArrayBuffer], { type: 'model/gltf-binary' });

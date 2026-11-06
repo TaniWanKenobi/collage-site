@@ -2,6 +2,7 @@
 // /lab/viewer: drop-in 3D viewer for CAD and mesh files. Client-side only; noindex.
 import LabBase from '../../components/lab/LabBase.astro';
 import { url } from '../../lib/sections';
+import { STYLE_NAMES, DEFAULT_STYLE } from '../../scripts/toon.js';
 const BGS = [['onyx', 'Onyx', '#0D160B'], ['grape', 'Grape', '#564D80'], ['lime', 'Lime', '#C2F970'], ['checker', 'Transparent', '']];
 ---
 <LabBase title="Lab · 3D viewer" description="Drop a STEP, IGES, STL, OBJ, GLB, 3MF or PLY file to view it in the browser.">
@@ -42,6 +43,12 @@ const BGS = [['onyx', 'Onyx', '#0D160B'], ['grape', 'Grape', '#564D80'], ['lime'
           <label><input type="radio" name="vw-bg" value={v} checked={i === 0}><span class="vw-sw" data-v={v} style={c ? `background:${c}` : undefined}></span>{label}</label>
         ))}
       </fieldset>
+
+      <div class="vw-row">
+        <label>Style
+          <select id="vw-style">{STYLE_NAMES.map((n) => <option value={n} selected={n === DEFAULT_STYLE}>{n}</option>)}</select>
+        </label>
+      </div>
 
       <div class="vw-row">
         <label>Up axis

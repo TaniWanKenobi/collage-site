@@ -1,14 +1,11 @@
 // One WebGL renderer for every model slot on a lab page. It draws each slot into an offscreen buffer
 // (viewport + scissor) and copies the result into that slot's own 2D canvas, so slots keep their place
 // in the collage's stacking order (cards can overlap a model) while the page holds a single GL context.
-import {
-  WebGLRenderer, Scene, PerspectiveCamera, HemisphereLight, DirectionalLight, Box3, Vector3, Sphere,
-  ACESFilmicToneMapping, SRGBColorSpace, PMREMGenerator, MathUtils, type Object3D,
-} from 'three';
+import { WebGLRenderer, Scene, PerspectiveCamera, Box3, Vector3, Sphere, SRGBColorSpace, MathUtils, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { prepare, applyStyle, contactBlob, DEFAULT_STYLE } from '../../scripts/toon.js';
 
 interface Slot {
   el: HTMLElement; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
@@ -28,17 +25,15 @@ export function start(els: HTMLElement[]) {
     return;
   }
   renderer.setPixelRatio(1); // sizes below are already in device pixels
-  renderer.toneMapping = ACESFilmicToneMapping;
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
   renderer.setScissorTest(true);
-  const env = new PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
 
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
   const cache = new Map<string, Promise<Object3D>>();
   const load = (src: string) => {
-    if (!cache.has(src)) cache.set(src, loader.loadAsync(src).then((g) => g.scene));
+    if (!cache.has(src)) cache.set(src, loader.loadAsync(src).then((g) => { prepare(g.scene); applyStyle(g.scene, DEFAULT_STYLE); return g.scene; }));
     return cache.get(src)!.then((o) => o.clone(true)); // one fetch, one copy per slot
   };
 
@@ -57,12 +52,7 @@ export function start(els: HTMLElement[]) {
     const canvas = el.querySelector<HTMLCanvasElement>('canvas');
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) continue;
-    const scene = new Scene();
-    scene.environment = env;
-    scene.environmentIntensity = 0.55;
-    scene.add(new HemisphereLight(0xeffdd8, 0x564d80, 1.1));
-    const key = new DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
-    const rim = new DirectionalLight(0xc2f970, 1.4); rim.position.set(-4, 2, -3); scene.add(rim);
+    const scene = new Scene(); // the cel+ink shaders (scripts/toon.js) light themselves
     const camera = new PerspectiveCamera(30, 1, 0.01, 1000);
     const controls = new OrbitControls(camera, canvas);
     controls.enableZoom = false;
@@ -76,8 +66,9 @@ export function start(els: HTMLElement[]) {
     io.observe(el);
 
     load(el.dataset.src!).then((obj) => {
-      frame(slot, obj);
+      const box = frame(slot, obj);
       scene.add(obj);
+      scene.add(contactBlob(box));
       slot.ready = true;
       kick();
     }).catch(() => {
@@ -88,10 +79,11 @@ export function start(els: HTMLElement[]) {
   }
 
   // Centre the model at the origin and back the camera off until its bounding sphere fills the slot.
-  function frame(s: Slot, obj: Object3D) {
+  function frame(s: Slot, obj: Object3D): Box3 {
     const box = new Box3().setFromObject(obj);
     const c = box.getCenter(new Vector3());
     obj.position.sub(c);
+    box.translate(c.clone().negate());
     const r = box.getBoundingSphere(new Sphere()).radius || 1;
     const fill = Number(s.el.dataset.fill ?? 0.9);
     const dist = r / Math.sin(MathUtils.degToRad(s.camera.fov / 2)) / fill;
@@ -101,6 +93,7 @@ export function start(els: HTMLElement[]) {
     s.camera.near = dist / 100; s.camera.far = dist * 10;
     s.controls.target.set(0, 0, 0);
     s.controls.update();
+    return box;
   }
 
   let raf = 0;

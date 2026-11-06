@@ -9,17 +9,16 @@
 //    the main thread); a drag (and its damping) draws at full rate;
 //  - while the zoom camera moves, slots keep their last frame (CSS scales it) and re-render sharp at rest,
 //    so scroll and fly-to frames carry no WebGL work and no canvas reallocations;
-//  - every shader (the environment map's and the models') compiles in parallel without blocking the page.
-import {
-  WebGLRenderer, Scene, PerspectiveCamera, HemisphereLight, DirectionalLight, Box3, Vector3, Sphere,
-  ACESFilmicToneMapping, SRGBColorSpace, PMREMGenerator, MathUtils, type Object3D, type Texture,
-  type Camera, type Material, type Mesh, type WebGLRenderTarget,
-} from 'three';
+//  - every shader compiles in parallel without blocking the page.
+// Look: "cel + ink" (src/scripts/toon.js): the models carry baked crease lines, AO and palette colours
+// (scripts/models/stylize-bake.mjs), and two tiny shaders with their own lighting draw them. No lights, no
+// environment map, one draw per model plus one for its lines and one for its contact shadow.
+import { WebGLRenderer, Scene, PerspectiveCamera, Box3, Vector3, Sphere, SRGBColorSpace, MathUtils, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { worldRect, onScreen } from './slot-view.js';
+import { prepare, applyStyle, contactBlob, setLineFade, DEFAULT_STYLE } from './toon.js';
 
 type Kind = 'world' | 'page' | 'flow';
 interface Cam { s: number; open: boolean; cx: number; cy: number; r: number; vw: number; h: number }
@@ -39,8 +38,6 @@ const BUF_STEP = 256; // the shared drawing buffer grows in steps: reallocating 
 const cam = (): Cam | null => (window as unknown as { __zoomCam?: Cam }).__zoomCam ?? null;
 
 let renderer: WebGLRenderer | null = null;
-let env: Texture;
-let envReady: Promise<unknown>;
 let loader: GLTFLoader;
 const cache = new Map<string, Promise<Object3D>>();
 const slots: Slot[] = [];
@@ -64,12 +61,10 @@ function init(): boolean {
     return false;
   }
   renderer.setPixelRatio(1); // all sizes below are device pixels already
-  renderer.toneMapping = ACESFilmicToneMapping;
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
   renderer.setScissorTest(true);
   renderer.setSize(512, 512, false); bufW = bufH = 512; // fits both collage objects at the overview: no early reallocations
-  envReady = makeEnv(renderer).then((t) => { env = t; });
   // Decode meshopt buffers in Web Workers (decodeGltfBufferAsync), not on the main thread.
   try { MeshoptDecoder.useWorkers(Math.min(2, Math.max(1, (navigator.hardwareConcurrency || 2) - 1))); } catch { /* main-thread fallback */ }
   loader = new GLTFLoader();
@@ -85,7 +80,8 @@ function init(): boolean {
 }
 
 const load = (src: string) => {
-  if (!cache.has(src)) cache.set(src, loader.loadAsync(src).then((g) => g.scene));
+  // Toon materials go on the cached copy once; every slot's clone shares them (two programs for the whole page).
+  if (!cache.has(src)) cache.set(src, loader.loadAsync(src).then((g) => { prepare(g.scene); applyStyle(g.scene, DEFAULT_STYLE); return g.scene; }));
   return cache.get(src)!.then((o) => o.clone(true));
 };
 
@@ -97,13 +93,7 @@ export function addSlots(els: HTMLElement[]) {
     const ctx = canvas?.getContext('2d');
     if (!canvas || !ctx) continue;
     const kind = (el.dataset.m3d as Kind) || 'flow';
-    const scene = new Scene();
-    scene.environment = env;
-    scene.environmentIntensity = 0.55;
-    // Palette lighting: lime-tint sky / grape ground, white key, lime rim.
-    scene.add(new HemisphereLight(0xeffdd8, 0x564d80, 1.1));
-    const key = new DirectionalLight(0xffffff, 2.2); key.position.set(3, 5, 4); scene.add(key);
-    const rim = new DirectionalLight(0xc2f970, 1.4); rim.position.set(-4, 2, -3); scene.add(rim);
+    const scene = new Scene(); // no lights: the toon shaders carry their own key, fill and rim
     const camera = new PerspectiveCamera(30, 1, 0.01, 1000);
     const controls = new OrbitControls(camera, canvas);
     controls.enableZoom = false;
@@ -124,42 +114,14 @@ export function addSlots(els: HTMLElement[]) {
   kick();
 }
 
-// The room environment map, built exactly as before (PMREMGenerator.fromScene), but its shaders compile first
-// through compileAsync: built directly, it compiled them synchronously and froze the page for 0.6-0.8 s.
-// A dry run of fromScene with render() stubbed records what it would draw; those programs are compiled in
-// parallel (KHR_parallel_shader_compile), then the real fromScene finds them all cached and ready.
-async function makeEnv(r: WebGLRenderer): Promise<Texture> {
-  await new Promise((res) => setTimeout(res, 0)); // a separate task from creating the renderer
-  const room = new RoomEnvironment();
-  const pmrem = new PMREMGenerator(r);
-  try {
-    const calls: [Object3D, Camera, WebGLRenderTarget | null, Material | Material[] | null][] = [];
-    const render = r.render;
-    r.render = (scene, camera) => { calls.push([scene, camera, r.getRenderTarget(), (scene as Mesh).isMesh ? (scene as Mesh).material : null]); };
-    try { pmrem.fromScene(room, 0.04).dispose(); } finally { r.render = render; }
-    const prev = r.getRenderTarget(), seen = new Set<string>(), jobs: Promise<unknown>[] = [];
-    for (const [scene, camera, target, mat] of calls) {
-      const key = `${scene.uuid}|${mat && !Array.isArray(mat) ? mat.uuid : ''}|${target ? 1 : 0}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      if (mat) (scene as Mesh).material = mat;
-      r.setRenderTarget(target); // program parameters depend on the target (tone mapping, color space)
-      jobs.push(r.compileAsync(scene, camera)); // creates the programs now, resolves when they are linked
-    }
-    r.setRenderTarget(prev);
-    await Promise.all(jobs);
-  } catch { /* fall through: fromScene compiles whatever is missing */ }
-  return pmrem.fromScene(room, 0.04).texture;
-}
-
 // Fetch and decode a slot's model the first time the slot is worth drawing (a deep link to a section does not
 // download the collage's models until the camera goes there).
 function request(s: Slot) {
   s.requested = true;
-  Promise.all([load(s.el.dataset.src!), envReady]).then(async ([obj]) => {
-    s.scene.environment = env;
-    frame(s, obj);
+  load(s.el.dataset.src!).then(async (obj) => {
+    const box = frame(s, obj);
     s.scene.add(obj);
+    if (s.el.dataset.blob !== '0') s.scene.add(contactBlob(box));
     // Compile the model's shaders off the main thread where the browser supports it (KHR_parallel_shader_compile).
     try { await renderer!.compileAsync(s.scene, s.camera); } catch { /* falls back to compiling on first render */ }
     s.ready = true;
@@ -176,9 +138,11 @@ function wireClick(s: Slot) {
 }
 
 // Centre the model and back the camera off until its bounding sphere fills the slot.
-function frame(s: Slot, obj: Object3D) {
+function frame(s: Slot, obj: Object3D): Box3 {
   const box = new Box3().setFromObject(obj);
-  obj.position.sub(box.getCenter(new Vector3()));
+  const c = box.getCenter(new Vector3());
+  obj.position.sub(c);
+  box.translate(c.negate());
   const r = box.getBoundingSphere(new Sphere()).radius || 1;
   const fill = Number(s.el.dataset.fill ?? 0.9);
   const dist = r / Math.sin(MathUtils.degToRad(s.camera.fov / 2)) / fill;
@@ -189,6 +153,7 @@ function frame(s: Slot, obj: Object3D) {
   s.camera.updateProjectionMatrix();
   s.controls.target.set(0, 0, 0);
   s.controls.update();
+  return box;
 }
 
 // Is the slot worth drawing now, and how many screen pixels does one CSS pixel of it cover?
@@ -265,6 +230,8 @@ function tick() {
     renderer.setViewport(0, 0, w, h);
     renderer.setScissor(0, 0, w, h);
     renderer.clear();
+    // Ink thins out on small slots so it never turns into hatching (a 1 px line is a bigger share of a small model).
+    setLineFade(Math.min(1, Math.max(0.45, (Math.min(w, h) - 120) / 360)));
     renderer.render(s.scene, s.camera);
     s.ctx.clearRect(0, 0, w, h);
     s.ctx.drawImage(renderer.domElement, 0, bufH - h, w, h, 0, 0, w, h);

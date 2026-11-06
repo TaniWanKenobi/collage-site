@@ -287,9 +287,11 @@ const triArea = (g) => {
   return s;
 };
 const shared = { ink: null, surf: null };
+// Per-object material bookkeeping lives in WeakMaps, not userData: Object3D.clone() JSON-copies userData.
+const ORIG = new WeakMap(), TOON = new WeakMap(), ORIG_STD = new WeakMap();
 
 /**
- * Give a loaded model the toon materials once (keeps the file's own materials in userData.orig for 'original').
+ * Give a loaded model the toon materials once (the file's own materials stay reachable for 'original').
  * Baked files reuse two shared programs; unbaked files get per-material palette colours and runtime edges.
  * @param {import('three').Object3D} root
  * @param {{edges?: boolean, angle?: number}} [opt]
@@ -304,11 +306,12 @@ export function prepare(root, opt = {}) {
     shared.surf ??= toonMaterial();
     shared.ink ??= inkMaterial();
     for (const o of meshes) {
-      o.userData.orig = o.material;
+      ORIG.set(o, o.material);
       if (o.isLineSegments) { o.material = shared.ink; o.userData.ink = true; o.renderOrder = 1; continue; }
       const src = o.material, map = src.map || null;
       const ex = src.userData?.toon || {};
       o.material = map || src.transparent ? toonMaterial({ map, lo: ex.lo, hi: ex.hi, alpha: src.transparent ? src.opacity : 1 }) : shared.surf;
+      TOON.set(o, o.material);
     }
     return root;
   }
@@ -327,13 +330,14 @@ export function prepare(root, opt = {}) {
   const pal = paletteMap([...parts.values()]);
   for (const o of meshes) {
     if (!o.isMesh) continue;
-    o.userData.orig = o.material;
+    ORIG.set(o, o.material);
     const mats = Array.isArray(o.material) ? o.material : [o.material];
     const toon = mats.map((m) => toonMaterial({
       vcol: false, map: m.map || null, pal: pal.get(m.uuid)?.hex, orig: '#' + (m.color || new Color(1, 1, 1)).getHexString(SRGBColorSpace),
       alpha: m.transparent ? Math.max(0.15, m.opacity) : 1,
     }));
     o.material = Array.isArray(o.material) ? toon : toon[0];
+    TOON.set(o, o.material);
     if (opt.edges !== false && !o.geometry.groups.length) {
       const lines = new LineSegments(new EdgesGeometry(o.geometry, opt.angle ?? 30), inkMaterial({ vcol: false, pal: pal.get(mats[0].uuid)?.hex }));
       lines.userData.ink = true; lines.userData.runtimeEdges = true; lines.renderOrder = 1;
@@ -352,26 +356,23 @@ export function applyStyle(root, name) {
   const original = name === 'original';
   const s = original ? null : setStyle(name);
   root.traverse((o) => {
-    if (!o.userData.orig && !o.userData.runtimeEdges) return;
     if (o.userData.ink || o.userData.runtimeEdges) { o.visible = !original && s.lines; return; }
-    if (original) {
-      o.userData.toonMat ??= o.material;
-      o.material = originalMaterial(o);
-    } else if (o.userData.toonMat) o.material = o.userData.toonMat;
+    if (!ORIG.has(o)) return;
+    o.material = original ? originalMaterial(o) : TOON.get(o);
   });
 }
 // 'original' for a baked file: the CAD colour comes from _orig, so use a standard material reading it.
 function originalMaterial(o) {
-  const g = o.geometry, src = o.userData.orig;
+  const g = o.geometry, src = ORIG.get(o);
   if (!g.attributes._orig) return src;
-  if (!o.userData.origMat) {
-    const m = new MeshStandardMaterial({ vertexColors: true, metalness: 0.1, roughness: 0.6, map: src.map || null, transparent: src.transparent, opacity: src.opacity });
+  if (!ORIG_STD.has(o)) {
+    const m = new MeshStandardMaterial({ vertexColors: true, metalness: 0.1, roughness: 0.6, map: src.map || null, transparent: src.transparent, opacity: src.opacity, side: src.side });
     m.onBeforeCompile = (sh) => {
       sh.vertexShader = 'attribute vec4 _orig;\n' + sh.vertexShader.replace('#include <color_vertex>', '#include <color_vertex>\n vColor = vec4(_orig.rgb, 1.0);');
     };
-    o.userData.origMat = m;
+    ORIG_STD.set(o, m);
   }
-  return o.userData.origMat;
+  return ORIG_STD.get(o);
 }
 
 // ---------- contact blob ----------
