@@ -1,32 +1,78 @@
 ---
+// Photo album: a scrapbook of polaroids. Edit src/data/photos.json (file, caption, place, date), put real photos in
+// src/assets/photos/, then run `npm run photos` to (re)compute each one's focal point + aspect bucket.
+// Clicking a polaroid opens it full size in PhotoSwipe (JS imported on first click, see src/scripts/photo-album.ts).
+import { Picture, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
 import Section from './Section.astro';
+// PhotoSwipe's CSS is bundled with the page (~2 KB gz): a lazily imported CSS chunk 404s on GitHub Pages.
+import 'photoswipe/style.css';
+import '../../styles/photos.css';
+import photos from '../../data/photos.json';
 interface Props { back?: boolean }
+
+type Photo = { file: string; caption: string; place: string; date: string; placeholder?: boolean; focus?: string; bucket?: string };
+const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/{photos,placeholder/photos}/*.{jpg,jpeg,png,webp,avif}', { eager: true });
+
+// Scrapbook "mess": a fixed pattern of tilts / nudges / tape so the album looks hand-placed but renders the same every build.
+const TILT = [-3.2, 2.4, -1.6, 3, -2.2, 1.4, -0.8, 2.6];
+const NUDGE = [0, 34, -6, 22, 10, -12, 28, 4];
+const TAPE = ['l', '', 'c', 'r', '', 'c', 'l', ''];
+const bucketOf = (w: number, h: number) => (w / h > 1.15 ? 'landscape' : w / h < 0.87 ? 'portrait' : 'square');
+
+const items = await Promise.all(
+  (photos as Photo[]).map(async (p, i) => {
+    const src = files[`../../assets/${p.file}`]?.default;
+    if (!src) throw new Error(`photos.json: no image at src/assets/${p.file}`);
+    const full = await getImage({ src, width: Math.min(src.width, 2000), format: 'webp' });
+    return {
+      ...p, src, full,
+      bucket: p.bucket ?? bucketOf(src.width, src.height),
+      style: `--tilt:${TILT[i % TILT.length]}deg;--nudge:${NUDGE[i % NUDGE.length]}px;--focus:${p.focus ?? '50% 50%'}`,
+      tape: TAPE[i % TAPE.length],
+    };
+  }),
+);
 ---
-<Section id="photos" label="03 · photos" title="Camera roll" back={Astro.props.back}>
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 30px 28px">
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(-0.4deg)">
-<div style="height: 196px; background: var(--grape); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(1.4deg)">
-<div style="height: 196px; background: var(--grape-deep); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(-1deg)">
-<div style="height: 196px; background: var(--grape); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(0.5deg)">
-<div style="height: 196px; background: var(--grape-deep); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(-1.2deg)">
-<div style="height: 196px; background: var(--grape); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
-<figure style="margin: 0; padding: 10px 10px 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); transform: rotate(0.8deg)">
-<div style="height: 196px; background: var(--grape-deep); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--lime-tint)">[Photo]</div>
-<figcaption style="margin-top: 6px; font-family: 'Caveat', cursive; font-size: 24px; line-height: 1.1">[Caption, place]</figcaption>
-</figure>
+<Section id="photos" label="03 · photos" title="Photo album" back={Astro.props.back}>
+<div class="album-wrap">
+  <ul class="album" data-album data-hover-list>
+    {items.map((p) => (
+      <li class={`pol is-${p.bucket}`} style={p.style} data-ph={p.placeholder ? '' : undefined}>
+        {p.tape && <span aria-hidden="true" class={`tape pol-tape is-${p.tape}`}></span>}
+        <a
+          class="pol-link"
+          href={p.full.src}
+          data-pswp-src={p.full.src}
+          data-pswp-width={p.full.attributes.width}
+          data-pswp-height={p.full.attributes.height}
+          data-caption={p.caption}
+          data-meta={[p.place, p.date].filter(Boolean).join(' · ')}
+          aria-label={`Open photo: ${p.caption || p.place}`}
+        >
+          <span class="pol-win">
+            <Picture
+              src={p.src}
+              alt={p.caption}
+              formats={['avif', 'webp']}
+              fallbackFormat="webp"
+              widths={[320, 480, 720]}
+              sizes="(max-width: 760px) 46vw, 320px"
+              loading="lazy"
+              decoding="async"
+              style={`object-position: ${p.focus ?? '50% 50%'}`}
+            />
+          </span>
+          <span class="pol-cap">{p.caption}</span>
+          <span class="pol-meta mono">{[p.place, p.date].filter(Boolean).join(' · ')}</span>
+        </a>
+      </li>
+    ))}
+  </ul>
 </div>
 </Section>
+
+<script>
+  import { mountAlbums } from '../../scripts/photo-album';
+  mountAlbums();
+</script>
