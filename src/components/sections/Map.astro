@@ -1,33 +1,32 @@
 ---
+// Places: a real pannable world map (Leaflet, loaded only when this page is opened) with a pin per place.
+// Clicking a pin (or a row in the list) opens a card about that place. Edit src/data/places.json to add places.
 import Section from './Section.astro';
+import places from '../../data/places.json';
 interface Props { back?: boolean }
 ---
 <Section id="map" label="05 · places" title="Where I've been" back={Astro.props.back}>
-<div style="display: flex; flex-wrap: wrap; gap: 28px">
-<div class="mapgrid" style="flex: 2 1 520px; min-width: 0; height: 480px; position: relative; background-color: var(--grape); box-shadow: 0 16px 34px rgba(4,8,3,.5); display: flex; align-items: center; justify-content: center">
-<p class="mono" style="margin: 0; font-size: 13px; color: var(--lime-tint)">[World map]</p>
-<span aria-hidden="true" style="position: absolute; left: 27%; top: 36%; width: 16px; height: 16px; border-radius: 50%; background: var(--lime); border: 3px solid var(--onyx)"></span>
-<span aria-hidden="true" style="position: absolute; left: 48%; top: 30%; width: 16px; height: 16px; border-radius: 50%; background: var(--grape-lite); border: 3px solid var(--onyx)"></span>
-<span aria-hidden="true" style="position: absolute; left: 70%; top: 46%; width: 16px; height: 16px; border-radius: 50%; background: var(--grape-lite); border: 3px solid var(--onyx)"></span>
-<span aria-hidden="true" style="position: absolute; left: 56%; top: 62%; width: 16px; height: 16px; border-radius: 50%; background: var(--grape-lite); border: 3px solid var(--onyx)"></span>
+<div class="places">
+  <div class="places-map" data-places-map role="region" aria-label="Map of places">
+    <p class="mono places-fallback">loading map…</p>
+    <div class="places-card" data-places-card hidden>
+      <span aria-hidden="true" class="tape" style="top: -12px; left: 40%; width: 80px; transform: rotate(-3deg)"></span>
+      <button type="button" class="places-x mono" data-places-close aria-label="Close">×</button>
+      <p class="mono places-when" data-f="when"></p>
+      <h3 data-f="name"></h3>
+      <p class="places-note" data-f="note"></p>
+    </div>
+  </div>
+  <ul class="places-list">
+    {places.map((p) => (
+      <li><button type="button" data-place={p.id} aria-pressed="false"><span>{p.name}</span><span class="mono">{p.when}</span></button></li>
+    ))}
+  </ul>
 </div>
-<ul style="flex: 1 1 280px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column">
-<li style="display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--onyx-3); font-size: 18px">
-<span>Bayonne, NJ</span>
-<span class="mono" style="font-size: 13px; color: var(--muted)">Home</span>
-</li>
-<li style="display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--onyx-3); font-size: 18px">
-<span>[City, Country]</span>
-<span class="mono" style="font-size: 13px; color: var(--muted)">[Year]</span>
-</li>
-<li style="display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--onyx-3); font-size: 18px">
-<span>[City, Country]</span>
-<span class="mono" style="font-size: 13px; color: var(--muted)">[Year]</span>
-</li>
-<li style="display: flex; justify-content: space-between; gap: 12px; padding: 18px 0; border-bottom: 1px solid var(--onyx-3); font-size: 18px">
-<span>[City, Country]</span>
-<span class="mono" style="font-size: 13px; color: var(--muted)">[Year]</span>
-</li>
-</ul>
-</div>
+<script type="application/json" data-places-data set:html={JSON.stringify(places)} />
 </Section>
+
+<script>
+  import { mountPlaces } from '../../scripts/places-map';
+  mountPlaces();
+</script>

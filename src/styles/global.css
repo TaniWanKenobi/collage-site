@@ -89,3 +89,38 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .hud-dot:hover .hud-tip, .hud-dot:focus-visible .hud-tip { opacity: 1; transform: translate(0, -50%); }
 .hud-dot:focus-visible { outline: none; }
 @media (prefers-reduced-motion: reduce) { .hud-pip, .hud-tip { transition: none; } }
+
+/* Places map (sections/Map.astro + scripts/places-map.ts) */
+.places { display: flex; flex-wrap: wrap; gap: 28px; }
+.places-map { flex: 2 1 520px; min-width: 0; height: min(520px, 62vh); min-height: 320px; position: relative; background-color: #10180e; box-shadow: 0 16px 34px rgba(4,8,3,.5), inset 0 0 0 2px var(--onyx-3); overflow: hidden; border-radius: 4px; }
+.places-fallback { margin: 0; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); }
+.places-map.leaflet-container { background-color: #10180e; font-family: 'JetBrains Mono', monospace; }
+/* OSM tiles recoloured: grey, then a hard contrast so water sinks to near-black and land sits at grape. */
+.places-map .leaflet-tile-pane { filter: grayscale(1) brightness(.48) contrast(2.6) sepia(.55) hue-rotate(212deg) saturate(1.9); }
+.places-map .leaflet-control-attribution.leaflet-control { background: rgba(13,22,11,.8); color: var(--muted); font-size: 10px; }
+.places-map .leaflet-control-attribution a { color: var(--lime-tint); }
+.places-map .leaflet-bar { border: 0; box-shadow: none; }
+.places-map .leaflet-bar a { background: var(--onyx-2); color: var(--lime); border-bottom: 1px solid var(--onyx-3); width: 34px; height: 34px; line-height: 34px; }
+.places-map .leaflet-bar a:hover { background: var(--onyx-3); }
+.places-map .leaflet-bar a.leaflet-disabled { background: var(--onyx-2); color: var(--onyx-3); }
+.places-pin { background: none; border: 0; }
+.places-pin i { position: relative; display: block; width: 14px; height: 14px; margin: 1px; border-radius: 50%; background: var(--grape-lite); border: 3px solid var(--onyx); transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s, background-color .18s; }
+.places-pin.is-home i { background: var(--lime); }
+.places-pin.is-ph i { opacity: .75; }
+.places-pin:hover i, .places-pin:focus-visible i, .places-pin.is-on i { transform: scale(1.35); background: var(--lime); box-shadow: 0 0 0 5px rgba(194,249,112,.25); }
+.places-pin.is-home i::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--lime); opacity: 0; animation: places-ping 2.4s ease-out infinite; }
+@keyframes places-ping { from { transform: scale(.6); opacity: .7; } to { transform: scale(1.9); opacity: 0; } }
+.leaflet-tooltip.places-tip { background: var(--lime); color: var(--onyx); border: 0; border-radius: 999px; box-shadow: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; }
+.leaflet-tooltip.places-tip::before { display: none; }
+.places-card { font-family: var(--font-display); position: absolute; z-index: 1000; left: 18px; top: 18px; width: min(300px, calc(100% - 36px)); box-sizing: border-box; padding: 16px 18px 18px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.5deg); animation: places-in .22s cubic-bezier(.3,1.4,.5,1); }
+.places-card[hidden] { display: none; }
+.places-card h3 { margin: 0 0 6px; font-size: 24px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
+.places-when { margin: 0 0 4px; font-size: 11px; color: var(--grape); }
+.places-note { margin: 0; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.15; }
+.places-x { position: absolute; right: 6px; top: 4px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--onyx); font-size: 22px; cursor: pointer; }
+@keyframes places-in { from { opacity: 0; transform: rotate(-1.5deg) translateY(8px); } }
+.places-list { flex: 1 1 280px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.places-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 4px; border: 0; border-bottom: 1px solid var(--onyx-3); background: transparent; color: var(--lime-tint); font: inherit; font-size: 18px; text-align: left; cursor: pointer; transition: color .15s, padding .18s; }
+.places-list button .mono { font-size: 13px; color: var(--muted); }
+.places-list button:hover, .places-list button[aria-pressed="true"] { color: var(--lime); padding-left: 12px; }
+@media (prefers-reduced-motion: reduce) { .places-pin i, .places-card, .places-list button { transition: none; animation: none; } .places-pin.is-home i::after { animation: none; } }

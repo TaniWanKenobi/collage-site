@@ -1,0 +1,10 @@
+[
+  { "id": "bayonne", "name": "Bayonne, NJ", "lat": 40.6687, "lng": -74.1143, "when": "Home", "home": true,
+    "note": "Home base. Where most of the projects on this site got built." },
+  { "id": "place-1", "name": "[City, Country]", "lat": 37.7749, "lng": -122.4194, "when": "[Year]", "placeholder": true,
+    "note": "[A line or two about the trip: what you went for, what you built or saw.]" },
+  { "id": "place-2", "name": "[City, Country]", "lat": 51.5072, "lng": -0.1276, "when": "[Year]", "placeholder": true,
+    "note": "[A line or two about the trip.]" },
+  { "id": "place-3", "name": "[City, Country]", "lat": 19.076, "lng": 72.8777, "when": "[Year]", "placeholder": true,
+    "note": "[A line or two about the trip.]" }
+]
