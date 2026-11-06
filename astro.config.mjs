@@ -9,4 +9,6 @@ export default defineConfig({
   integrations: [react()],
   // Inline the small global stylesheet: one fewer render-blocking request.
   build: { inlineStylesheets: 'always' },
+  // Let Vite bundle photoswipe so its CSS import resolves in dev SSR (Node can't load .css).
+  vite: { ssr: { noExternal: ['photoswipe'] } },
 });

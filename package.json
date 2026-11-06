@@ -5,10 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
+    "prebuild": "node scripts/check-placeholders.mjs",
     "build": "astro build",
+    "postbuild": "node scripts/check-placeholders.mjs --dist",
     "preview": "astro preview",
     "astro": "astro",
-    "photos": "node scripts/photos/compute-focal-points.mjs"
+    "photos": "node scripts/photos/compute-focal-points.mjs",
+    "check:placeholders": "node scripts/check-placeholders.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.2",

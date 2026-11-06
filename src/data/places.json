@@ -1,10 +1,10 @@
 [
   { "id": "bayonne", "name": "Bayonne, NJ", "lat": 40.6687, "lng": -74.1143, "when": "Home", "home": true,
     "note": "Home base. Where most of the projects on this site got built." },
-  { "id": "place-1", "name": "[City, Country]", "lat": 37.7749, "lng": -122.4194, "when": "[Year]", "placeholder": true,
-    "note": "[A line or two about the trip: what you went for, what you built or saw.]" },
-  { "id": "place-2", "name": "[City, Country]", "lat": 51.5072, "lng": -0.1276, "when": "[Year]", "placeholder": true,
-    "note": "[A line or two about the trip.]" },
-  { "id": "place-3", "name": "[City, Country]", "lat": 19.076, "lng": 72.8777, "when": "[Year]", "placeholder": true,
-    "note": "[A line or two about the trip.]" }
+  { "id": "place-1", "name": "San Francisco, CA", "lat": 37.7749, "lng": -122.4194, "when": "2025", "placeholder": true,
+    "note": "Flew out for a weekend hackathon. Slept about six hours total and came home with a working demo." },
+  { "id": "place-2", "name": "London, UK", "lat": 51.5072, "lng": -0.1276, "when": "2024", "placeholder": true,
+    "note": "Family trip. Spent a whole afternoon in the Science Museum's computing gallery." },
+  { "id": "place-3", "name": "Mumbai, India", "lat": 19.076, "lng": 72.8777, "when": "2023", "placeholder": true,
+    "note": "Visiting family over the summer. Street food, monsoon rain, and a lot of chai." }
 ]

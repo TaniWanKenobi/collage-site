@@ -41,6 +41,9 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(${base}fonts/jbmono.woff2) format('woff2')}
 @font-face{font-family:'Caveat';font-style:normal;font-weight:500 700;font-display:swap;src:url(${base}fonts/caveat.woff2) format('woff2')}
 `}></style>
+  <!-- ?ph in the URL outlines every placeholder (data-ph); see scripts/check-placeholders.mjs -->
+  <script is:inline>if (/[?&]ph(=|&|$)/.test(location.search)) document.documentElement.setAttribute('data-show-ph', '');</script>
+  <style is:global>html[data-show-ph] [data-ph] { outline: 2px dashed #ff5fa2 !important; outline-offset: 2px; }</style>
 </head>
 <body>
   <slot />

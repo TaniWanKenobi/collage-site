@@ -12,6 +12,7 @@ const projects = defineCollection({
     order: z.number(),
     image: z.string().optional(), // path under public/, e.g. "projects/holos.png"
     model: z.string().optional(), // GLB under public/models/, e.g. "models/inkbadge.glb"
+    placeholder: z.boolean().optional(), // sample content; scripts/check-placeholders.mjs tracks it
   }),
 });
 

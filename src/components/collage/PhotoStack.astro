@@ -2,6 +2,9 @@
 // Photos card (zoom target "photos"). Used by both the desktop zoom world and the phone collage.
 // The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
 import ZoomPage from '../sections/ZoomPage.astro';
+// Tracked placeholders: swap for your own photos (see src/assets/placeholder/SOURCES.md).
+import backPhoto from '../../assets/placeholder/photos/ferry-sky.jpg';
+import coverPhoto from '../../assets/placeholder/photos/trail-overlook.jpg';
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
 const PANEL_W = 176;
@@ -12,11 +15,11 @@ const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp" {...attrs} style="left: calc(966px + var(--ex, 0px) * 0.6); top: 330px; width: 194px; height: 153px; transform: rotate(7deg)">
 <span aria-hidden="true" style="position: absolute; left: -66px; top: 22px; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: var(--lime-tint); transform: rotate(-14deg); box-shadow: 0 14px 30px rgba(4,8,3,.55)">
-<span class="mono" style="display: flex; align-items: center; justify-content: center; height: 100%; background: var(--grape-deep); color: var(--lime-tint); font-size: 11px">[Photo]</span>
+<img src={backPhoto.src} alt="" data-ph style="display: block; width: 100%; height: 100%; object-fit: cover" />
 </span>
 <div style="position: absolute; left: 0; top: 0; width: 194px; height: 153px; box-sizing: border-box; padding: 9px 9px 34px; background: var(--lime-tint); color: var(--onyx); box-shadow: -6px 6px 14px rgba(4,8,3,.4), 0 14px 30px rgba(4,8,3,.55)">
 <div class="zpanel" style="width: 176px; height: 110px; background-color: var(--grape)">
-<div class="mono" data-cover={desk ? 'photos' : undefined} style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--lime-tint); font-size: 11px">[Photo]</div>
+<div data-cover={desk ? 'photos' : undefined} data-ph style={`position: absolute; inset: 0; background: url(${coverPhoto.src}) center / cover`}></div>
 {desk && <ZoomPage section="photos" panelWidth={PANEL_W} />}
 </div>
 <span class="mono" style="position: absolute; left: 11px; bottom: 10px; font-size: 11px; line-height: 1">03 · photos</span>

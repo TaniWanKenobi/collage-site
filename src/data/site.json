@@ -1,0 +1,4 @@
+{
+  "launch": false,
+  "_comment": "Set launch to true when the site is finished. From then on, `npm run build` (and the GitHub deploy) fails if any placeholder is left. Run `npm run check:placeholders` to see the list."
+}
