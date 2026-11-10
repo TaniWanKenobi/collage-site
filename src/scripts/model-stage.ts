@@ -26,7 +26,7 @@ interface Slot {
   el: HTMLElement; kind: Kind; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   scene: Scene; camera: PerspectiveCamera; controls: OrbitControls;
   wr: ReturnType<typeof worldRect> | null; inView: boolean; ready: boolean; active: boolean;
-  requested: boolean; drawn: number; userUntil: number; dragging: boolean; turned: boolean; w: number; h: number; cost: number;
+  requested: boolean; drawn: number; userUntil: number; dragging: boolean; turned: boolean; w: number; h: number; cost: number; flyW?: number; flyH?: number;
   // data-spin="0": no auto-rotate, a gentle sway around the front instead (the pivot turns, not the camera).
   pivot: Group | null; sway: boolean;
 }
@@ -226,13 +226,8 @@ function tick() {
     // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
     if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
     again = true; // auto-rotate keeps visible slots moving
-    // Camera in motion: hold the last frame at its canvas size (CSS scales it; no reallocations mid-flight) and
-    // pause the spin. The GPU is busiest re-compositing the zooming collage then; spinning the models on top
-    // dropped scrolling to ~40 fps on an integrated GPU (the draw's CPU cost, which `cost` measures, stays low,
-    // so the GPU overload never showed up there). The spin resumes as soon as the camera rests.
-    if (moving && s.drawn && !user) {
-      continue;
-    }
+    // Camera in motion: the models keep spinning, but at their current canvas size (CSS scales it), so a zoom
+    // never reallocates canvases mid-flight. They pick up the sharp size for the new zoom once the camera rests.
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.
     if (s.drawn && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) continue;
     const cw = s.el.offsetWidth, ch = s.el.offsetHeight;
@@ -240,7 +235,12 @@ function tick() {
     if (!s.drawn && !s.el.classList.contains('is-live') && firsts++) continue;
     // Device pixels per CSS pixel, stepped to 0.25 so a camera flight does not resize the canvas every frame.
     const k = Math.min(MAX_PX / Math.max(cw, ch), Math.max(1, Math.round((window.devicePixelRatio || 1) * scale * 4) / 4));
-    const w = Math.round(cw * k), h = Math.round(ch * k);
+    // In flight: half resolution (motion hides it; it halves the GPU's fill and upload work), fixed for the
+    // whole flight so the canvas is resized once at take-off and once at landing, never mid-flight.
+    const fly = moving && s.drawn > 0;
+    const w = fly ? (s.flyW ||= Math.max(64, Math.round(cw * k / 2))) : Math.round(cw * k);
+    const h = fly ? (s.flyH ||= Math.max(64, Math.round(ch * k / 2))) : Math.round(ch * k);
+    if (!fly) s.flyW = s.flyH = 0;
     todo.push([s, w, h]);
   }
   if (spinDue && todo.some(([s]) => !s.dragging)) spunAt = t;
