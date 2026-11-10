@@ -4,6 +4,7 @@
 import Wordmark from './Wordmark.astro';
 import GlobeDisc from './GlobeDisc.astro';
 import MePhoto from './MePhoto.astro';
+import Tagline from './Tagline.astro';
 import Polaroid from './Polaroid.astro';
 import Ticket from './Ticket.astro';
 import PhotoStack from './PhotoStack.astro';
@@ -32,6 +33,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <GlobeDisc mode={mode} empty={printer} />
 {printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 478px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
 <MePhoto />
+<Tagline mode={mode} />
 {desk && (
   <>
     <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--lime-tint)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
