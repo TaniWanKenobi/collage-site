@@ -59,7 +59,9 @@
 .pol-tape.is-l { left: -14px; transform: rotate(-38deg); top: 2px; }
 .pol-tape.is-c { left: calc(50% - 38px); transform: rotate(-4deg); }
 .pol-tape.is-r { right: -14px; transform: rotate(36deg); top: 2px; }
-.pol:nth-child(4n+3) .pol-tape { background: rgba(143,134,192,.62); } /* a grape strip now and then */
+.pol:nth-child(3n+2) .pol-tape { background-image: url('../assets/tape/clear-a.webp'); opacity: .85; }
+.pol:nth-child(4n+3) .pol-tape { background-image: url('../assets/tape/purple.webp'); opacity: 1; } /* a grape strip now and then */
+.pol:nth-child(5n+4) .pol-tape { background-image: url('../assets/tape/grey.webp'); opacity: 1; }
 
 /* medium column (tablet, zoom-panel previews): 8 columns, large tiles shrink a step */
 @container (max-width: 1000px) {

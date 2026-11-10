@@ -13,6 +13,7 @@ const attrs = desk
 const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp" {...attrs} style="left: calc(96px - var(--ex, 0px) * 0.6); top: 478px; width: 248px; height: 216px; padding: 12px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-6deg)">
+<span aria-hidden="true" class="tape" style="top: -12px; left: 79px; width: 96px; transform: rotate(-4deg)"></span>
 <div class="zpanel" style="width: 224px; height: 140px; background-color: var(--grape)">
 <div data-cover={desk ? 'projects' : undefined} data-ph style={`position: absolute; inset: 0; background: url(${holosShot.src}) center / cover`}></div>
 {desk && <ZoomPage section="projects" panelWidth={PANEL_W} />}
