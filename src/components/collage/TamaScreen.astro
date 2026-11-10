@@ -1,0 +1,19 @@
+---
+// Projects (zoom target "projects"): the Tamagotchi's own screen. Scrolling in flies into it, the model turns square
+// to the camera on the way (data-morph in model-stage.ts), and the Projects page fades in exactly over the OLED.
+// The panel sits where the screen lands in the 245x235 slot once the model faces front: centred, 52 x 37 px (whole pixels: the camera measures with offsetWidth)
+// (screen 23.6 x 16.8 mm, framing distance 0.197 m, fov 30). Keep in sync with the Model3D slot in CollageWorld.
+import ZoomPage from '../sections/ZoomPage.astro';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 52;
+const attrs = desk
+  ? { 'data-jump': 'projects', 'data-rot': '0', 'aria-label': 'Projects' }
+  : { href: '#sec-projects', 'aria-label': 'Projects' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp tama-screen" {...attrs} style="left: calc(1206px + var(--ex, 0px) * 0.6); top: 621px; width: 52px; height: 32.5px">
+<div class="zpanel" style="width: 52px; height: 32.5px">
+{desk && <ZoomPage section="projects" panelWidth={PANEL_W} />}
+</div>
+</Tag>

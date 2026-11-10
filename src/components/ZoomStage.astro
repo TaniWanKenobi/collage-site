@@ -38,4 +38,6 @@ const { center = 'globe' } = Astro.props;
 <script>
   import { initZoomCamera } from '../scripts/zoom-camera.js';
   initZoomCamera();
+  // ?edit on the home page: the drag-to-place layout editor (loaded only then).
+  if (new URLSearchParams(location.search).has('edit')) import('../scripts/layout-editor.ts').then((m) => m.initLayoutEditor());
 </script>

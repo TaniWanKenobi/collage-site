@@ -21,6 +21,7 @@ const pins = places.map((p) => ({ ...cardPos(p.lat, p.lng), home: !!p.home })).f
 {pins.map((p) => (
   <span aria-hidden="true" class={p.home ? 'mappin is-home' : 'mappin'} style={`left: ${(p.fx * 100).toFixed(2)}%; top: ${(p.fy * 100).toFixed(2)}%`}></span>
 ))}
+<span aria-hidden="true" class="mapcard-grid"></span>
 <span aria-hidden="true" class="mapcredit mono">© OpenStreetMap</span>
 </div>
 {desk && <ZoomPage section="map" panelWidth={PANEL_W} />}

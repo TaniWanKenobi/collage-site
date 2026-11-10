@@ -42,6 +42,7 @@ export function attachToy({ el, canvas, camera, model, redraw }: Opts) {
   screen.rotation.x = -Math.PI / 2; // plane faces +Z; lay it on the face (+Y), texture top toward -Z
   screen.position.set(SCREEN.x, SCREEN.y, SCREEN.z);
   screen.renderOrder = 2;
+  screen.name = 'tama-screen'; // model-stage turns the camera square to it when the zoom heads into it
   model.add(screen);
 
   // Invisible hit targets over the three buttons (drawn with no colour, so the ray still finds them).

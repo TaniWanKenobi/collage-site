@@ -1,0 +1,22 @@
+---
+// Blog (zoom target "writing"): a halftone hand holding an open book. The .zpanel lies over the open pages,
+// so the camera flies into the book and the Blog page fades in there.
+// PLACEHOLDER ART: src/assets/collage/book.webp is cut from a stock comp (Dreamstime). Licence it or swap in a
+// free equivalent before this ships.
+import ZoomPage from '../sections/ZoomPage.astro';
+import book from '../../assets/collage/book.webp';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 128;
+const attrs = desk
+  ? { 'data-jump': 'writing', 'data-rot': '-4' }
+  : { href: '#sec-writing', 'aria-label': 'Blog' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp sticker" {...attrs} style="left: calc(1030px + var(--ex, 0px) * 0.8); top: 96px; width: 214px; height: 207px; transform: rotate(-4deg)">
+<img src={book.src} alt="" width="214" height="207" draggable="false" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain" />
+<div class="zpanel" style="position: absolute; left: 46px; top: 30px; width: 128px; height: 80px">
+{desk && <ZoomPage section="writing" panelWidth={PANEL_W} />}
+</div>
+<span class="mono label-tape" style="left: 118px; top: 158px; transform: rotate(4deg)">BLOG</span>
+</Tag>

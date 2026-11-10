@@ -21,7 +21,8 @@ import { worldRect, onScreen } from './slot-view.js';
 import { prepare, applyStyle, contactBlob, setLineFade, DEFAULT_STYLE } from './toon.js';
 
 type Kind = 'world' | 'page' | 'flow';
-interface Cam { s: number; open: boolean; cx: number; cy: number; r: number; vw: number; h: number }
+// key/prog: which piece the camera is heading for, and how far into it (0 = overview, 1 = landed).
+interface Cam { s: number; open: boolean; cx: number; cy: number; r: number; vw: number; h: number; key?: string; prog?: number }
 interface Slot {
   el: HTMLElement; kind: Kind; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   scene: Scene; camera: PerspectiveCamera; controls: OrbitControls;
@@ -250,7 +251,23 @@ function tick() {
     if (s.camera.aspect !== w / h) { s.camera.aspect = w / h; s.camera.updateProjectionMatrix(); }
     // deltaTime keeps the spin speed the same at 30, 60 or 120 Hz.
     s.controls.update(s.drawn ? Math.min(t - s.drawn, 250) / 1000 : 0);
-    if (s.sway && s.pivot) s.pivot.rotation.y = Math.sin(t / 1900) * 0.2;
+    // data-morph: when the zoom heads into this piece, the model stops swaying and the camera swings square onto
+    // its screen, so the section page can fade in exactly over it (the page sits on a flat panel over the screen).
+    const cm = cam(), mk = s.el.dataset.morph;
+    const mp = mk && cm && cm.key === mk ? Math.min(1, (cm.prog ?? 0) / 0.6) : 0, m = mp * mp * (3 - 2 * mp);
+    if (s.sway && s.pivot) s.pivot.rotation.y = Math.sin(t / 1900) * 0.2 * (1 - m);
+    let back: Vector3 | null = null;
+    if (m > 0 && s.pivot) {
+      const scr = s.pivot.getObjectByName('tama-screen');
+      if (scr) {
+        s.pivot.updateMatrixWorld();
+        const f = scr.getWorldPosition(new Vector3());
+        back = s.camera.position.clone();
+        const front = new Vector3(f.x, f.y, f.z + back.length());
+        s.camera.position.lerpVectors(back, front, m);
+        s.camera.lookAt(f.multiplyScalar(m));
+      }
+    }
     s.drawn = t; s.w = w; s.h = h;
     renderer.setViewport(0, 0, w, h);
     renderer.setScissor(0, 0, w, h);
@@ -258,6 +275,7 @@ function tick() {
     // Ink thins out on small slots so it never turns into hatching (a 1 px line is a bigger share of a small model).
     setLineFade(Math.min(1, Math.max(0.45, (Math.min(w, h) - 120) / 360)));
     renderer.render(s.scene, s.camera);
+    if (back) { s.camera.position.copy(back); s.camera.lookAt(s.controls.target); } // the orbit controls own the camera
     s.ctx.clearRect(0, 0, w, h);
     s.ctx.drawImage(renderer.domElement, 0, bufH - h, w, h, 0, 0, w, h);
     if (!s.el.classList.contains('is-live')) s.el.classList.add('is-live');

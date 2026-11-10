@@ -18,8 +18,9 @@ interface Props {
   upright?: boolean; // stand a flat-lying model up so its top face looks at the camera
   spin?: boolean;    // false: no auto-rotate, a gentle sway around the front instead
   toy?: boolean;     // the Tamagotchi's clickable screen and buttons (src/scripts/tama-toy.ts)
+  morph?: string;    // zoom key whose page grows out of this model's screen: the model turns square to the camera on the way in
 }
-const { id, kind, style = '', fly, elev = 22, azim = 35, fill = 0.9, poster, upright, spin = true, toy } = Astro.props;
+const { id, kind, style = '', fly, elev = 22, azim = 35, fill = 0.9, poster, upright, spin = true, toy, morph } = Astro.props;
 const m = models.find((x) => x.id === id)!;
 const live = kind !== 'poster';
 const label = `${m.title} 3D model`;
@@ -34,6 +35,7 @@ const label = `${m.title} 3D model`;
   data-upright={upright ? '1' : undefined}
   data-spin={spin ? undefined : '0'}
   data-toy={toy ? '1' : undefined}
+  data-morph={morph}
   role={kind === 'world' ? 'link' : undefined}
   tabindex={kind === 'world' ? 0 : undefined}
   aria-label={kind === 'world' ? `${m.title}: open Projects${toy ? '. Press 1, 2 or 3 to use its buttons' : ''}` : undefined}

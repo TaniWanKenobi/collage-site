@@ -1,0 +1,22 @@
+---
+// Wins (zoom target "timeline"): a halftone trophy sticker with a label-maker "WINS" strip on its base.
+// The .zpanel sits over the cup, so the camera flies into the cup and the Accomplishments page fades in there.
+// PLACEHOLDER ART: src/assets/collage/trophy.webp is cut from a watermarked stock comp (Adobe Stock 217891486).
+// Licence it or swap in a free equivalent before this ships.
+import ZoomPage from '../sections/ZoomPage.astro';
+import trophy from '../../assets/collage/trophy.webp';
+interface Props { mode: 'desk' | 'phone' }
+const desk = Astro.props.mode === 'desk';
+const PANEL_W = 96;
+const attrs = desk
+  ? { 'data-jump': 'timeline', 'data-rot': '-6' }
+  : { href: '#sec-timeline', 'aria-label': 'Wins' };
+const Tag = desk ? 'div' : 'a';
+---
+<Tag class="zp sticker" {...attrs} style="left: calc(150px - var(--ex, 0px) * 0.6); top: 318px; width: 134px; height: 231px; transform: rotate(-6deg)">
+<img src={trophy.src} alt="" width="134" height="231" draggable="false" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain" />
+<div class="zpanel" style="position: absolute; left: 19px; top: 14px; width: 96px; height: 60px">
+{desk && <ZoomPage section="timeline" panelWidth={PANEL_W} />}
+</div>
+<span class="mono label-tape" style="left: 26px; top: 190px; transform: rotate(-3deg)">WINS</span>
+</Tag>

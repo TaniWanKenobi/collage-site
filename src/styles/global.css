@@ -29,6 +29,12 @@ a { color: var(--lime); } a:hover { color: var(--lime-tint); }
 .tape.t-grey { background-image: url('../assets/tape/grey.webp'); }
 .tape.t-purple { background-image: url('../assets/tape/purple.webp'); }
 .tape.t-patch { height: 34px; background-image: url('../assets/tape/clear-b.webp'); opacity: .85; }
+/* cut-out stickers (trophy, book): the shadow follows the cut, not the box */
+.zp.sticker { filter: drop-shadow(0 12px 14px rgba(4,8,3,.55)); }
+/* label-maker strip naming a sticker */
+.label-tape { position: absolute; z-index: 2; padding: 3px 9px; background: var(--lime); color: var(--onyx); font-size: 13px; font-weight: 700; letter-spacing: .12em; box-shadow: 0 3px 6px rgba(4,8,3,.45); pointer-events: none; }
+/* the old map scrap's grid, drawn over the baked map */
+.mapcard-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(194,249,112,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(194,249,112,.16) 1px, transparent 1px); background-size: 20px 20px; }
 .tape-credit { font-size: 11px; color: var(--muted); }
 .tape-credit a { color: inherit; }
 .mono { font-family: var(--font-mono); }
