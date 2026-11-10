@@ -5,7 +5,7 @@ export const NAMES: Record<SectionKey, string> = {
   projects: 'Projects', timeline: 'Accomplishments', photos: 'Photos', writing: 'Blog',
   map: 'Places', guestbook: 'Guestbook', contact: 'Say hi',
 };
-/** Join a path onto the site base ("/collage-site"), e.g. url('projects') -> "/collage-site/projects". */
+/** Join a path onto the site base ("/" on Vercel, "/collage-site" on GitHub Pages), e.g. url('projects') -> "/collage-site/projects". */
 export function url(p = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   return p ? `${base}/${p.replace(/^\//, '')}` : `${base}/`;
