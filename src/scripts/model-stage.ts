@@ -39,14 +39,13 @@ let lastInput = performance.now();
 // The camera counts as moving until this long after its last frame. Longer than the world's own settle delay in
 // zoom-camera.js (180 ms), so the sharp redraw at rest does not land on the same frame as the world's repaint.
 const REST_MS = 320;
-const BUF_STEP = 256; // the shared drawing buffer grows in steps: reallocating it stalls the GPU for 10-150 ms
 const cam = (): Cam | null => (window as unknown as { __zoomCam?: Cam }).__zoomCam ?? null;
 
 let renderer: WebGLRenderer | null = null;
 let loader: GLTFLoader;
 const cache = new Map<string, Promise<Object3D>>();
 const slots: Slot[] = [];
-let bufW = 1, bufH = 1, raf = 0, camAt = 0, restTimer = 0, spunAt = 0, bigSince = 0;
+let bufH = 1, raf = 0, camAt = 0, restTimer = 0, spunAt = 0;
 let io: IntersectionObserver;
 const now = () => performance.now();
 const camMoving = () => now() - camAt < REST_MS;
@@ -65,11 +64,18 @@ function init(): boolean {
   } catch {
     return false;
   }
+  // three.js checks every new shader with gl.getError / getShaderInfoLog, and each check waits for the GPU to finish
+  // everything queued (a 30-100 ms stall when a section's model first shows up mid-scroll). The shaders are fixed and
+  // known to compile, so skip the checks.
+  renderer.debug.checkShaderErrors = false;
   renderer.setPixelRatio(1); // all sizes below are device pixels already
   renderer.outputColorSpace = SRGBColorSpace;
   renderer.setClearColor(0x000000, 0);
   renderer.setScissorTest(true);
-  renderer.setSize(512, 512, false); bufW = bufH = 512; // fits both collage objects at the overview: no early reallocations
+  // One drawing buffer for every slot, allocated once at the largest size any slot can ask for (MAX_PX square).
+  // Resizing it stalls the GPU for 100-150 ms on an integrated GPU, so it used to grow in steps as the camera zoomed
+  // in, right in the middle of a scroll. Allocating it here costs that once, while the page is loading.
+  renderer.setSize(MAX_PX, MAX_PX, false); bufH = MAX_PX;
   // Decode meshopt buffers in Web Workers (decodeGltfBufferAsync), not on the main thread.
   try { MeshoptDecoder.useWorkers(Math.min(2, Math.max(1, (navigator.hardwareConcurrency || 2) - 1))); } catch { /* main-thread fallback */ }
   loader = new GLTFLoader();
@@ -208,7 +214,7 @@ function tick() {
   const spinCost = slots.reduce((n, s) => n + (s.active ? s.cost : 0), 0);
   // Only a machine where a draw is really slow drops frames: spin may use up to ~40% of the main thread.
   const spinDue = t - spunAt >= Math.max(SPIN_MS, spinCost * 2.5 - 4);
-  let again = false, needW = 1, needH = 1;
+  let again = false;
   const todo: [Slot, number, number][] = [];
   let firsts = 0; // a slot's first draw uploads its meshes: at most one per frame
   for (const s of slots) {
@@ -220,32 +226,22 @@ function tick() {
     // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
     if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
     again = true; // auto-rotate keeps visible slots moving
-    // Camera in motion: keep the canvas size (CSS scales it; no reallocations mid-flight). Where a draw is cheap
-    // the model keeps spinning at that size, so it never freezes and jumps; on a slow machine it holds its frame.
+    // Camera in motion: hold the last frame at its canvas size (CSS scales it; no reallocations mid-flight) and
+    // pause the spin. The GPU is busiest re-compositing the zooming collage then; spinning the models on top
+    // dropped scrolling to ~40 fps on an integrated GPU (the draw's CPU cost, which `cost` measures, stays low,
+    // so the GPU overload never showed up there). The spin resumes as soon as the camera rests.
     if (moving && s.drawn && !user) {
-      needW = Math.max(needW, s.w); needH = Math.max(needH, s.h);
-      if (s.cost < 4 && spinDue) todo.push([s, s.w, s.h]);
       continue;
     }
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.
-    if (s.drawn && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) { needW = Math.max(needW, s.w); needH = Math.max(needH, s.h); continue; }
+    if (s.drawn && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) continue;
     const cw = s.el.offsetWidth, ch = s.el.offsetHeight;
     if (!cw || !ch) continue;
     if (!s.drawn && !s.el.classList.contains('is-live') && firsts++) continue;
     // Device pixels per CSS pixel, stepped to 0.25 so a camera flight does not resize the canvas every frame.
     const k = Math.min(MAX_PX / Math.max(cw, ch), Math.max(1, Math.round((window.devicePixelRatio || 1) * scale * 4) / 4));
     const w = Math.round(cw * k), h = Math.round(ch * k);
-    needW = Math.max(needW, w); needH = Math.max(needH, h);
     todo.push([s, w, h]);
-  }
-  // One drawing buffer for every slot (sized for all visible slots, in BUF_STEP steps): grow it when a slot
-  // needs more. Shrinking also reallocates (and can stall ~100 ms next to a repaint), so it waits until the
-  // buffer has been far too big for 3 s of rest.
-  const step = (n: number) => Math.max(512, Math.ceil(n / BUF_STEP) * BUF_STEP);
-  const big = step(needW) < bufW / 2 || step(needH) < bufH / 2;
-  bigSince = big && !moving ? bigSince || t : 0;
-  if (todo.length && (needW > bufW || needH > bufH || (bigSince && t - bigSince > 3000))) {
-    bufW = step(needW); bufH = step(needH); renderer.setSize(bufW, bufH, false); bigSince = 0;
   }
   if (spinDue && todo.some(([s]) => !s.dragging)) spunAt = t;
   for (const [s, w, h] of todo) {
