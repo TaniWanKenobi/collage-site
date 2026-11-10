@@ -12,7 +12,7 @@ const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp" {...attrs} style={`left: ${Astro.props.at?.[0] ?? 400}px; top: ${Astro.props.at?.[1] ?? 590}px; width: 204px; height: 160px; padding: 14px; background: var(--lime); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(8deg)`}>
 <div class="zpanel" style="width: 176px; height: 110px; background-color: var(--lime)">
-<div data-cover={desk ? 'guestbook' : undefined} style="position: absolute; inset: 0; font-family: 'Caveat', cursive; font-size: 32px; font-weight: 700; line-height: 1">sign my guestbook →</div>
+<div data-cover={desk ? 'guestbook' : undefined} style="position: absolute; inset: 0; font-family: var(--font-display); font-size: 24px; font-weight: 800; line-height: 1.05">sign my guestbook →</div>
 {desk && <ZoomPage section="guestbook" panelWidth={PANEL_W} />}
 </div>
 </Tag>

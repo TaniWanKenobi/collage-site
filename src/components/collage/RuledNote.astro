@@ -14,10 +14,9 @@ const attrs = desk
 const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp" {...attrs} style="left: calc(1036px + var(--ex, 0px) * 0.8); top: 128px; width: 220px; height: 148px; padding: 14px; background-color: var(--grape); color: var(--lime-tint); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-3deg)">
-<span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
 <div class="zpanel" style="width: 192px; height: 120px; background-color: var(--grape)">
 <div class="ruled" data-cover={desk ? 'writing' : undefined} style="position: absolute; inset: 0; box-sizing: border-box; padding-top: 2px">
-{posts.map((p) => <span data-ph={p.data.placeholder ? '' : undefined} style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{p.data.title}</span>)}
+{posts.map((p) => <span data-ph={p.data.placeholder ? '' : undefined} style="display: block; font-family: var(--font-display); font-size: 16px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{p.data.title}</span>)}
 </div>
 {desk && <ZoomPage section="writing" panelWidth={PANEL_W} />}
 </div>

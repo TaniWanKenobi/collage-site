@@ -48,7 +48,7 @@
 .prose ul, .prose ol { padding-left: 1.3em; }
 .prose li { margin: .3em 0; }
 .prose li::marker { color: var(--lime); }
-.prose blockquote { margin-left: 0; padding: 6px 0 6px 20px; border-left: 3px solid var(--lime); font-family: var(--font-hand); font-size: 28px; line-height: 1.2; color: var(--lime); }
+.prose blockquote { margin-left: 0; padding: 6px 0 6px 20px; border-left: 3px solid var(--lime); font-size: 21px; line-height: 1.2; color: var(--lime); }
 .prose blockquote p { margin: 0; }
 .prose code { font-family: var(--font-mono); font-size: .86em; padding: .1em .35em; border-radius: 4px; background: var(--onyx-3); }
 .prose pre { padding: 18px 20px; border-radius: 8px; overflow-x: auto; font-size: 15px; line-height: 1.55; box-shadow: 0 14px 30px rgba(4,8,3,.5); }

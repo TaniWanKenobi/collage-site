@@ -41,7 +41,6 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
   <style is:inline set:html={`
 @font-face{font-family:'Bricolage Grotesque';font-style:normal;font-weight:400 800;font-display:fallback;src:url(${base}fonts/bricolage.woff2) format('woff2')}
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(${base}fonts/jbmono.woff2) format('woff2')}
-@font-face{font-family:'Caveat';font-style:normal;font-weight:500 700;font-display:swap;src:url(${base}fonts/caveat.woff2) format('woff2')}
 `}></style>
   {models && ['models/ice3dp.glb', 'models/tamagotchi.glb'].map((m) => (
     // Desktop/tablet only (phones show posters), and not with reduced motion (no live models then).

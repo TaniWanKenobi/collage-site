@@ -26,8 +26,7 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
   <p class="sr-only" aria-live="polite" data-acc-status></p>
   <div class="acc-layout">
   <aside class="acc-summary" aria-label="Summary" data-ph={summary.placeholder ? '' : undefined}>
-    <span aria-hidden="true" class="tape acc-summary-tape"></span>
-    <p class="mono acc-summary-head">{summary.heading}</p>
+    {summary.heading && <p class="mono acc-summary-head">{summary.heading}</p>}
     {summary.paragraphs.map((t) => <p class="acc-summary-p">{t}</p>)}
     {summary.signoff && <p class="acc-summary-sign">{summary.signoff}</p>}
   </aside>
@@ -36,7 +35,6 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
       <li class="acc-item" data-kind={t.data.kind} data-current={t.data.current ? '' : undefined} data-ph={t.data.placeholder ? '' : undefined}>
         <span aria-hidden="true" class="acc-dot"></span>
         <div class="acc-card" style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
-          {t.data.current && <span aria-hidden="true" class="tape" style="top: -12px; right: 28px; width: 72px; transform: rotate(4deg)"></span>}
           <p class="mono acc-stub">{t.data.when}{t.data.current && <span class="acc-now" aria-hidden="true">★ ongoing</span>}</p>
           <div class="acc-body">
             <span class={`mono acc-kind acc-kind--${t.data.kind}`}>{t.data.kind}</span>

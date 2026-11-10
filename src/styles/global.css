@@ -14,7 +14,7 @@
   --muted: #A8B595;      /* secondary text */
   --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-hand: 'Caveat', cursive;
+  --font-hand: var(--font-display); /* was Caveat */
 }
 
 body { margin: 0; background: var(--onyx); }
@@ -118,11 +118,11 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .places-card[hidden] { display: none; }
 .places-card h3 { margin: 0 0 6px; font-size: 24px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
 .places-when { margin: 0 0 4px; font-size: 11px; color: var(--grape); }
-.places-note { margin: 0; font-family: 'Caveat', cursive; font-size: 22px; line-height: 1.15; }
+.places-note { margin: 0; font-size: 16px; line-height: 1.45; }
 .places-x { position: absolute; right: 6px; top: 4px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--onyx); font-size: 22px; cursor: pointer; }
 @keyframes places-in { from { opacity: 0; transform: rotate(-1.5deg) translateY(8px); } }
 .places-list { flex: 1 1 280px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.places-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 4px; border: 0; border-bottom: 1px solid var(--onyx-3); background: transparent; color: var(--lime-tint); font: inherit; font-size: 18px; text-align: left; cursor: pointer; transition: color .15s, padding .18s; }
+.places-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 4px; border: 0; background: transparent; color: var(--lime-tint); font: inherit; font-size: 18px; text-align: left; cursor: pointer; transition: color .15s, padding .18s; }
 .places-list button .mono { font-size: 13px; color: var(--muted); }
 .places-list button[aria-pressed="true"] { color: var(--lime); padding-left: 12px; }
 @media (prefers-reduced-motion: reduce) { .places-pin i, .places-card, .places-list button { transition: none; animation: none; } .places-pin.is-home i::after { animation: none; } }

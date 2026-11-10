@@ -11,7 +11,6 @@ import RuledNote from './RuledNote.astro';
 import MapScrap from './MapScrap.astro';
 import StickyNote from './StickyNote.astro';
 import Stamp from './Stamp.astro';
-import Tagline from './Tagline.astro';
 import Model3D from '../Model3D.astro';
 import { url } from '../../lib/sections';
 interface Props { mode: 'desk' | 'phone'; center?: 'globe' | 'printer' }
@@ -22,7 +21,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 ---
 {desk && (
   <div id="zm-whead" style="position: absolute; left: calc(43px - var(--ex, 0px)); right: calc(43px - var(--ex, 0px)); top: calc(22px - var(--ey, 0px)); height: 44px; display: flex; align-items: center; justify-content: space-between; z-index: 25">
-    <a href={url()} data-fly="home" style="font-weight: 800; font-size: 18px; color: var(--lime-tint); text-decoration: none; letter-spacing: -0.01em">Tanishq</a>
+    <span></span>
     <nav aria-label="Collage" class="mono" style="display: flex; align-items: center; gap: 4px 22px; font-size: 13px">
       {NAV.map(([k, label]) => <a href={url(k)} data-fly={k} style="color: var(--muted); text-decoration: none">{label}</a>)}
       <a href={url('contact')} data-fly="contact" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: var(--onyx); font-weight: 500; text-decoration: none">Email me</a>
@@ -33,10 +32,9 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <GlobeDisc mode={mode} empty={printer} />
 {printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 478px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
 <MePhoto />
-<Tagline mode={mode} />
 {desk && (
   <>
-    <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--lime-tint)">Tanishq, 11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
+    <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--lime-tint)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
     <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(108px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--lime)">scroll to zoom in ↓</p>
   </>
 )}
