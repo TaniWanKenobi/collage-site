@@ -2,9 +2,10 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 
-// Two hosts build the same site: Vercel (the real home, tanishq.quest, served from the root) and the older
-// GitHub Pages copy (served under /collage-site). Vercel sets VERCEL=1 during its builds.
-const onVercel = !!process.env.VERCEL;
+// Two hosts build the same site: Cloudflare Pages (the real home, tanishq.quest, served from the root) and the
+// older GitHub Pages copy (served under /collage-site). Cloudflare sets CF_PAGES=1 during its builds (Vercel's
+// VERCEL=1 works too).
+const onVercel = !!(process.env.CF_PAGES || process.env.VERCEL);
 
 export default defineConfig({
   site: onVercel ? 'https://tanishq.quest' : 'https://taniwankenobi.github.io',
