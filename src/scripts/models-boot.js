@@ -1,9 +1,8 @@
-// Tiny boot for the 3D models (Model3D.astro). three.js and the .glb files are never on the critical path:
-//  - desktop/tablet: once the page is idle, the runtime loads for the collage objects and the zoom-page cards;
+// Tiny boot for the 3D models (Model3D.astro):
+//  - desktop/tablet: the runtime and the collage's .glb files start loading the moment the page opens (the
+//    posters show until the first real frame, which replaces them in place);
 //  - phones: the cards in the stacked sections get a "Spin in 3D" button (one tap loads that model);
 //  - reduced motion: posters only, nothing loads.
-import { whenIdle } from './slot-view.js';
-
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const all = Array.from(document.querySelectorAll('[data-m3d]'));
 // Model3D appears in both the desktop and phone trees; only the visible one counts.
@@ -20,13 +19,10 @@ all.filter((el) => el.dataset.flyTo).forEach((el) => {
 });
 
 if (all.length && !reduce) {
-  // A few seconds after load (posters cover the wait), then on an idle frame: decoding ~5 MB of meshes and
-  // compiling shaders is real main-thread work, so it stays well clear of first paint and interactivity.
-  const start = () => {
-    const auto = all.filter((el) => el.dataset.m3d !== 'flow' && shown(el));
-    if (auto.length) runtime().then((m) => m.addSlots(auto));
-  };
-  whenIdle(() => setTimeout(() => whenIdle(start, 2000), 2500));
+  // Straight away: no idle wait. Meshes decode in workers and shaders compile in parallel (model-stage.ts),
+  // so this costs the main thread little, and the posters cover the few hundred ms until the first frame.
+  const auto = all.filter((el) => el.dataset.m3d !== 'flow' && shown(el));
+  if (auto.length) runtime().then((m) => m.addSlots(auto));
   all.filter((el) => el.dataset.m3d === 'flow').forEach((el) => {
     const btn = el.querySelector('.m3d-load');
     if (!btn) return;

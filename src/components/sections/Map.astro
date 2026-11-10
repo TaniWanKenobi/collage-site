@@ -7,7 +7,7 @@ import 'leaflet/dist/leaflet.css';
 import places from '../../data/places.json';
 interface Props { back?: boolean }
 ---
-<Section id="map" label="05 · places" title="Where I've been" back={Astro.props.back}>
+<Section id="map" title="Where I've been" back={Astro.props.back}>
 <div class="places">
   <div class="places-main">
   <div class="places-map" data-places-map role="region" aria-label="Map of places">

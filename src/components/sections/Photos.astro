@@ -39,7 +39,7 @@ const items = await Promise.all(
   }),
 );
 ---
-<Section id="photos" label="03 · photos" title="Photo album" back={Astro.props.back}>
+<Section id="photos" title="Photo album" back={Astro.props.back}>
 <div class="album-wrap">
   <ul class="album" data-album data-hover-list>
     {items.map((p) => (

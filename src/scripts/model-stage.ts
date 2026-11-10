@@ -5,8 +5,8 @@
 // screen and no section page is open, at a pixel ratio that tracks the camera zoom so they stay sharp.
 // Cost control (a weak laptop GPU was spending most of every frame here):
 //  - meshes decode in meshopt's Web Workers, and each .glb is fetched only once a slot first wants to draw;
-//  - idle spin draws at up to 30 fps, slower on a machine where a draw is expensive (spin stays under ~20% of
-//    the main thread); a drag (and its damping) draws at full rate;
+//  - idle spin and drags draw every display frame; only a machine where a draw is really expensive skips frames
+//    (spin stays under ~40% of the main thread);
 //  - while the zoom camera moves, slots keep their last frame (CSS scales it) and re-render sharp at rest,
 //    so scroll and fly-to frames carry no WebGL work and no canvas reallocations;
 //  - every shader compiles in parallel without blocking the page.
@@ -32,7 +32,7 @@ interface Slot {
 }
 
 const MAX_PX = 1536; // largest backing-store edge per slot
-const SPIN_MS = 1000 / 24 - 2; // idle auto-rotate frame interval (24 fps, with a little slack for rAF jitter)
+const SPIN_MS = 0; // idle spin draws every display frame (it used to be 24 fps, which read as choppy)
 // No input for this long: auto-spin stops and the loop sleeps (an idle open tab costs ~0 CPU/GPU); any input wakes it.
 const SLEEP_MS = 20000;
 let lastInput = performance.now();
@@ -117,7 +117,8 @@ export function addSlots(els: HTMLElement[]) {
     controls.addEventListener('end', () => { s.dragging = false; if (s.turned) s.userUntil = now() + 1200; kick(); });
     slots.push(s);
     if (kind !== 'world') io.observe(el);
-    if (kind === 'world') wireClick(s);
+    // Collage objects: fetch and decode now, not on the next frame (their .glb is usually preloaded already).
+    if (kind === 'world') { wireClick(s); request(s); }
   }
   kick();
 }
@@ -202,10 +203,11 @@ function tick() {
   const c = cam(), key = c ? `${c.vw}x${c.h}` : '';
   if (key !== sizeKey) { sizeKey = key; slots.forEach((s) => { if (s.kind === 'world') s.wr = worldRect(s.el); }); }
   const t = now(), moving = camMoving();
-  // Idle spin: every visible slot redraws together, at up to 30 fps but no more than ~20% of the main thread
+  // Idle spin: every visible slot redraws together, every frame unless a draw is very expensive
   // (each slot keeps a running average of what its draw costs, which is far higher on a slow CPU).
   const spinCost = slots.reduce((n, s) => n + (s.active ? s.cost : 0), 0);
-  const spinDue = t - spunAt >= Math.max(SPIN_MS, spinCost * 5);
+  // Only a machine where a draw is really slow drops frames: spin may use up to ~40% of the main thread.
+  const spinDue = t - spunAt >= Math.max(SPIN_MS, spinCost * 2.5 - 4);
   let again = false, needW = 1, needH = 1;
   const todo: [Slot, number, number][] = [];
   let firsts = 0; // a slot's first draw uploads its meshes: at most one per frame
@@ -218,8 +220,13 @@ function tick() {
     // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
     if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
     again = true; // auto-rotate keeps visible slots moving
-    // Camera in motion: keep the last frame (CSS scales it); nothing to redraw unless the user is dragging.
-    if (moving && s.drawn && !user) { needW = Math.max(needW, s.w); needH = Math.max(needH, s.h); continue; }
+    // Camera in motion: keep the canvas size (CSS scales it; no reallocations mid-flight). Where a draw is cheap
+    // the model keeps spinning at that size, so it never freezes and jumps; on a slow machine it holds its frame.
+    if (moving && s.drawn && !user) {
+      needW = Math.max(needW, s.w); needH = Math.max(needH, s.h);
+      if (s.cost < 4 && spinDue) todo.push([s, s.w, s.h]);
+      continue;
+    }
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.
     if (s.drawn && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) { needW = Math.max(needW, s.w); needH = Math.max(needH, s.h); continue; }
     const cw = s.el.offsetWidth, ch = s.el.offsetHeight;

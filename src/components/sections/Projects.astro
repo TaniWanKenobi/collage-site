@@ -14,7 +14,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // Camera per model in the 16:10 cards (elevation, azimuth in degrees; fill = share of the card's height).
 const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 30, azim: 48, fill: 1.1 } };
 ---
-<Section id="projects" label="01 · projects" title="Things I've built" back={Astro.props.back}>
+<Section id="projects" title="Things I've built" back={Astro.props.back}>
 <div class="proj" data-proj style="display: contents">
   <div class="acc-filters" role="group" aria-label="Filter projects">
     {KINDS.map((k) => (

@@ -47,5 +47,5 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <MapScrap mode={mode} />
 <StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
-{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.1} elev={18} style="left: 300px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
+{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 300px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
 <Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1110px + var(--ex, 0px) * 0.6); top: 520px; width: 245px; height: 235px; z-index: 6" />

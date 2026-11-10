@@ -10,7 +10,7 @@ const posts = (await getCollection('blog')).sort((a, b) => b.data.date.valueOf()
 const month = (d: Date) => d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
 const full = (d: Date) => d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
-<Section id="writing" label="04 · blog" title="Notes from the workbench" back={Astro.props.back}>
+<Section id="writing" title="Notes from the workbench" back={Astro.props.back}>
   <ol class="blog-list" data-hover-list>
     {posts.map((p) => (
       <li class="blog-row" data-ph={p.data.placeholder ? '' : undefined}>

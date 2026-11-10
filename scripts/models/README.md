@@ -41,10 +41,11 @@ node scripts/models/optimize-glb.mjs C:\path\to\in.glb public\models\sprig.glb -
 node scripts/models/render.mjs sprig --az 20 --el 38 --fit 0.8
 ```
 
-Front view of a flat-lying model, saved under another name (the Tamagotchi's collage poster):
+Collage posters must match the live slot exactly so the 3D model takes over with no jump: same angles, `--fit` = 1 / the slot's `fill`, and `--w`/`--h` in the slot's aspect (3x its CSS size). The two in use:
 
 ```powershell
-node scripts/models/render.mjs tamagotchi --az -18 --el 8 --fit 0.8 --upright --out tamagotchi-front.webp
+node scripts/models/render.mjs tamagotchi --az -18 --el 8 --fit 0.8696 --w 735 --h 705 --upright --out tamagotchi-front.webp
+node scripts/models/render.mjs ice3dp --az 35 --el 18 --fit 0.9091 --w 720 --h 840 --out ice3dp-collage.webp
 ```
 
 `--longest` is the target length of the longest side in meters (`0` keeps the source scale).

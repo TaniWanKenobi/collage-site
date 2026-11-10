@@ -17,7 +17,6 @@ const Tag = desk ? 'div' : 'a';
 <span aria-hidden="true" class="tape" style="top: -12px; right: 24px; width: 70px; transform: rotate(5deg)"></span>
 <div class="zpanel" style="width: 192px; height: 120px; background-color: var(--grape)">
 <div class="ruled" data-cover={desk ? 'writing' : undefined} style="position: absolute; inset: 0; box-sizing: border-box; padding-top: 2px">
-<span class="mono" style="display: block; font-size: 11px; line-height: 28px; color: var(--lime)">04 · blog</span>
 {posts.map((p) => <span data-ph={p.data.placeholder ? '' : undefined} style="display: block; font-family: 'Caveat', cursive; font-size: 24px; line-height: 28px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{p.data.title}</span>)}
 </div>
 {desk && <ZoomPage section="writing" panelWidth={PANEL_W} />}

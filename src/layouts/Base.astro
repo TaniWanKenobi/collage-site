@@ -3,8 +3,10 @@ import '../styles/global.css';
 // A/B review tool (temporary): tests in src/data/ab.json, styles in styles/ab.css, behaviour in scripts/ab.ts.
 import '../styles/ab.css';
 import abTests from '../data/ab.json';
-interface Props { title?: string; description?: string }
+// models: the page opens on the collage with live 3D objects, so their .glb files are fetched straight away.
+interface Props { title?: string; description?: string; models?: boolean }
 const {
+  models = false,
   title = 'Tanishq',
   description = 'Tanishq, 11th grade in Bayonne, NJ and part of Hack Club. Scroll to zoom into each piece of the collage: projects, accomplishments, photos, blog, places, guestbook and contact.',
 } = Astro.props;
@@ -41,6 +43,10 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
 @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:400 500;font-display:swap;src:url(${base}fonts/jbmono.woff2) format('woff2')}
 @font-face{font-family:'Caveat';font-style:normal;font-weight:500 700;font-display:swap;src:url(${base}fonts/caveat.woff2) format('woff2')}
 `}></style>
+  {models && ['models/ice3dp.glb', 'models/tamagotchi.glb'].map((m) => (
+    // Desktop/tablet only (phones show posters), and not with reduced motion (no live models then).
+    <link rel="preload" href={`${base}${m}`} as="fetch" crossorigin="anonymous" media="(min-width: 760px) and (prefers-reduced-motion: no-preference)">
+  ))}
   <!-- ?ph in the URL outlines every placeholder (data-ph); see scripts/check-placeholders.mjs -->
   <script is:inline>if (/[?&]ph(=|&|$)/.test(location.search)) document.documentElement.setAttribute('data-show-ph', '');</script>
   <style is:global>html[data-show-ph] [data-ph] { outline: 2px dashed #ff5fa2 !important; outline-offset: 2px; }</style>

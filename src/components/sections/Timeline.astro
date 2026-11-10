@@ -16,7 +16,7 @@ for (const t of items) {
 const FILTERS = [['all', 'all'], ['timeline', 'timeline'], ['project', 'projects'], ['award', 'awards'], ['event', 'events']];
 const TILT = [0.4, -0.3, 0.2, -0.5];
 ---
-<Section id="timeline" label="02 · accomplishments" title="Things I've done" back={Astro.props.back}>
+<Section id="timeline" title="Things I've done" back={Astro.props.back}>
 <div class="acc" data-acc>
   <div class="acc-filters" role="group" aria-label="Filter accomplishments">
     {FILTERS.map(([k, label]) => (
@@ -53,7 +53,6 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
   </ol>
   </div>
   <p class="mono acc-empty" data-acc-empty hidden>Nothing here yet.</p>
-  <p class="mono acc-foot">ADMIT ONE · newest first</p>
 </div>
 </Section>
 

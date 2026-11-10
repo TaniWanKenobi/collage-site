@@ -2,7 +2,7 @@
 import Section from './Section.astro';
 interface Props { back?: boolean }
 ---
-<Section id="contact" label="07 · say hi" title="Say hi" back={Astro.props.back}>
+<Section id="contact" title="Say hi" back={Astro.props.back}>
 <div style="flex: 1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 40px">
 <div style="display: flex; flex-direction: column; gap: 22px; align-items: flex-start">
 <p style="margin: 0; font-weight: 800; font-size: clamp(80px, 12vw, 190px); line-height: 0.86; letter-spacing: -0.05em; color: var(--lime)">Say hi.</p>

@@ -13,7 +13,8 @@ interface Props {
   style?: string;
   fly?: string;
   elev?: number; azim?: number; fill?: number;
-  poster?: string;   // override the models.json poster (e.g. a front view rendered for this slot)
+  poster?: string;   // override the models.json poster: a still rendered with this slot's exact camera (fov 30, fit = 1/fill,
+                     // the slot's aspect), so the live model replaces it with no jump. See scripts/models/README.md.
   upright?: boolean; // stand a flat-lying model up so its top face looks at the camera
   spin?: boolean;    // false: no auto-rotate, a gentle sway around the front instead
   toy?: boolean;     // the Tamagotchi's clickable screen and buttons (src/scripts/tama-toy.ts)

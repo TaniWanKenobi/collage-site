@@ -32,7 +32,7 @@ await new Promise((ok, fail) => {
 const ab = (...a) => execFileSync(AB, ['--session', 'model-render', ...a], { encoding: 'utf8' }).trim();
 try {
   // ?v= keeps the browser from drawing a cached copy of an older .glb
-  const qs = new URLSearchParams({ model: `/public/models/${id}.glb?v=${Date.now()}`, save: opt('out', `${id}.webp`), az: opt('az', '35'), el: opt('el', '22'), fit: opt('fit', '0.82'), bg: opt('bg', 'transparent'), style: opt('style', 'cel+ink'), upright: rest.includes('--upright') ? '1' : '0' });
+  const qs = new URLSearchParams({ model: `/public/models/${id}.glb?v=${Date.now()}`, save: opt('out', `${id}.webp`), az: opt('az', '35'), el: opt('el', '22'), fit: opt('fit', '0.82'), bg: opt('bg', 'transparent'), style: opt('style', 'cel+ink'), w: opt('w', '1200'), h: opt('h', '900'), upright: rest.includes('--upright') ? '1' : '0' });
   ab('set', 'viewport', '1200', '900');
   ab('open', `http://127.0.0.1:${PORT}/scripts/models/render.html?${qs}`);
   ab('wait', '--timeout', '60000', '--fn', 'window.__stats && window.__stats.ready && (window.__stats.saved || window.__stats.error)');
