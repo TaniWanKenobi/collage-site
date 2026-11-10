@@ -126,3 +126,7 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .places-list button .mono { font-size: 13px; color: var(--muted); }
 .places-list button[aria-pressed="true"] { color: var(--lime); padding-left: 12px; }
 @media (prefers-reduced-motion: reduce) { .places-pin i, .places-card, .places-list button { transition: none; animation: none; } .places-pin.is-home i::after { animation: none; } }
+/* Collage map card (MapScrap): pins over the baked OpenStreetMap image. */
+.mappin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--grape-lite); box-shadow: 0 0 0 2px var(--onyx); }
+.mappin.is-home { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--lime); box-shadow: 0 0 0 2px var(--onyx), 0 0 0 4px rgba(194,249,112,.35); }
+.mapcredit { position: absolute; right: 4px; bottom: 2px; font-size: 6px; line-height: 1; color: rgba(194,249,112,.55); }

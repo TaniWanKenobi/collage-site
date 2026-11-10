@@ -1,4 +1,4 @@
-// Guestbook API for the collage site (static, on GitHub Pages). Cloudflare Worker + D1.
+// Guestbook API for the collage site (static, on Cloudflare Pages and GitHub Pages). Cloudflare Worker + D1.
 //   GET  /entries?before=<id>&limit=30  newest visible entries (no doodle bytes, just `doodle: true`)
 //   POST /entries                       { name, message, link?, doodle? }  -> the created entry
 //   GET  /doodle/:id                    the entry's doodle as image/png, cached
@@ -13,7 +13,7 @@ interface D1Stmt {
 }
 interface Env { DB: { prepare(sql: string): D1Stmt }; IP_SALT?: string; EXTRA_ORIGINS?: string }
 
-const ORIGINS = new Set(['https://taniwankenobi.github.io', 'http://localhost:4321', 'http://[::1]:4321']);
+const ORIGINS = new Set(['https://taniwankenobi.github.io', 'https://tanishq.quest', 'https://www.tanishq.quest', 'https://tanishq-quest.pages.dev', 'http://localhost:4321', 'http://[::1]:4321']);
 // Optional comma-separated extra origins (e.g. another local dev port), from a var or .dev.vars.
 let extraOrigins = new Set<string>();
 const MAX_BODY = 260_000;            // bytes of JSON accepted at all
