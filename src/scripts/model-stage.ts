@@ -227,6 +227,11 @@ function tick() {
     // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
     if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
     again = true; // auto-rotate keeps visible slots moving
+    // Camera in motion (scroll or fly-to): no WebGL work at all, the slot keeps its last frame and CSS scales it.
+    // On a weak integrated GPU the spin was what made scrolling stutter. Exceptions: a drag, and the model the
+    // zoom is heading into when it morphs to face the camera (data-morph), which must turn with the zoom.
+    const cmv = cam(), morphing = !!s.el.dataset.morph && !!cmv && cmv.key === s.el.dataset.morph && (cmv.prog ?? 0) > 0;
+    if (moving && s.drawn && !s.dragging && !morphing) continue;
     // Camera in motion: the models keep spinning, but at their current canvas size (CSS scales it), so a zoom
     // never reallocates canvases mid-flight. They pick up the sharp size for the new zoom once the camera rests.
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.

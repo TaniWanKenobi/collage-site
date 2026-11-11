@@ -12,6 +12,8 @@ export default defineConfig({
   base: onVercel ? '/' : '/collage-site',
   trailingSlash: 'ignore',
   integrations: [react()],
+  // The dev toolbar's audit code (~1 MB) made every localhost page load slow; it never ships to the live site.
+  devToolbar: { enabled: false },
   // Inline the small global stylesheet: one fewer render-blocking request.
   build: { inlineStylesheets: 'always' },
   // Let Vite bundle photoswipe so its CSS import resolves in dev SSR (Node can't load .css).
