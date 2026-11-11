@@ -32,7 +32,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 )}
 <Wordmark as={desk ? 'p' : 'h1'} />
 <GlobeDisc mode={mode} empty={printer} />
-{printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 678px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
+{printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" fill={1.05} elev={16} azim={30} style="left: 478px; top: 192px; width: 420px; height: 450px; z-index: 2" />}
 <MePhoto />
 <Tagline mode={mode} />
 {desk && (
@@ -46,8 +46,8 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <PhotoStack mode={mode} />
 <Book mode={mode} />
 <MapScrap mode={mode} />
-<StickyNote mode={mode} />
+<StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
-{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: calc(204px - var(--ex, 0px) * 0.4); top: 222px; width: 276px; height: 322px; z-index: 6" />}
-<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" morph="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1120px + var(--ex, 0px) * 0.6); top: 198px; width: 284px; height: 272px; z-index: 6" />
+{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 286px; top: 270px; width: 240px; height: 280px; z-index: 6" />}
+<Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" morph="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1090px + var(--ex, 0px) * 0.6); top: 492px; width: 284px; height: 272px; z-index: 6" />
 <TamaScreen mode={mode} />
