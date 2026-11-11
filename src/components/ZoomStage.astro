@@ -15,18 +15,18 @@ const { center = 'globe' } = Astro.props;
 
       <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: rgba(13,22,11,.85); color: var(--lime-tint); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
 
-      <div id="zm-hud" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 2px; border-radius: 999px; background-color: rgba(13,22,11,.85)">
-        <span class="mono" id="hud-num" style="font-size: 11px; color: var(--lime-tint)">00</span>
-        <div style="display: flex; flex-direction: column">
+      <nav id="zm-hud" class="dotstyle dotstyle-tooltip" aria-label="Sections" style="position: absolute; right: 22px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center">
+        <span class="mono" id="hud-num" aria-hidden="true" style="font-size: 11px; color: var(--lime-tint); margin-bottom: 4px; text-shadow: 0 1px 2px rgba(13,22,11,.8)">00</span>
+        <ul>
           {ORDER.map((k, i) => (
-            <button type="button" class="hud-dot" data-dot={i} aria-label={`Go to ${NAMES[k]}`} aria-current="false">
-              <span class="hud-pip"></span>
+            <li>
+              <button type="button" class="hud-dot" data-dot={i} aria-label={`Go to ${NAMES[k]}`} aria-current="false"></button>
               <span class="hud-tip mono" aria-hidden="true"><b>{String(i + 1).padStart(2, '0')}</b> {NAMES[k]}</span>
-            </button>
+            </li>
           ))}
-        </div>
-        <span class="mono" id="hud-name" style="writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--lime-tint); padding-top: 4px">Collage</span>
-      </div>
+        </ul>
+        <span id="hud-name" class="sr-only" aria-live="polite">Collage</span>
+      </nav>
     </div>
   </div>
   <footer style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 28px 24px; border-top: 1px solid var(--onyx-3)">
