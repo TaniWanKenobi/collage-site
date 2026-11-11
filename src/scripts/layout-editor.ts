@@ -5,6 +5,7 @@
 // module is only imported when the URL has ?edit.
 //   drag = move · shift+drag = rotate · alt+drag (or wheel) = scale · arrows nudge (shift = 10px)
 //   [ ] = rotate 1° · - + = scale · F / B = forward / back · Del = remove an idea box · Esc = deselect
+//   Ctrl+Z = undo · Ctrl+Shift+Z or Ctrl+Y = redo (also the Undo / Redo buttons)
 
 interface Edit { dx: number; dy: number; rot: number; s: number; z: number | null }
 interface Idea { id: string; label: string; w: number; h: number; x: number; y: number; rot: number; s: number }
@@ -37,6 +38,22 @@ export function initLayoutEditor() {
   const edits = saved.edits;
   let ideas: Idea[] = saved.ideas || [];
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ edits, ideas })); } catch { /* private window */ } };
+
+  // ---- undo / redo: whole-layout snapshots, taken just before each change ----
+  const undo: string[] = [], redo: string[] = [];
+  const snap = () => JSON.stringify({ edits, ideas });
+  // A run of the same small step (arrow nudges, wheel scaling) within 600 ms is one history entry.
+  let runKey = '', runAt = 0;
+  function checkpoint(run = '') {
+    const t = performance.now();
+    if (run && run === runKey && t - runAt < 600) { runAt = t; return; }
+    runKey = run; runAt = t;
+    const now = snap();
+    if (undo[undo.length - 1] === now) return;
+    undo.push(now); if (undo.length > 200) undo.shift();
+    redo.length = 0; syncButtons();
+  }
+  let syncButtons = () => {};
 
   // ---- styles ----
   const css = document.createElement('style');
@@ -91,26 +108,52 @@ export function initLayoutEditor() {
   }
   ideas.forEach(drawIdea);
 
+  function restore(json: string) {
+    const st = JSON.parse(json) as { edits: Record<string, Edit>; ideas: Idea[] };
+    Object.keys(edits).forEach((k) => delete edits[k]);
+    Object.assign(edits, st.edits);
+    pieces.forEach((el) => { el.style.zIndex = ''; apply(el); });
+    ideas = st.ideas;
+    const keep = new Set(ideas.map((d) => d.id));
+    ideaEls.forEach((el, id) => { if (!keep.has(id)) { el.remove(); ideaEls.delete(id); } });
+    ideas.forEach(drawIdea);
+    if (sel && !sel.isConnected) select(null);
+    save(); refresh(); runKey = ''; syncButtons();
+    window.dispatchEvent(new Event('resize'));
+  }
+  function step(from: string[], to: string[]) {
+    const prev = from.pop();
+    if (prev === undefined) return;
+    to.push(snap());
+    restore(prev);
+  }
+
   // ---- selection + panel ----
   let sel: HTMLElement | null = null;
   const panel = document.createElement('div');
   panel.className = 'le-panel';
   panel.innerHTML = `
     <h2>Layout editor</h2>
-    <p>drag = move · shift+drag = rotate · alt+drag / wheel = scale · arrows nudge · [ ] rotate · − + scale · F/B front/back</p>
+    <p>drag = move · shift+drag = rotate · alt+drag / wheel = scale · arrows nudge · [ ] rotate · − + scale · F/B front/back · Ctrl+Z / Ctrl+Shift+Z undo, redo</p>
     <div class="le-sel-info" data-info>click an item</div>
-    <button class="le-main" data-copy>Copy layout</button><button data-reset-one>Reset item</button><button data-reset>Reset all</button>
+    <button data-undo title="Ctrl+Z">Undo</button><button data-redo title="Ctrl+Shift+Z">Redo</button><br><button class="le-main" data-copy>Copy layout</button><button data-reset-one>Reset item</button><button data-reset>Reset all</button>
     <h2 style="margin-top:10px">Try an item</h2>
     <p>adds a placeholder box you can place</p>
     <div data-ideas></div>
     <p style="margin-top:8px"><a href="?" style="color:#C2F970">exit editor</a></p>`;
   document.body.appendChild(panel);
   const info = panel.querySelector<HTMLElement>('[data-info]')!;
+  const undoBtn = panel.querySelector<HTMLButtonElement>('[data-undo]')!, redoBtn = panel.querySelector<HTMLButtonElement>('[data-redo]')!;
+  syncButtons = () => { undoBtn.disabled = !undo.length; redoBtn.disabled = !redo.length; undoBtn.style.opacity = undo.length ? '' : '.4'; redoBtn.style.opacity = redo.length ? '' : '.4'; };
+  undoBtn.addEventListener('click', () => step(undo, redo));
+  redoBtn.addEventListener('click', () => step(redo, undo));
+  syncButtons();
   const ideaBox = panel.querySelector<HTMLElement>('[data-ideas]')!;
   IDEAS.forEach(([label, w, h]) => {
     const b = document.createElement('button');
     b.textContent = `+ ${label}`;
     b.addEventListener('click', () => {
+      checkpoint();
       const d: Idea = { id: `idea-${Date.now().toString(36)}`, label, w, h, x: 720 - w / 2, y: 450 - h / 2, rot: 0, s: 1 };
       ideas.push(d); drawIdea(d); save(); select(ideaEls.get(d.id)!);
     });
@@ -158,6 +201,7 @@ export function initLayoutEditor() {
     ev.stopPropagation(); ev.preventDefault();
     select(el);
     if (!el) return;
+    checkpoint(); // a click with no movement leaves an equal snapshot, dropped again on pointerup
     const r = el.getBoundingClientRect();
     const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     drag = { el, x: ev.clientX, y: ev.clientY, mode: ev.shiftKey ? 'rot' : ev.altKey ? 'scale' : 'move', cx, cy, a0: Math.atan2(ev.clientY - cy, ev.clientX - cx) };
@@ -178,30 +222,40 @@ export function initLayoutEditor() {
     if (!drag) return;
     ev.stopPropagation();
     drag = null;
+    if (undo[undo.length - 1] === snap()) { undo.pop(); syncButtons(); }
     window.dispatchEvent(new Event('resize')); // 3D slots re-measure where they are
   }, true);
   for (const t of ['click', 'dblclick']) window.addEventListener(t, (ev) => { if (!panel.contains(ev.target as Node)) { ev.stopPropagation(); ev.preventDefault(); } }, true);
   window.addEventListener('wheel', (ev) => {
     if (panel.contains(ev.target as Node)) return;
     ev.preventDefault(); ev.stopPropagation();
-    if (sel) change(sel, (v) => { v.s *= Math.exp(-ev.deltaY / 800); });
+    if (sel) { checkpoint('wheel:' + (sel.dataset.editId || sel.dataset.ideaId)); change(sel, (v) => { v.s *= Math.exp(-ev.deltaY / 800); }); }
   }, { capture: true, passive: false });
 
   window.addEventListener('keydown', (ev) => {
-    if (!sel || (ev.target as HTMLElement).closest?.('input, textarea')) return;
+    if ((ev.target as HTMLElement).closest?.('input, textarea')) return;
+    const mod = ev.ctrlKey || ev.metaKey, lk = ev.key.toLowerCase();
+    if (mod && (lk === 'z' || lk === 'y')) {
+      ev.preventDefault(); ev.stopPropagation();
+      if (lk === 'y' || ev.shiftKey) step(redo, undo); else step(undo, redo);
+      return;
+    }
+    if (!sel || mod) return;
     const n = ev.shiftKey ? 10 : 1;
     const k = ev.key;
     const act: Record<string, (v: { dx: number; dy: number; rot: number; s: number }) => void> = {
       ArrowLeft: (v) => { v.dx -= n; }, ArrowRight: (v) => { v.dx += n; }, ArrowUp: (v) => { v.dy -= n; }, ArrowDown: (v) => { v.dy += n; },
       '[': (v) => { v.rot -= n; }, ']': (v) => { v.rot += n; }, '-': (v) => { v.s /= 1.03; }, '=': (v) => { v.s *= 1.03; }, '+': (v) => { v.s *= 1.03; },
     };
-    if (act[k]) { ev.preventDefault(); ev.stopPropagation(); change(sel, act[k]); return; }
+    if (act[k]) { ev.preventDefault(); ev.stopPropagation(); checkpoint('key:' + k + (sel.dataset.editId || sel.dataset.ideaId)); change(sel, act[k]); return; }
     if ((k === 'f' || k === 'b') && !ideaOf(sel)) {
+      checkpoint();
       const e = get(sel.dataset.editId!);
       const z = Number(getComputedStyle(sel).zIndex) || 0;
       e.z = z + (k === 'f' ? 1 : -1); apply(sel); save(); refresh();
     }
     if ((k === 'Delete' || k === 'Backspace') && ideaOf(sel)) {
+      checkpoint();
       const d = ideaOf(sel)!; ideas = ideas.filter((x) => x !== d); ideaEls.get(d.id)?.remove(); ideaEls.delete(d.id); save(); select(null);
     }
     if (k === 'Escape') select(null);
@@ -224,10 +278,12 @@ export function initLayoutEditor() {
   });
   panel.querySelector('[data-reset-one]')!.addEventListener('click', () => {
     if (!sel || ideaOf(sel)) return;
+    checkpoint();
     delete edits[sel.dataset.editId!]; sel.style.zIndex = ''; apply(sel); save(); refresh();
   });
   panel.querySelector('[data-reset]')!.addEventListener('click', () => {
-    if (!confirm('Reset every item and remove the idea boxes?')) return;
+    if (!confirm('Reset every item and remove the idea boxes? (Undo brings them back.)')) return;
+    checkpoint();
     Object.keys(edits).forEach((k) => delete edits[k]);
     pieces.forEach((el) => { el.style.zIndex = ''; apply(el); });
     ideaEls.forEach((el) => el.remove()); ideaEls.clear(); ideas = [];
