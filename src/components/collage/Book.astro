@@ -6,16 +6,16 @@ import ZoomPage from '../sections/ZoomPage.astro';
 import book from '../../assets/collage/book.webp';
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
-const PANEL_W = 128;
+const PANEL_W = 96;
 const attrs = desk
   ? { 'data-jump': 'writing', 'data-rot': '-4' }
   : { href: '#sec-writing', 'aria-label': 'Blog' };
 const Tag = desk ? 'div' : 'a';
 ---
-<Tag class="zp sticker" {...attrs} style="left: calc(1016px + var(--ex, 0px) * 0.8); top: 96px; width: 214px; height: 207px; transform: rotate(-4deg)">
-<img src={book.src} alt="" width="214" height="207" draggable="false" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain" />
-<div class="zpanel" style="position: absolute; left: 46px; top: 30px; width: 128px; height: 80px">
+<Tag class="zp sticker" {...attrs} style="left: calc(1043px + var(--ex, 0px) * 0.8); top: 122px; width: 160px; height: 155px; transform: rotate(-4deg)">
+<img src={book.src} alt="" width="160" height="155" draggable="false" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain" />
+<div class="zpanel" style="position: absolute; left: 35px; top: 23px; width: 96px; height: 60px">
 {desk && <ZoomPage section="writing" panelWidth={PANEL_W} />}
 </div>
-<span class="mono label-tape" style="left: 118px; top: 158px; transform: rotate(4deg)">BLOG</span>
+<span class="mono label-tape" style="left: 84px; top: 116px; transform: rotate(4deg)">BLOG</span>
 </Tag>
