@@ -459,7 +459,7 @@ export function initLayoutEditor() {
       const ins = polyArea(clip(g.poly, fr)) / (g.area || 1);
       const edge = Math.min(g.l - f.x, g.t - f.y, f.x + f.w - g.r, f.y + f.h - g.b);
       if (ins < 0.99 && ins > 0.85) issues.push({ cls: 'bad', text: `${g.label} is cut off by the screen edge by only ${Math.max(1, Math.round((1 - ins) * 100))}%. Bleed 15% or more, or bring it in.`, els: [g.el] });
-      else if (ins >= 0.99 && edge >= 0 && edge < 8) issues.push({ cls: 'bad', text: `${g.label} grazes the screen edge (${Math.round(edge)}px).`, els: [g.el] });
+      else if (ins >= 0.99 && edge > 1.5 && edge < 8) issues.push({ cls: 'bad', text: `${g.label} grazes the screen edge (${Math.round(edge)}px).`, els: [g.el] });
     });
 
     // Empty space, sampled on a 16px grid.
@@ -493,7 +493,14 @@ export function initLayoutEditor() {
   });
   let drawQueued = 0;
   let snapLines: { xs: number[]; ys: number[] } = { xs: [], ys: [] };
-  schedule = () => { if (!drawQueued) drawQueued = requestAnimationFrame(() => { drawQueued = 0; drawGuides(); }); };
+  // rAF can stall in hidden or throttled tabs, so a timer backs it up; whichever fires first draws.
+  schedule = () => {
+    if (drawQueued) return;
+    let raf = 0, tm = 0;
+    const run = () => { cancelAnimationFrame(raf); clearTimeout(tm); drawQueued = 0; drawGuides(); };
+    raf = requestAnimationFrame(run); tm = window.setTimeout(run, 120);
+    drawQueued = 1;
+  };
   function drawGuides() {
     const f = frame(), sh = ui.show, out: string[] = [], k = scale(), fs = 13 / k;
     const L = (x1: number, y1: number, x2: number, y2: number, c: string, o = 0.55, dash = '', w = 1.5) =>

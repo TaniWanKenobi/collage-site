@@ -38,7 +38,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 {desk && (
   <>
     <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--lime-tint)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
-    <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(108px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--lime)">scroll to zoom in ↓</p>
+    <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(114px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--lime)">scroll to zoom in ↓</p>
   </>
 )}
 <Trophy mode={mode} />
@@ -48,6 +48,6 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <MapScrap mode={mode} />
 <StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
-{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 300px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
+{!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 286px; top: 318px; width: 240px; height: 280px; z-index: 6" />}
 <Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" morph="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1110px + var(--ex, 0px) * 0.6); top: 520px; width: 245px; height: 235px; z-index: 6" />
 <TamaScreen mode={mode} />

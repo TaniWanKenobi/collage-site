@@ -15,7 +15,7 @@ const Tag = desk ? 'div' : 'a';
 // The card is a baked OpenStreetMap image (scripts/map/render-card.mjs); pins come from places.json.
 const pins = places.map((p) => ({ ...cardPos(p.lat, p.lng), home: !!p.home })).filter((p) => p.fx > 0 && p.fx < 1 && p.fy > 0 && p.fy < 1);
 ---
-<Tag class="zp" {...attrs} style="left: 836px; top: 590px; width: 240px; height: 150px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-5deg)">
+<Tag class="zp" {...attrs} style="left: 816px; top: 550px; width: 240px; height: 150px; box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-5deg)">
 <div class="zpanel" style="width: 240px; height: 150px; background-color: var(--onyx-2)">
 <div class="mapcard" data-cover={desk ? 'map' : undefined} style={`position: absolute; inset: 0; background: var(--onyx) url(${url('map-card.webp')}) center / cover; box-shadow: inset 0 0 0 1px var(--lime)`}>
 {pins.map((p) => (
