@@ -50,8 +50,7 @@ const pens = [
         <p class="gb-label" id={`${uid}-doodle-l`}>Doodle <span class="gb-opt mono">(optional)</span></p>
         <canvas class="gb-canvas" data-gb-canvas width="640" height="400"
           aria-label="Doodle pad: draw with a mouse, pen or finger. Drawing is optional."
-          aria-describedby={`${uid}-doodle-note ${uid}-doodle-err`}></canvas>
-        <p class="gb-hint mono" id={`${uid}-doodle-note`}>Drawing is optional. Skip it if you like; only a doodle you actually draw gets sent.</p>
+          aria-describedby={`${uid}-doodle-err`}></canvas>
         <div class="gb-tools">
           <div class="gb-pens" role="radiogroup" aria-label="Pen colour">
             {pens.map((p, i) => (
