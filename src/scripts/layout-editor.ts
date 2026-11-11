@@ -58,7 +58,7 @@ export function initLayoutEditor() {
   // ---- styles ----
   const css = document.createElement('style');
   css.textContent = `
-    #zm-world [data-edit-id], .le-idea { cursor: move !important; }
+    #zm-world [data-edit-id], .le-idea { cursor: move !important; pointer-events: auto !important; }
     #zm-world [data-edit-id]:hover, .le-idea:hover { outline: 1px dashed rgba(194,249,112,.6); outline-offset: 2px; }
     .le-sel { outline: 2px solid #C2F970 !important; outline-offset: 3px; }
     #zm-world * { user-select: none; }

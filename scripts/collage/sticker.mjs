@@ -1,9 +1,10 @@
-// Usage: node scripts/collage/sticker.mjs <in> <out.webp> [border px]. Turns a cut-out photo into a collage sticker.
+// Usage: node scripts/collage/sticker.mjs <in> <out.webp> [border px] [edge-dots px]. Turns a cut-out photo into a collage sticker.
 // Cut the dark object out of a light background (halftone-safe: close the dot gaps, fill holes, keep the biggest
 // piece), then give it an even white sticker border R px wide and a soft drop-shadow-ready alpha edge.
 import sharp from 'sharp';
-const [src, out, Rarg] = process.argv.slice(2);
-const R = Number(Rarg || 14), CLOSE = 7;
+const [src, out, Rarg, Earg] = process.argv.slice(2);
+// EDGE > 0: in the outer EDGE px of the object, white turns transparent (crisp halftone outline, no white fringe).
+const R = Number(Rarg ?? 14), CLOSE = 7, EDGE = Number(Earg || 0);
 const { data, info } = await sharp(src).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
 const W = info.width, H = info.height, N = W * H;
 const dark = new Uint8Array(N);
@@ -35,12 +36,15 @@ for (let s = 0; s < N; s++) { if (!obj[s] || lab[s]) continue; L++; let n = 0; c
     for (const r of [x > 0 ? p - 1 : -1, x < W - 1 ? p + 1 : -1, y > 0 ? p - W : -1, y < H - 1 ? p + W : -1]) if (r >= 0 && obj[r] && !lab[r]) { lab[r] = L; st.push(r); } }
   if (n > bestN) { bestN = n; best = L; } }
 for (let p = 0; p < N; p++) obj[p] = lab[p] === best ? 1 : 0;
+const inside = new Uint8Array(N); for (let p = 0; p < N; p++) inside[p] = obj[p] ? 0 : 1;
+const Din = EDGE ? dist(inside) : null;
 // sticker: white ring of R px around the object
 D = dist(obj);
 const pad = R + 4, OW = W + pad * 2, OH = H + pad * 2, o = Buffer.alloc(OW * OH * 4);
 for (let y = 0; y < OH; y++) for (let x = 0; x < OW; x++) { const sx = x - pad, sy = y - pad, j = (y * OW + x) * 4;
   if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue; const p = sy * W + sx, i = p * 4;
-  if (obj[p]) { o[j] = data[i]; o[j + 1] = data[i + 1]; o[j + 2] = data[i + 2]; o[j + 3] = 255; }
+  if (obj[p]) { o[j] = data[i]; o[j + 1] = data[i + 1]; o[j + 2] = data[i + 2]; o[j + 3] = 255;
+    if (Din && Din[p] <= EDGE) { const l = 0.3 * data[i] + 0.59 * data[i + 1] + 0.11 * data[i + 2]; o[j + 3] = Math.round(255 * Math.min(1, Math.max(0, (235 - l) / 120))); } }
   else if (D[p] <= R + 1) { const a = Math.max(0, Math.min(1, R + 1 - D[p])); o[j] = o[j + 1] = o[j + 2] = 255; o[j + 3] = Math.round(a * 255); } }
 await sharp(o, { raw: { width: OW, height: OH, channels: 4 } }).trim().webp({ quality: 88, alphaQuality: 95 }).toFile(out);
 const m = await sharp(out).metadata(); console.log(out, m.width, m.height);
