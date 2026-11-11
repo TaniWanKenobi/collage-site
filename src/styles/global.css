@@ -114,6 +114,39 @@ a.zp { display: block; color: inherit; text-decoration: none; }
   .dotstyle-tooltip ul:hover li:has(.hud-dot[aria-current="true"]):not(:hover) .hud-tip { opacity: .2; }
 }
 @media (prefers-reduced-motion: reduce) { .dotstyle-tooltip li, .dotstyle-tooltip .hud-tip { transition: none; } }
+/* Liquid-glass looks for the section nav (#zm-hud[data-nav]), picked with ?nav=. The glass sits on ::before, not
+   the nav itself, so the labels inside the nav can still blur what is behind them (an element with a
+   backdrop-filter becomes the backdrop root for everything inside it). */
+.dotstyle .hud-bead { display: none; }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"]) { box-sizing: border-box; width: 40px; height: 272px; padding: 12px 0; border-radius: 999px; justify-content: flex-start; }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"])::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035) 55%, rgba(255,255,255,.07)), rgba(13,22,11,.22); -webkit-backdrop-filter: blur(14px) saturate(175%); backdrop-filter: blur(14px) saturate(175%); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(255,255,255,.12), inset 0 0 14px rgba(255,255,255,.07), 0 12px 30px rgba(0,0,0,.38); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"])::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1.5px; pointer-events: none; background: linear-gradient(140deg, rgba(255,255,255,.75), rgba(255,255,255,.1) 30%, rgba(255,255,255,0) 55%, rgba(194,249,112,.18) 80%, rgba(255,255,255,.45)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* lens: less frost, more bend */
+#zm-hud.lg-ok[data-nav="lens"]::before { background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 50%, rgba(255,255,255,.05)), rgba(13,22,11,.16); -webkit-backdrop-filter: url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12); backdrop-filter: url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12); }
+/* dots inside glass */
+#zm-hud:not([data-nav="dots"]) li { border: 1.5px solid rgba(239,253,216,.85); background-color: rgba(13,22,11,.18); box-shadow: 0 0 0 1px rgba(13,22,11,.5), inset 0 0 0 1px rgba(13,22,11,.35); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { border-color: var(--lime); background-color: var(--lime); box-shadow: 0 0 10px rgba(194,249,112,.65); }
+#zm-hud:not([data-nav="dots"]) #hud-num { text-shadow: none; color: rgba(239,253,216,.85); }
+/* labels as glass pills */
+#zm-hud:not([data-nav="dots"]) .hud-tip { border-radius: 999px; padding: 0 12px; line-height: 2.2; color: var(--lime-tint); background-color: rgba(18,28,16,.62); -webkit-backdrop-filter: blur(12px) saturate(170%); backdrop-filter: blur(12px) saturate(170%); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 6px 16px rgba(0,0,0,.35); }
+#zm-hud:not([data-nav="dots"]) .hud-tip::after { display: none; }
+#zm-hud:not([data-nav="dots"]) li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--lime); }
+/* drop: a glass bead slides to the current dot, overshooting a little like a drop of liquid */
+#zm-hud[data-nav="drop"] .hud-bead { display: block; position: absolute; left: 50%; top: 3px; z-index: 2; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.75) 0 2px, rgba(255,255,255,.22) 5px, rgba(194,249,112,.1) 55%, rgba(194,249,112,.38) 100%); border: 1px solid rgba(255,255,255,.45); box-shadow: inset 0 -4px 7px rgba(194,249,112,.45), inset 0 2px 3px rgba(255,255,255,.35), 0 4px 10px rgba(0,0,0,.4); -webkit-backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); transition: top .55s cubic-bezier(.45,1.75,.4,1), opacity .25s; }
+#zm-hud[data-nav="drop"] ul:has(.hud-dot[aria-current="true"]) .hud-bead { opacity: 1; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(2) .hud-dot[aria-current="true"]) .hud-bead { top: 35px; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(3) .hud-dot[aria-current="true"]) .hud-bead { top: 67px; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(4) .hud-dot[aria-current="true"]) .hud-bead { top: 99px; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(5) .hud-dot[aria-current="true"]) .hud-bead { top: 131px; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(6) .hud-dot[aria-current="true"]) .hud-bead { top: 163px; }
+#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(7) .hud-dot[aria-current="true"]) .hud-bead { top: 195px; }
+/* bubble: no capsule, every dot its own glass bubble */
+#zm-hud[data-nav="bubble"] li { width: 16px; height: 16px; margin: 9px 0; border: 1px solid rgba(255,255,255,.42); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.8) 0 1.5px, rgba(255,255,255,.18) 3.5px, rgba(255,255,255,.04) 70%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.4,1.8,.5,1), background .3s, box-shadow .3s; }
+#zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: scale(1.45); border-color: rgba(194,249,112,.8); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 1.5px, rgba(194,249,112,.45) 4px, rgba(194,249,112,.18) 75%); box-shadow: 0 0 12px rgba(194,249,112,.55), 0 3px 8px rgba(0,0,0,.4); }
+#zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%) scale(.69); transform-origin: right center; }
+#zm-hud[data-nav="bubble"] .hud-tip { background-color: rgba(18,28,16,.8); }
+@media (prefers-reduced-motion: reduce) { #zm-hud .hud-bead, #zm-hud[data-nav="bubble"] li { transition: none; } }
+
 
 /* Places map (sections/Map.astro + scripts/places-map.ts) */
 .places { display: flex; flex-wrap: wrap; gap: 28px; }
