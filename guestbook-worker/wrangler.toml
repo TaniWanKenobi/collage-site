@@ -8,5 +8,5 @@ compatibility_date = "2026-10-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "guestbook"
-# Paste the database_id printed by `npx wrangler d1 create guestbook` here.
-database_id = "00000000-0000-0000-0000-000000000000"
+# Created 2026-11-10 on tanishqgoyal590@gmail.com's Cloudflare account.
+database_id = "ea7950e5-0b87-481c-9687-322719529577"
