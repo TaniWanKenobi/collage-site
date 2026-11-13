@@ -6,9 +6,15 @@ const { id, title, back = false } = Astro.props;
 <div class="zs">
   <div class="zs-head">
     <div style="display: flex; flex-direction: column; gap: 6px">
-      <h2 class="zs-title">{title}</h2>
+      <h2 class="zs-title" data-hyper>{title}</h2>
     </div>
-    {back && <button type="button" data-back={id} class="mono zs-back">← back to collage</button>}
+    {back && <button type="button" data-back={id} class="mono zs-back ihb ihb--outline"><span aria-hidden="true" class="ihb-dot"></span><span class="ihb-label">← back to collage</span><span aria-hidden="true" class="ihb-alt">← back to collage</span></button>}
   </div>
   <slot />
 </div>
+
+<script>
+  // Scramble the section titles on hover and when the camera lands on a page (scripts/hyper-text.ts).
+  import { mountHyperText } from '../../scripts/hyper-text';
+  mountHyperText();
+</script>

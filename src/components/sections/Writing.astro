@@ -11,9 +11,9 @@ const month = (d: Date) => d.toLocaleString('en-US', { month: 'short', timeZone:
 const full = (d: Date) => d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 ---
 <Section id="writing" title="Notes from the workbench" back={Astro.props.back}>
-  <ol class="blog-list" data-hover-list>
+  <ol class="blog-list" data-hover-list data-mc-list>
     {posts.map((p) => (
-      <li class="blog-row" data-ph={p.data.placeholder ? '' : undefined}>
+      <li class="blog-row mc mc--dark" data-ph={p.data.placeholder ? '' : undefined}>
         <time class="mono blog-stamp" datetime={p.data.date.toISOString().slice(0, 10)} aria-label={full(p.data.date)}>
           <span class="blog-month" aria-hidden="true">{month(p.data.date)}</span>
           <span class="blog-day" aria-hidden="true">{p.data.date.getUTCDate()}</span>
@@ -29,3 +29,9 @@ const full = (d: Date) => d.toLocaleString('en-US', { month: 'long', day: 'numer
   </ol>
   <p class="mono" style="margin: 0; font-size: 13px; color: var(--muted)">Essays, build logs and notes, newest first.</p>
 </Section>
+
+<script>
+  // Spotlight on the post rows (scripts/magic-card.ts).
+  import { mountMagicCards } from '../../scripts/magic-card';
+  mountMagicCards();
+</script>

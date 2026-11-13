@@ -20,7 +20,7 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
 <div class="acc" data-acc>
   <div class="acc-filters" role="group" aria-label="Filter accomplishments">
     {FILTERS.map(([k, label]) => (
-      <button type="button" class="mono acc-filter" data-filter={k} aria-pressed={k === 'all' ? 'true' : 'false'}>{label}</button>
+      <button type="button" class="mono acc-filter" data-ripple data-filter={k} aria-pressed={k === 'all' ? 'true' : 'false'}>{label}</button>
     ))}
   </div>
   <p class="sr-only" aria-live="polite" data-acc-status></p>
@@ -57,6 +57,8 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
 </Section>
 
 <script>
+  import { mountRipple } from '../../scripts/ripple';
+  mountRipple();
   // Filter chips. The section can be in the DOM twice (zoom world + phone layout), so mount every instance once.
   document.querySelectorAll<HTMLElement>('[data-acc]').forEach((root) => {
     if (root.dataset.accReady) return;

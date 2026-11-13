@@ -67,7 +67,7 @@ const pens = [
         <p class="gb-err mono" id={`${uid}-doodle-err`} data-err="doodle"></p>
       </div>
       <div class="gb-submit-row">
-        <button type="submit" class="gb-submit" data-gb-submit>Pin it to the wall</button>
+        <button type="submit" class="gb-submit" data-ripple data-gb-submit>Pin it to the wall</button>
         <p class="gb-err mono" data-err="form" aria-live="polite"></p>
       </div>
     </fieldset>
@@ -86,12 +86,14 @@ const pens = [
       ))}
     </ol>
     <p class="mono gb-empty" data-gb-empty hidden>No notes yet. Be the first!</p>
-    <button type="button" class="gb-more mono" data-gb-more hidden>load more notes</button>
+    <button type="button" class="gb-more mono" data-ripple data-gb-more hidden>load more notes</button>
   </div>
 </div>
 </Section>
 
 <script>
   import { mountGuestbook } from '../../scripts/guestbook';
+  import { mountRipple } from '../../scripts/ripple';
   mountGuestbook();
+  mountRipple();
 </script>

@@ -191,3 +191,46 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .mappin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--grape-lite); box-shadow: 0 0 0 2px var(--onyx); }
 .mappin.is-home { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--lime); box-shadow: 0 0 0 2px var(--onyx), 0 0 0 4px rgba(194,249,112,.35); }
 .mapcredit { position: absolute; right: 4px; bottom: 2px; font-size: 6px; line-height: 1; color: rgba(194,249,112,.55); }
+
+/* ---------- Magic UI ports (plain CSS + small vanilla modules; nothing runs while idle) ---------- */
+/* Interactive hover button: after Magic UI Interactive Hover Button (MIT). The dot sits in the left padding so the
+   pill keeps its size; on hover it floods the pill, the label slides out and a copy with an arrow slides in. */
+.ihb { position: relative; overflow: hidden; isolation: isolate; --ihb-flood: var(--onyx); --ihb-fg: var(--lime); --ihb-dot: 8px; --ihb-dot-x: 9px; --ihb-scale: 52; --ihb-from: 48px; }
+.ihb--outline { --ihb-flood: var(--lime); --ihb-fg: var(--onyx); --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 70; --ihb-from: -48px; }
+.ihb--sm { --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 60; }
+.ihb-dot { position: absolute; left: var(--ihb-dot-x); top: 50%; z-index: -1; width: var(--ihb-dot); height: var(--ihb-dot); margin-top: calc(var(--ihb-dot) / -2); border-radius: 50%; background: var(--ihb-flood); pointer-events: none; }
+.ihb-label { display: inline-block; }
+.ihb-alt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .3em; color: var(--ihb-fg); white-space: nowrap; opacity: 0; transform: translateX(var(--ihb-from)); pointer-events: none; }
+.ihb:is(:hover, :focus-visible) .ihb-dot { transform: scale(var(--ihb-scale)); }
+.ihb:is(:hover, :focus-visible) .ihb-label { opacity: 0; transform: translateX(var(--ihb-from)); }
+.ihb:is(:hover, :focus-visible) .ihb-alt { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: no-preference) { .ihb-dot, .ihb-label, .ihb-alt { transition: transform .3s ease, opacity .3s ease; } }
+
+/* Spotlight cards: after Magic UI Magic Card (MIT). scripts/magic-card.ts writes --mx/--my on pointermove;
+   ::before is the glow under the content, ::after the rim. Both only fade in on hover. */
+.mc { isolation: isolate; --mc-glow: rgba(194,249,112,.55); --mc-warm: rgba(255,214,140,.28); --mc-rim: #7DB82F; }
+.mc--dark { --mc-glow: rgba(194,249,112,.10); --mc-warm: rgba(194,249,112,.04); --mc-rim: rgba(194,249,112,.55); }
+.mc::before, .mc::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; }
+.mc::before { z-index: -1; background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--mc-glow), var(--mc-warm) 45%, transparent 100%); }
+.mc::after { z-index: 3; padding: 1.5px; background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), var(--mc-rim), transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+.mc:hover::before, .mc:hover::after { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) { .mc::before, .mc::after { transition: opacity .3s ease; } }
+
+/* Scramble titles: after Magic UI Hyper Text (MIT). scripts/hyper-text.ts swaps in these spans only while it runs. */
+.ht-word { white-space: nowrap; }
+.ht-ch { display: inline-block; text-align: center; }
+
+/* Spinning stamp ring: after Magic UI Spinning Text (MIT). Static at rest, turns only while hovered. */
+.spin-ring { position: absolute; inset: 0; pointer-events: none; }
+.spin-ring > span { position: absolute; left: 50%; top: 50%; width: 1ch; height: 1em; margin: -.5em 0 0 -.5ch; line-height: 1; text-align: center; transform: rotate(var(--a)) translateY(var(--r)); }
+@keyframes spin-ring { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: no-preference) {
+  .spin-ring { animation: spin-ring 14s linear infinite paused; }
+  .spin-stamp:hover .spin-ring { animation-play-state: running; }
+}
+
+/* Click ripple: after Magic UI Ripple Button (MIT). scripts/ripple.ts adds one span per click and removes it. */
+[data-ripple] { position: relative; overflow: hidden; }
+.ripple { position: absolute; border-radius: 50%; background: currentColor; pointer-events: none; opacity: 0; animation: rippling .6s ease-out; }
+@keyframes rippling { from { transform: scale(0); opacity: .3; } to { transform: scale(2); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ripple { display: none; } }
