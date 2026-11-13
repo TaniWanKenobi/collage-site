@@ -118,14 +118,17 @@ export function initZoomCamera() {
   // ~25% dropped frames on scroll, mostly GPU raster). Such a layer keeps the scale it was rastered at, so:
   // when the zoom drifts past RASTER_DRIFT from it, the layer is dropped for one frame and re-made at the
   // new scale; and once the camera rests, it goes back to a normal layer and repaints pin-sharp.
+  // Each re-make re-rasters the whole visible collage, which a weak GPU can't do mid-scroll (it was 4-15 times
+  // per scroll at a drift of 1.45), so the drift is wide: text goes a little soft mid-motion and is sharp at rest.
+  // A flight keeps one layer from take-off to landing (it is short, and lands sharp).
   // A one-off jump (a deep link, the scroll position snapping after a flight) is not motion: it repaints once.
-  var RASTER_DRIFT = 1.45, REST_MS = 180, wc = { on: false, s: 1, timer: 0, at: -1e9 };
+  var RASTER_DRIFT = 3.5, RASTER_OUT = 1.45, REST_MS = 180, wc = { on: false, s: 1, timer: 0, at: -1e9 };
   function settleWorld() { wc.on = false; world.style.willChange = ''; }
   function worldMoved(s) {
     var t = now(), moving = t - wc.at < 100;
     wc.at = t;
     if (!wc.on) { if (moving) { wc.on = true; wc.s = s; world.style.willChange = 'transform'; } }
-    else if (s > wc.s * RASTER_DRIFT || s < wc.s / RASTER_DRIFT) settleWorld();
+    else if (s > wc.s * RASTER_DRIFT || s < wc.s / RASTER_OUT) settleWorld();
     clearTimeout(wc.timer);
     wc.timer = setTimeout(settleWorld, REST_MS);
   }
@@ -137,6 +140,9 @@ export function initZoomCamera() {
     ORDER.forEach(function (k) {
       var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
       put(pg, 'opacity', String(f(op)), 'p' + k);
+      // A page at opacity 0 is skipped entirely (no paint, no layers: its sticky header and scroller used to be
+      // composited layers on every frame of the collage). It keeps its layout, so fading in costs one paint.
+      put(pg, 'contentVisibility', op > 0 ? 'visible' : 'hidden', 'v' + k);
       // Fully landed: the page scrolls on its own (and hands the wheel back to the camera at either end).
       var held = op >= 0.99;
       if (held !== pg.classList.contains('is-held')) { pg.classList.toggle('is-held', held); if (!held) pg.scrollTop = 0; }

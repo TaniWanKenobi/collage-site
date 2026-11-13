@@ -26,7 +26,7 @@ const INK = '#0D160B', LIT = '#C2F970';
 type Item = 'FEED' | 'PLAY' | 'WORK' | 'HI';
 const MENU: Item[] = ['FEED', 'PLAY', 'WORK', 'HI'];
 
-export function attachToy({ el, canvas, camera, model, redraw }: Opts) {
+export function attachToy({ el, camera, model, redraw }: Opts) {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const oled = document.createElement('canvas');
   oled.width = PW * K; oled.height = PH * K;
@@ -161,7 +161,7 @@ export function attachToy({ el, canvas, camera, model, redraw }: Opts) {
   // Click: a ray from the pointer; a hit on a button presses it and keeps the click from flying to Projects.
   const ray = new Raycaster(), ndc = new Vector2();
   const hitAt = (e: MouseEvent) => {
-    const r = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect(); // the slot: its canvas hangs out of it by the drop shadow's room
     ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(ndc, camera);
     const h = ray.intersectObjects([...hits, screen], false)[0];
@@ -173,7 +173,7 @@ export function attachToy({ el, canvas, camera, model, redraw }: Opts) {
     e.preventDefault(); e.stopImmediatePropagation();
     if (h !== 'screen') press(h);
   }, true);
-  el.addEventListener('pointermove', (e) => { if (!e.buttons) canvas.style.cursor = hitAt(e) ? 'pointer' : ''; });
+  el.addEventListener('pointermove', (e) => { if (!e.buttons) el.style.cursor = hitAt(e) ? 'pointer' : ''; });
 
   // Keyboard, while the model has focus: 1 / 2 / 3 press A / B / C.
   el.addEventListener('keydown', (e) => {

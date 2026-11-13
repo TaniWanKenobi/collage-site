@@ -29,9 +29,10 @@ a { color: var(--lime); } a:hover { color: var(--lime-tint); }
 .tape.t-grey { background-image: url('../assets/tape/grey.webp'); }
 .tape.t-purple { background-image: url('../assets/tape/purple.webp'); }
 .tape.t-patch { height: 34px; background-image: url('../assets/tape/clear-b.webp'); opacity: .85; }
-/* cut-out stickers (trophy, book): the shadow follows the cut, not the box */
-.zp.sticker, .sticker-deco { filter: drop-shadow(0 12px 14px rgba(4,8,3,.55)); }
-.sticker-deco { pointer-events: none; }
+/* cut-out stickers (trophy, book, cassette): the shadow follows the cut, not the box. It is baked into the art
+   (scripts/collage/bake-sticker-shadow.mjs), not a CSS drop-shadow: these pieces are composited layers in the zoomed
+   collage and the GPU re-ran that blur every scroll frame. The art is padded 22px left/right, 10px top, 34px bottom. */
+.sticker-art { position: absolute; left: -22px; top: -10px; width: calc(100% + 44px); height: calc(100% + 44px); max-width: none; object-fit: contain; pointer-events: none; }.sticker-deco { pointer-events: none; }
 /* label-maker strip naming a sticker */
 .label-tape { position: absolute; z-index: 2; padding: 3px 9px; background: var(--lime); color: var(--onyx); font-size: 13px; font-weight: 700; letter-spacing: .12em; box-shadow: 0 3px 6px rgba(4,8,3,.45); pointer-events: none; }
 /* the old map scrap's grid, drawn over the baked map */

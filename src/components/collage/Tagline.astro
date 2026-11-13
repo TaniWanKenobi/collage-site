@@ -64,11 +64,14 @@ const first = KINDS[0];
     /* Looser than the old -0.04em: at that spacing the outlines of k / e / s crossed each other. */
     letter-spacing: -0.012em;
     color: transparent; -webkit-text-stroke: 2px var(--lime);
-    /* A thin dark halo keeps the lime outline readable where it crosses lime pieces (the Bayonne strip). */
-    filter: drop-shadow(0 0 1px var(--onyx)) drop-shadow(0 0 1px var(--onyx));
     white-space: nowrap; text-decoration: none; cursor: pointer;
     transition: color .2s ease;
   }
+  /* A thin dark halo keeps the lime outline readable where it crosses lime pieces (the Bayonne strip).
+     It sits on the spans, not on .tagline: the line is a composited layer in the zoomed collage (it overlaps other
+     layers), and a filter on a composited layer is re-run by the GPU every frame, while on a child it is drawn
+     into the layer's tiles once. Same pixels. */
+  .tagline > span { filter: drop-shadow(0 0 1px var(--onyx)) drop-shadow(0 0 1px var(--onyx)); }
   .tagline-verb { display: inline-block; transition: transform .22s ease, opacity .22s ease; }
   .tagline-verb.is-out { transform: translateY(-0.25em); opacity: 0; }
   .tagline-verb.is-in { transform: translateY(0.25em); opacity: 0; transition: none; }

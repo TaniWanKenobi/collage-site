@@ -3,8 +3,10 @@
 // The .zpanel is the 16:10 surface the camera zooms into; on desktop the section page lives inside it.
 import ZoomPage from '../sections/ZoomPage.astro';
 // Tracked placeholders: swap for your own photos (see src/assets/placeholder/SOURCES.md).
-import backPhoto from '../../assets/placeholder/photos/ferry-sky.jpg';
-import coverPhoto from '../../assets/placeholder/photos/trail-overlook.jpg';
+// 16:10 webp crops of photos/ferry-sky.jpg and photos/trail-overlook.jpg, sized for the deepest zoom they are seen
+// at: re-run scripts/collage/photo-stack-images.mjs after swapping the photos.
+import backPhoto from '../../assets/placeholder/photos/photo-stack-back.webp';
+import coverPhoto from '../../assets/placeholder/photos/photo-stack-cover.webp';
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
 const PANEL_W = 176;

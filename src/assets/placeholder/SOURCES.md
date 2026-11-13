@@ -27,4 +27,4 @@ Photos come from Lorem Picsum (Unsplash License, free to use).
 | projects/laptop-5.jpg | https://picsum.photos/id/119/1200/750.jpg | Nadir Balcikli | https://unsplash.com/photos/wE9nUW7tMmk |
 | projects/laptop-6.jpg | https://picsum.photos/id/180/1200/750.jpg | Galymzhan Abdugalimov | https://unsplash.com/photos/ICW6QYOcdlg |
 
-The collage Photos card (PhotoStack.astro) reuses photos/trail-overlook.jpg and photos/ferry-sky.jpg.
+The collage Photos card (PhotoStack.astro) reuses photos/trail-overlook.jpg and photos/ferry-sky.jpg, as 16:10 webp crops photos/photo-stack-back.webp and photos/photo-stack-cover.webp (scripts/collage/photo-stack-images.mjs).

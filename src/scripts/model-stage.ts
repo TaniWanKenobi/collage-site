@@ -30,7 +30,26 @@ interface Slot {
   requested: boolean; drawn: number; userUntil: number; dragging: boolean; turned: boolean; w: number; h: number; cost: number; flyW?: number; flyH?: number;
   // data-spin="0": no auto-rotate, a gentle sway around the front instead (the pivot turns, not the camera).
   pivot: Group | null; sway: boolean;
+  // World slots draw their own drop shadow (see SHADOW): hover state, eased like the old CSS transition.
+  hovFrom: number; hovTo: number; hovAt: number;
 }
+
+// World slots (collage objects): the soft drop shadow is drawn into the 2D canvas with the model, not a CSS
+// `filter: drop-shadow` on .m3d--world. The canvas is a composited layer, and the GPU re-ran a CSS filter on it
+// every frame of a scroll or flight at the zoomed size; drawn here, it costs one blur per model redraw, and there
+// are none while the camera moves. Same look: canvas shadowBlur is a gaussian of sigma blur/2, like CSS.
+// The canvas hangs out of its slot by PAD (CSS px, keep in sync with Model3D.astro) so the shadow has room.
+const PAD = { l: 34, r: 34, t: 28, b: 60 };
+const SHADOW = {
+  rest: { dy: 16, blur: 18, a: 0.6 },              // was drop-shadow(0 16px 18px rgba(4,8,3,.6))
+  hover: { dy: 24, blur: 22, a: 0.55, glow: 18, glowA: 0.18 }, // was ...(0 24px 22px rgba(4,8,3,.55)) drop-shadow(0 0 18px rgba(194,249,112,.18))
+  ms: 250,
+};
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const hoverAmt = (s: Slot, t: number) => {
+  const p = reduceMotion ? 1 : Math.min(1, (t - s.hovAt) / SHADOW.ms), e = p * p * (3 - 2 * p);
+  return s.hovFrom + (s.hovTo - s.hovFrom) * e;
+};
 
 const MAX_PX = 1536; // largest backing-store edge per slot
 const SPIN_MS = 0; // idle spin draws every display frame (it used to be 24 fps, which read as choppy)
@@ -109,19 +128,26 @@ export function addSlots(els: HTMLElement[]) {
     const kind = (el.dataset.m3d as Kind) || 'flow';
     const scene = new Scene(); // no lights: the toon shaders carry their own key, fill and rim
     const camera = new PerspectiveCamera(30, 1, 0.01, 1000);
-    const controls = new OrbitControls(camera, canvas);
+    // World slots: the canvas is larger than the slot (shadow room) and lets pointers through, so drags and
+    // clicks hit the slot itself, exactly where the canvas used to be.
+    const controls = new OrbitControls(camera, kind === 'world' ? el : canvas);
     controls.enableZoom = false;
     controls.enablePan = false;
     controls.enableDamping = true;
     const sway = el.dataset.spin === '0';
     controls.autoRotate = !sway;
     controls.autoRotateSpeed = 1.1;
-    const s: Slot = { el, kind, canvas, ctx, scene, camera, controls, wr: kind === 'world' ? worldRect(el) : null, inView: false, ready: false, active: false, requested: false, drawn: 0, userUntil: 0, dragging: false, turned: false, w: 0, h: 0, cost: 0, pivot: null, sway };
+    const s: Slot = { el, kind, canvas, ctx, scene, camera, controls, wr: kind === 'world' ? worldRect(el) : null, inView: false, ready: false, active: false, requested: false, drawn: 0, userUntil: 0, dragging: false, turned: false, w: 0, h: 0, cost: 0, pivot: null, sway, hovFrom: 0, hovTo: 0, hovAt: 0 };
     // A drag draws at full frame rate, and keeps doing so while the damping settles. A plain click (which
     // flies the camera to the section) is not a drag and must not hold the slot at full rate.
     controls.addEventListener('start', () => { s.dragging = true; s.turned = false; });
     controls.addEventListener('change', () => { if (s.dragging) s.turned = true; kick(); });
     controls.addEventListener('end', () => { s.dragging = false; if (s.turned) s.userUntil = now() + 1200; kick(); });
+    if (kind === 'world') {
+      const hov = (to: number) => { const t = now(); s.hovFrom = hoverAmt(s, t); s.hovTo = to; s.hovAt = t; s.userUntil = Math.max(s.userUntil, t + SHADOW.ms + 50); kick(); };
+      el.addEventListener('pointerenter', () => hov(1));
+      el.addEventListener('pointerleave', () => hov(0));
+    }
     slots.push(s);
     if (kind !== 'world') io.observe(el);
     // Collage objects: fetch and decode now, not on the next frame (their .glb is usually preloaded already).
@@ -216,7 +242,7 @@ function tick() {
   // Only a machine where a draw is really slow drops frames: spin may use up to ~40% of the main thread.
   const spinDue = t - spunAt >= Math.max(SPIN_MS, spinCost * 2.5 - 4);
   let again = false;
-  const todo: [Slot, number, number][] = [];
+  const todo: [Slot, number, number, number][] = [];
   let firsts = 0; // a slot's first draw uploads its meshes: at most one per frame
   for (const s of slots) {
     const scale = view(s);
@@ -247,12 +273,16 @@ function tick() {
     const w = fly ? (s.flyW ||= Math.max(64, Math.round(cw * k / 2))) : Math.round(cw * k);
     const h = fly ? (s.flyH ||= Math.max(64, Math.round(ch * k / 2))) : Math.round(ch * k);
     if (!fly) s.flyW = s.flyH = 0;
-    todo.push([s, w, h]);
+    todo.push([s, w, h, cw]);
   }
   if (spinDue && todo.some(([s]) => !s.dragging)) spunAt = t;
-  for (const [s, w, h] of todo) {
+  for (const [s, w, h, cw] of todo) {
     const t0 = now();
-    if (s.canvas.width !== w || s.canvas.height !== h) { s.canvas.width = w; s.canvas.height = h; }
+    // World slots: canvas px per CSS px for this draw (half in flight), and the shadow padding in canvas px.
+    const kk = w / cw, world = s.kind === 'world';
+    const pl = world ? Math.round(PAD.l * kk) : 0, pt = world ? Math.round(PAD.t * kk) : 0;
+    const cwPx = w + (world ? pl + Math.round(PAD.r * kk) : 0), chPx = h + (world ? pt + Math.round(PAD.b * kk) : 0);
+    if (s.canvas.width !== cwPx || s.canvas.height !== chPx) { s.canvas.width = cwPx; s.canvas.height = chPx; }
     if (s.camera.aspect !== w / h) { s.camera.aspect = w / h; s.camera.updateProjectionMatrix(); }
     // deltaTime keeps the spin speed the same at 30, 60 or 120 Hz.
     s.controls.update(s.drawn ? Math.min(t - s.drawn, 250) / 1000 : 0);
@@ -281,8 +311,21 @@ function tick() {
     setLineFade(Math.min(1, Math.max(0.45, (Math.min(w, h) - 120) / 360)));
     renderer.render(s.scene, s.camera);
     if (back) { s.camera.position.copy(back); s.camera.lookAt(s.controls.target); } // the orbit controls own the camera
-    s.ctx.clearRect(0, 0, w, h);
-    s.ctx.drawImage(renderer.domElement, 0, bufH - h, w, h, 0, 0, w, h);
+    const ctx = s.ctx, src = renderer.domElement;
+    ctx.clearRect(0, 0, cwPx, chPx);
+    if (world) {
+      // Shadow-only passes: the model is drawn far off the canvas and its shadow offset back onto it, so the
+      // model's own pixels are drawn once, on top, with no shadow.
+      const hv = hoverAmt(s, t), R = SHADOW.rest, H = SHADOW.hover, off = cwPx + 64;
+      const pass = (color: string, blur: number, dy: number) => {
+        ctx.shadowColor = color; ctx.shadowBlur = blur * kk; ctx.shadowOffsetX = off; ctx.shadowOffsetY = dy * kk;
+        ctx.drawImage(src, 0, bufH - h, w, h, pl - off, pt, w, h);
+      };
+      if (hv > 0.001) pass(`rgba(194,249,112,${(H.glowA * hv).toFixed(3)})`, H.glow, 0);
+      pass(`rgba(4,8,3,${(R.a + (H.a - R.a) * hv).toFixed(3)})`, R.blur + (H.blur - R.blur) * hv, R.dy + (H.dy - R.dy) * hv);
+      ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    }
+    ctx.drawImage(src, 0, bufH - h, w, h, pl, pt, w, h);
     if (!s.el.classList.contains('is-live')) s.el.classList.add('is-live');
     const d = now() - t0;
     s.cost = s.cost ? s.cost * 0.8 + Math.min(d, 100) * 0.2 : Math.min(d, 20); // first draws upload meshes: not typical

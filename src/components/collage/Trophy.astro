@@ -3,7 +3,7 @@
 // The .zpanel sits over the cup, so the camera flies into the cup and the Accomplishments page fades in there.
 // Art: src/assets/collage/trophy.webp (source: Adobe Stock 217891486), cut out with scripts/collage/sticker.mjs.
 import ZoomPage from '../sections/ZoomPage.astro';
-import trophy from '../../assets/collage/trophy.webp';
+import trophy from '../../assets/collage/trophy-shadow.webp'; // drop shadow baked in: scripts/collage/bake-sticker-shadow.mjs
 interface Props { mode: 'desk' | 'phone' }
 const desk = Astro.props.mode === 'desk';
 const PANEL_W = 96;
@@ -13,7 +13,7 @@ const attrs = desk
 const Tag = desk ? 'div' : 'a';
 ---
 <Tag class="zp sticker" {...attrs} style="left: calc(150px - var(--ex, 0px) * 0.6); top: 318px; width: 134px; height: 231px; transform: rotate(-6deg)">
-<img src={trophy.src} alt="" width="134" height="231" draggable="false" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain" />
+<img class="sticker-art" src={trophy.src} alt="" width="178" height="275" draggable="false" />
 <div class="zpanel" style="position: absolute; left: 19px; top: 14px; width: 96px; height: 60px">
 {desk && <ZoomPage section="timeline" panelWidth={PANEL_W} />}
 </div>
