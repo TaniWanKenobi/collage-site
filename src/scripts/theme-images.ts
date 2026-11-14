@@ -1,5 +1,6 @@
-// Recolours the two baked images on the home collage with the theme: the photo of me (.gr-me,
-// components/collage/MePhoto.astro) and the map card (.mapcard, components/collage/MapScrap.astro).
+// Recolours the baked images on the home collage with the theme: the photo of me (.gr-me,
+// components/collage/MePhoto.astro), the map card (.mapcard, components/collage/MapScrap.astro) and the cut-out
+// stickers (img.sticker-art: trophy, cassette, book).
 //
 // Photo:
 // The photo is a three-stop gradient map: dark (bg) -> grape (surface) -> lime, with a lime sticker outline and
@@ -207,5 +208,45 @@ async function applyMap(t: Theme, spec: string, light: boolean) {
   }
 }
 
-onTheme((colors, d) => { void apply(colors, d.spec, d.mode === 'light'); void applyMap(colors, d.spec, d.mode === 'light'); });
+/* ---- cut-out stickers (trophy, cassette, book: .sticker-art) ---- */
+// Same gradient map as the photo (same ramp and tuning), so they read as one set: each pixel keeps its lightness and
+// alpha (their baked drop shadows included) and takes the theme's hue for that lightness.
+const stickerCache = new Map<string, Promise<string>>();
+let stickerWant = '';
+
+async function bakeSticker(t: Theme, light: boolean, src: string, tune: Tune): Promise<string> {
+  const im = await loadImg(src);
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const cc = c.getContext('2d', { willReadFrequently: true })!;
+  cc.drawImage(im, 0, 0);
+  const d = cc.getImageData(0, 0, c.width, c.height), px = d.data, lut = ramp(t, light, tune);
+  const lc = new Map<number, number>();
+  for (let i = 0; i < px.length; i += 4) {
+    if (!px[i + 3]) continue;
+    const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+    let k = lc.get(key);
+    if (k === undefined) { k = Math.round(Math.max(0, Math.min(1, toLab([px[i], px[i + 1], px[i + 2]])[0])) * 255); lc.set(key, k); }
+    px[i] = lut[k * 3]; px[i + 1] = lut[k * 3 + 1]; px[i + 2] = lut[k * 3 + 2];
+  }
+  cc.putImageData(d, 0, 0);
+  const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/webp', 0.9));
+  if (!blob) throw new Error('toBlob failed');
+  return URL.createObjectURL(blob);
+}
+
+async function applyStickers(t: Theme, spec: string, light: boolean) {
+  stickerWant = spec;
+  await Promise.all(Array.from(document.querySelectorAll<HTMLImageElement>('img.sticker-art')).map(async (img) => {
+    if (!img.dataset.origSrc) img.dataset.origSrc = img.currentSrc || img.src;
+    const src = img.dataset.origSrc;
+    if (!spec) { img.src = src; return; }
+    const key = spec + '|' + src;
+    if (!stickerCache.has(key)) stickerCache.set(key, bakeSticker(t, light, src, PHOTO_TUNE[spec] || DEFAULT_TUNE));
+    let u: string;
+    try { u = await stickerCache.get(key)!; } catch { stickerCache.delete(key); return; }
+    if (stickerWant === spec) img.src = u;
+  }));
+}
+
+onTheme((colors, d) => { void apply(colors, d.spec, d.mode === 'light'); void applyMap(colors, d.spec, d.mode === 'light'); void applyStickers(colors, d.spec, d.mode === 'light'); });
 // theme.ts sends theme:change on load too, so a page opened with ?theme= is recoloured as well.
