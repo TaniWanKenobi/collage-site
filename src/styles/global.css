@@ -253,8 +253,7 @@ html[data-theme] .places-map { isolation: isolate; }
 html[data-theme] .places-map .leaflet-tile-pane { filter: grayscale(1) brightness(.48) contrast(2.6); }
 html[data-theme-mode="light"] .places-map .leaflet-tile-pane { filter: grayscale(1) brightness(1.15) contrast(1.6); }
 html[data-theme] .places-map::after { content: ""; position: absolute; inset: 0; z-index: 450; pointer-events: none; background: var(--surface); mix-blend-mode: color; }
-/* the collage map card: its baked map image, recoloured to the theme surface by luminosity */
-html[data-theme] .mapcard { background-color: var(--surface) !important; background-blend-mode: luminosity; }
+/* the collage map card's baked image is recoloured per theme in a canvas (scripts/theme-images.ts) */
 .places-map .leaflet-control-attribution.leaflet-control { background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted); font-size: 10px; }
 .places-map .leaflet-control-attribution a { color: var(--text); }
 .places-map .leaflet-bar { border: 0; box-shadow: none; }

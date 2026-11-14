@@ -1,4 +1,7 @@
-// Recolours the home-page photo of me (.gr-me, components/collage/MePhoto.astro) with the theme.
+// Recolours the two baked images on the home collage with the theme: the photo of me (.gr-me,
+// components/collage/MePhoto.astro) and the map card (.mapcard, components/collage/MapScrap.astro).
+//
+// Photo:
 // The photo is a three-stop gradient map: dark (bg) -> grape (surface) -> lime, with a lime sticker outline and
 // a soft drop shadow baked around it (scripts/bake-photo-outline.mjs -> tanishq-grape-cut.*). On a theme switch
 // this redoes that bake in a canvas, once, from the un-outlined photo (tanishq-grape.png):
@@ -8,6 +11,13 @@
 //  - the outline is the silhouette dilated 3px in the accent, the shadow the theme's shadow colour.
 // The result is set as the img (and <source>) URL; the default theme puts the original files back. Nothing runs
 // per frame: the zoomed collage paints a plain image, as before. Results are cached per theme.
+// Per-preset photo tuning (PHOTO_TUNE): olive's greens are kept low in chroma and its shadows lean into the purple
+// page. Simultaneous contrast does the rest: a muted, near-grey green next to a purple surround (its complement)
+// reads as clearly green, so the photo still looks olive without being as loud as the background.
+//
+// Map card: a dark baked OpenStreetMap image (scripts/map/render-card.mjs): near-black water, dim lime land. Each
+// pixel's place between the water and land lightness is mapped onto the theme's bg-2 (water) -> surface (land),
+// with land pushed apart from water when the two theme colours are too close in lightness to read as a map.
 import { onTheme, rgbOf, type Theme } from './theme-vars';
 
 const R = 2, PAD = { l: 30, r: 30, t: 10, b: 50 }, CSS_H = 470; // same as bake-photo-outline.mjs
@@ -33,10 +43,25 @@ function toRgb([L, a, b]: number[]) {
 const ORIG = [[21, 28, 24], [89, 81, 127], [212, 249, 149]].map(toLab);
 
 /** A 256-entry RGB lookup: original OKLab L (0..1 scaled to 0..255) -> theme colour. */
-function ramp(t: Theme, light: boolean) {
-  const hue = [light ? t.ink : t.bg, t.surface, t.accent].map((h) => toLab(rgbOf(h)));
+// chroma multipliers per stop; midFromBg takes the mid-tones' hue from the page instead of the surface;
+// lightRot turns the highlight hue (degrees in OKLab a/b; positive = towards yellow for greens)
+type Tune = { dark: number; mid: number; light: number; midFromBg?: boolean; lightRot?: number };
+const PHOTO_TUNE: Record<string, Tune> = {
+  // shadows and mid-tones in the page's purple, highlights a quiet, warmer (olive, not mint) green: on the purple
+  // page the low-chroma green still reads as green (complementary contrast), it just doesn't shout
+  olive: { dark: 1, mid: 0.6, light: 0.6, midFromBg: true, lightRot: 25 },
+};
+const NO_TUNE: Tune = { dark: 0.6, mid: 1, light: 1 };
+
+function ramp(t: Theme, light: boolean, tune: Tune = NO_TUNE) {
+  const hue = [light ? t.ink : t.bg, tune.midFromBg ? t.bg : t.surface, t.accent].map((h) => toLab(rgbOf(h)));
+  if (tune.lightRot) {
+    const r = (-tune.lightRot * Math.PI) / 180, [, a, b] = hue[2];
+    hue[2] = [hue[2][0], a * Math.cos(r) - b * Math.sin(r), a * Math.sin(r) + b * Math.cos(r)];
+  }
   // each stop: original lightness, theme a/b (chroma scaled a little for the dark stop so it stays near-neutral)
-  const stops = ORIG.map((o, i) => [o[0], hue[i][1] * (i === 0 ? 0.6 : 1), hue[i][2] * (i === 0 ? 0.6 : 1)]);
+  const mul = [tune.dark, tune.mid, tune.light];
+  const stops = ORIG.map((o, i) => [o[0], hue[i][1] * mul[i], hue[i][2] * mul[i]]);
   const lut = new Uint8ClampedArray(256 * 3);
   for (let k = 0; k < 256; k++) {
     const L = k / 255;
@@ -62,7 +87,7 @@ function loadSrc(cutUrl: string) {
   }));
 }
 
-async function bake(t: Theme, light: boolean, cutUrl: string): Promise<string> {
+async function bake(t: Theme, light: boolean, cutUrl: string, tune?: Tune): Promise<string> {
   const im = await loadSrc(cutUrl);
   const ph = CSS_H * R, pw = Math.round((im.naturalWidth / im.naturalHeight) * ph);
   const W = pw + (PAD.l + PAD.r) * R, H = ph + (PAD.t + PAD.b) * R, ox = PAD.l * R, oy = PAD.t * R;
@@ -71,7 +96,7 @@ async function bake(t: Theme, light: boolean, cutUrl: string): Promise<string> {
   const pc = p.getContext('2d', { willReadFrequently: true })!;
   pc.imageSmoothingQuality = 'high';
   pc.drawImage(im, 0, 0, pw, ph);
-  const d = pc.getImageData(0, 0, pw, ph), px = d.data, lut = ramp(t, light);
+  const d = pc.getImageData(0, 0, pw, ph), px = d.data, lut = ramp(t, light, tune);
   const lcache = new Map<number, number>();
   for (let i = 0; i < px.length; i += 4) {
     if (!px[i + 3]) continue;
@@ -115,7 +140,7 @@ async function apply(t: Theme, spec: string, light: boolean) {
     if (!img.dataset.origSrc) { img.dataset.origSrc = img.getAttribute('src') || ''; sources.forEach((s) => (s.dataset.origSrcset = s.getAttribute('srcset') || '')); }
     if (!spec) { img.src = img.dataset.origSrc; sources.forEach((s) => s.setAttribute('srcset', s.dataset.origSrcset || '')); continue; }
     const key = spec;
-    if (!cache.has(key)) cache.set(key, bake(t, light, img.dataset.origSrc));
+    if (!cache.has(key)) cache.set(key, bake(t, light, img.dataset.origSrc, PHOTO_TUNE[spec]));
     let url: string;
     try { url = await cache.get(key)!; } catch { cache.delete(key); return; }
     if (want !== spec) return; // switched again while baking
@@ -124,5 +149,61 @@ async function apply(t: Theme, spec: string, light: boolean) {
   }
 }
 
-onTheme((colors, d) => { void apply(colors, d.spec, d.mode === 'light'); });
+/* ---- map card ---- */
+const mapCache = new Map<string, Promise<string>>();
+let mapWant = '';
+const imgCache = new Map<string, Promise<HTMLImageElement>>();
+const loadImg = (u: string) => {
+  if (!imgCache.has(u)) imgCache.set(u, new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = u; }));
+  return imgCache.get(u)!;
+};
+
+async function bakeMap(t: Theme, light: boolean, src: string): Promise<string> {
+  const im = await loadImg(src);
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+  const cc = c.getContext('2d', { willReadFrequently: true })!;
+  cc.drawImage(im, 0, 0);
+  const d = cc.getImageData(0, 0, c.width, c.height), px = d.data;
+  const Lw = toLab([14, 22, 13])[0], Ll = toLab([44, 66, 27])[0]; // the baked water and land (measured)
+  const water = toLab(rgbOf(t.bg2)), land = toLab(rgbOf(t.surface));
+  // keep at least .12 OKLab lightness between water and land so the coastline reads
+  const gap = 0.12, dir = light ? -1 : 1; // land darker than water on light themes, lighter on dark ones
+  if ((land[0] - water[0]) * dir < gap) land[0] = Math.max(0, Math.min(1, water[0] + dir * gap));
+  const lut = new Uint8ClampedArray(256 * 3);
+  for (let k = 0; k < 256; k++) {
+    const f = (k / 255 - Lw) / (Ll - Lw); // 0 = water, 1 = land, beyond = brighter details
+    const fc = Math.max(0, Math.min(1, f));
+    lut.set(toRgb([water[0] + (land[0] - water[0]) * f, water[1] + (land[1] - water[1]) * fc, water[2] + (land[2] - water[2]) * fc]), k * 3);
+  }
+  const lc = new Map<number, number>();
+  for (let i = 0; i < px.length; i += 4) {
+    const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+    let k = lc.get(key);
+    if (k === undefined) { k = Math.round(Math.max(0, Math.min(1, toLab([px[i], px[i + 1], px[i + 2]])[0])) * 255); lc.set(key, k); }
+    px[i] = lut[k * 3]; px[i + 1] = lut[k * 3 + 1]; px[i + 2] = lut[k * 3 + 2];
+  }
+  cc.putImageData(d, 0, 0);
+  const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/webp', 0.9));
+  if (!blob) throw new Error('toBlob failed');
+  return URL.createObjectURL(blob);
+}
+
+async function applyMap(t: Theme, spec: string, light: boolean) {
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.mapcard'));
+  mapWant = spec;
+  for (const el of cards) {
+    // computed, not el.style: the inline `background:` shorthand holds a var(), so its longhands read back empty
+    if (el.dataset.origBg === undefined) el.dataset.origBg = getComputedStyle(el).backgroundImage;
+    if (!spec) { el.style.backgroundImage = el.dataset.origBg; continue; }
+    const src = (el.dataset.origBg.match(/url\(["']?([^"')]+)/) || [])[1];
+    if (!src) continue;
+    if (!mapCache.has(spec)) mapCache.set(spec, bakeMap(t, light, src));
+    let u: string;
+    try { u = await mapCache.get(spec)!; } catch { mapCache.delete(spec); return; }
+    if (mapWant !== spec) return;
+    el.style.backgroundImage = `url(${u})`;
+  }
+}
+
+onTheme((colors, d) => { void apply(colors, d.spec, d.mode === 'light'); void applyMap(colors, d.spec, d.mode === 'light'); });
 // theme.ts sends theme:change on load too, so a page opened with ?theme= is recoloured as well.
