@@ -70,6 +70,8 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
     <button type="button" class="ab-toggle" aria-expanded="false" aria-controls="ab-panel" aria-label="A/B review (temporary tool)" title="A/B review (temporary)">A/B</button>
   </div>
   <script>import '../scripts/ab';</script>
+  <!-- ?bg=<name>: shader background (scripts/shader-bg.ts), loaded only when asked for. -->
+  <script>if (/[?&]bg=/.test(location.search)) import('../scripts/shader-bg');</script>
   <!-- ?music=<track> / ?sfx=<set>: sounds (scripts/sound.ts), loaded only when asked for. -->
   <script>if (/[?&](music|sfx)=/.test(location.search)) import('../scripts/sound');</script>
 </body>
