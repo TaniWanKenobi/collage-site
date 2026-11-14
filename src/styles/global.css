@@ -1,29 +1,41 @@
-/* Grape palette. Contrast pairs (WCAG): lime-tint/onyx 17:1, lime/onyx 15:1, onyx/lime 15:1, lime/grape 6.2:1,
-   lime-tint/grape 7.2:1, grape/lime-tint 7.2:1, grape/lime 6.2:1, muted/onyx 8.6:1.
-   Never use grape as text on onyx; muted is for secondary text on onyx/onyx-2 only. */
+/* Colour roles. The default theme is the grape palette below; scripts/theme.ts (?theme=, the Looks picker) overrides
+   these on <html> and sets html[data-theme-mode="light|dark"]. Every colour on the site is one of these roles (alpha
+   variants via color-mix(in srgb, var(--role) N%, transparent)), so a theme recolours everything at once.
+   Default contrast pairs (WCAG): text/bg 17:1, accent/bg 15:1, on-accent/accent 15:1, on-surface/surface 7.2:1,
+   ink-surface/paper 7.2:1, muted/bg 8.6:1. Never use surface as text on bg; muted is for secondary text on bg/bg-2. */
 :root {
-  --onyx: #0D160B;       /* page background */
-  --onyx-2: #172315;     /* raised panels, section pages */
-  --onyx-3: #263424;     /* hairlines */
-  --shade: #040803;      /* shadows */
-  --grape: #564D80;      /* surfaces */
-  --grape-deep: #3F3862; /* photo placeholders */
-  --grape-lite: #8F86C0; /* decorative lines (5.6:1 on onyx) */
-  --lime: #C2F970;       /* accent */
-  --lime-tint: #EFFDD8;  /* body text, paper cards */
-  --muted: #A8B595;      /* secondary text */
+  --bg: #0D160B;            /* page background (onyx) */
+  --bg-2: #172315;          /* raised panels, section pages */
+  --line: #263424;          /* hairlines */
+  --shadow: #040803;        /* shadows */
+  --surface: #564D80;       /* coloured surfaces (grape) */
+  --surface-deep: #3F3862;  /* photo placeholders */
+  --deco: #8F86C0;          /* decorative lines (5.6:1 on bg) */
+  --accent: #C2F970;        /* accent fills, rings, marks (lime) */
+  --accent-ink: #C2F970;    /* accent as text on bg / bg-2 */
+  --on-accent: #0D160B;     /* text on accent */
+  --text: #EFFDD8;          /* body text on bg */
+  --muted: #A8B595;         /* secondary text on bg */
+  --on-surface: #EFFDD8;    /* text on surface */
+  --paper: #EFFDD8;         /* paper cards, notes, polaroids */
+  --ink: #0D160B;           /* text on paper */
+  --ink-2: #4A5640;         /* secondary text on paper */
+  --ink-surface: #564D80;   /* surface-coloured text and lines on paper */
+  /* old names, still used by the lab pages */
+  --onyx: var(--bg); --onyx-2: var(--bg-2); --onyx-3: var(--line); --shade: var(--shadow); --grape: var(--surface);
+  --grape-deep: var(--surface-deep); --grape-lite: var(--deco); --lime: var(--accent); --lime-tint: var(--text);
   --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
   --font-hand: var(--font-display); /* was Caveat */
 }
 
-body { margin: 0; background: var(--onyx); }
-a { color: var(--lime); } a:hover { color: var(--lime-tint); }
+body { margin: 0; background: var(--bg); }
+a { color: var(--accent-ink); } a:hover { color: var(--text); }
 .grain { } /* was a 1px scanline grid (rows every 3px, columns every 4px); removed: read as cyber bars over the shader backgrounds */
-.halftone { background-image: radial-gradient(rgba(239,253,216,.16) 1.2px, transparent 1.4px); background-size: 7px 7px; }
-.ruled { background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(143,134,192,.55) 27px 28px); }
-.mapgrid { background-image: linear-gradient(rgba(194,249,112,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(194,249,112,.13) 1px, transparent 1px); background-size: 20px 20px; }
-.tape { position: absolute; z-index: 2; height: 26px; pointer-events: none; background: url('../assets/tape/cream.webp') center / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px rgba(4,8,3,.45)); }
+.halftone { background-image: radial-gradient(color-mix(in srgb, var(--text) 16%, transparent) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+.ruled { background-image: repeating-linear-gradient(180deg, transparent 0 27px, color-mix(in srgb, var(--deco) 55%, transparent) 27px 28px); }
+.mapgrid { background-image: linear-gradient(color-mix(in srgb, var(--accent) 13%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--accent) 13%, transparent) 1px, transparent 1px); background-size: 20px 20px; }
+.tape { position: absolute; z-index: 2; height: 26px; pointer-events: none; background: url('../assets/tape/cream.webp') center / 100% 100% no-repeat; filter: drop-shadow(0 2px 2px color-mix(in srgb, var(--shadow) 45%, transparent)); }
 .tape.t-clear { background-image: url('../assets/tape/clear-a.webp'); opacity: .85; }
 .tape.t-crinkle { background-image: url('../assets/tape/crinkle.webp'); opacity: .85; }
 .tape.t-grey { background-image: url('../assets/tape/grey.webp'); }
@@ -34,14 +46,14 @@ a { color: var(--lime); } a:hover { color: var(--lime-tint); }
    collage and the GPU re-ran that blur every scroll frame. The art is padded 22px left/right, 10px top, 34px bottom. */
 .sticker-art { position: absolute; left: -22px; top: -10px; width: calc(100% + 44px); height: calc(100% + 44px); max-width: none; object-fit: contain; pointer-events: none; }.sticker-deco { pointer-events: none; }
 /* label-maker strip naming a sticker */
-.label-tape { position: absolute; z-index: 2; padding: 3px 9px; background: var(--lime); color: var(--onyx); font-size: 13px; font-weight: 700; letter-spacing: .12em; box-shadow: 0 3px 6px rgba(4,8,3,.45); pointer-events: none; }
+.label-tape { position: absolute; z-index: 2; padding: 3px 9px; background: var(--accent); color: var(--on-accent); font-size: 13px; font-weight: 700; letter-spacing: .12em; box-shadow: 0 3px 6px color-mix(in srgb, var(--shadow) 45%, transparent); pointer-events: none; }
 /* the old map scrap's grid, drawn over the baked map */
-.mapcard-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(194,249,112,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(194,249,112,.16) 1px, transparent 1px); background-size: 20px 20px; }
+.mapcard-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--accent) 16%, transparent) 1px, transparent 1px); background-size: 20px 20px; }
 .tape-credit { font-size: 11px; color: var(--muted); }
 .tape-credit a { color: inherit; }
 .mono { font-family: var(--font-mono); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-a:focus-visible, button:focus-visible { outline: 3px solid var(--lime); outline-offset: 4px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
 /* The lime sticker outline and drop shadow are baked into the image (scripts/bake-photo-outline.mjs): as a CSS
    filter chain they were re-run on every repaint of the zoomed world. The image is padded 30px left/right,
    10px top and 50px bottom (CSS px) around the 228x470 photo, so it hangs out of .gr-me by that much. */
@@ -58,37 +70,37 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--lime); outline-
 a.zp { display: block; color: inherit; text-decoration: none; }
 .zpanel { position: relative; flex: none; }
 /* Section page inside a card: laid out at the real viewport size by the camera (zoom-camera.js geom), scrolls once landed. */
-.zpage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; background-color: var(--onyx-2); opacity: 0; pointer-events: none; }
+.zpage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; background-color: var(--bg-2); opacity: 0; pointer-events: none; }
 .zpage.is-held { overflow-y: auto; overscroll-behavior-y: auto; }
 .zpage .zs { padding-right: max(clamp(24px, 4.4vw, 64px), 64px); } /* clear the HUD */
 #zm-home { opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
 #zm-home.is-on { opacity: 1; visibility: visible; transition: opacity .25s ease; }
-#zm-whead a:hover { color: var(--lime-tint); }
+#zm-whead a:hover { color: var(--text); }
 
 /* Section pages */
-.zs { box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: var(--onyx-2); color: var(--lime-tint); font-family: var(--font-display); font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px; }
-.zs a { color: var(--lime); } .zs a:hover { color: var(--lime-tint); }
-.zs .halftone { background-image: radial-gradient(rgba(239,253,216,.16) 1.2px, transparent 1.4px); background-size: 7px 7px; }
-.zs .ruled { background-image: repeating-linear-gradient(180deg, transparent 0 71px, rgba(143,134,192,.55) 71px 72px); }
+.zs { box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: var(--bg-2); color: var(--text); font-family: var(--font-display); font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px; }
+.zs a { color: var(--accent-ink); } .zs a:hover { color: var(--text); }
+.zs .halftone { background-image: radial-gradient(color-mix(in srgb, var(--text) 16%, transparent) 1.2px, transparent 1.4px); background-size: 7px 7px; }
+.zs .ruled { background-image: repeating-linear-gradient(180deg, transparent 0 71px, color-mix(in srgb, var(--deco) 55%, transparent) 71px 72px); }
 .zs .mapgrid { background-size: 32px 32px; }
 .zs-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px 24px; }
 .zs-title { margin: 0; font-weight: 800; font-size: clamp(40px, 4.7vw, 68px); line-height: 0.95; letter-spacing: -0.03em; }
-.zs-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--lime); background: transparent; color: var(--lime); font-size: 13px; cursor: pointer; }
+.zs-back { display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--accent); background: transparent; color: var(--accent-ink); font-size: 13px; cursor: pointer; }
 
-.proj-card { position: relative; padding: 12px 12px 16px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.5); display: flex; flex-direction: column; gap: 6px; }
+.proj-card { position: relative; padding: 12px 12px 16px; background: var(--paper); color: var(--ink); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 50%, transparent); display: flex; flex-direction: column; gap: 6px; }
 .proj-card[hidden] { display: none; }
-.proj-tape { position: absolute; top: -11px; left: 40%; width: 84px; height: 22px; background: rgba(239,253,216,.5); transform: rotate(-3deg); }
-.proj-shot { height: 118px; width: 100%; object-fit: cover; background-color: var(--grape-deep); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--lime-tint); }
+.proj-tape { position: absolute; top: -11px; left: 40%; width: 84px; height: 22px; background: color-mix(in srgb, var(--text) 50%, transparent); transform: rotate(-3deg); }
+.proj-shot { height: 118px; width: 100%; object-fit: cover; background-color: var(--surface-deep); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--on-surface); }
 .tags { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.tags li { font-size: 11px; border: 1px solid var(--onyx); border-radius: 999px; padding: 1px 9px; }
+.tags li { font-size: 11px; border: 1px solid var(--ink); border-radius: 999px; padding: 1px 9px; }
 
-.ticket { display: flex; min-height: 240px; border-radius: 8px; background: var(--grape); color: var(--lime-tint); box-shadow: 0 14px 30px rgba(4,8,3,.45); }
-.ticket-now { background: var(--lime); color: var(--onyx); }
+.ticket { display: flex; min-height: 240px; border-radius: 8px; background: var(--surface); color: var(--on-surface); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 45%, transparent); }
+.ticket-now { background: var(--accent); color: var(--on-accent); }
 .ticket-stub { width: 34px; border-left: 2px dashed currentColor; }
 
-.writing-sheet { list-style: none; margin: 0; padding: 18px 32px 26px; background-color: var(--lime-tint); color: var(--onyx); box-shadow: 0 16px 34px rgba(4,8,3,.5); transform: rotate(-0.6deg); display: flex; flex-direction: column; }
+.writing-sheet { list-style: none; margin: 0; padding: 18px 32px 26px; background-color: var(--paper); color: var(--ink); box-shadow: 0 16px 34px color-mix(in srgb, var(--shadow) 50%, transparent); transform: rotate(-0.6deg); display: flex; flex-direction: column; }
 .writing-sheet li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 22px; min-height: 72px; padding-top: 22px; box-sizing: border-box; }
-.pill { font-size: 12px; border: 1px solid var(--onyx); border-radius: 999px; padding: 2px 10px; }
+.pill { font-size: 12px; border: 1px solid var(--ink); border-radius: 999px; padding: 2px 10px; }
 
 /* 3D slots: the CSS globe stays visible until a live canvas reports it is drawing. */
 .three-slot { position: absolute; inset: 0; }
@@ -100,13 +112,13 @@ a.zp { display: block; color: inherit; text-decoration: none; }
    turned vertical with the label on the left and recoloured lime. The current section's label stays shown. */
 .dotstyle ul { position: relative; display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; cursor: default; user-select: none; }
 .dotstyle li { position: relative; display: block; margin: 9px 0; width: 14px; height: 14px; cursor: pointer; }
-.dotstyle-tooltip li { border: 2px solid var(--lime-tint); border-radius: 50%; z-index: 1; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); transition: border-color .3s ease, background-color .3s ease; }
+.dotstyle-tooltip li { border: 2px solid var(--text); border-radius: 50%; z-index: 1; box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent); transition: border-color .3s ease, background-color .3s ease; }
 .dotstyle-tooltip .hud-dot { position: absolute; inset: -6px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
-.dotstyle-tooltip .hud-dot:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
-.dotstyle-tooltip .hud-tip { position: absolute; right: calc(100% + 16px); top: 50%; visibility: hidden; padding: 0 10px; white-space: nowrap; pointer-events: none; font-size: 11px; line-height: 2; background-color: var(--lime); color: var(--onyx); opacity: 0; transform: translateX(-50%) translateY(-50%); transition: transform .3s ease, opacity .3s ease, visibility 0s .3s ease; }
+.dotstyle-tooltip .hud-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dotstyle-tooltip .hud-tip { position: absolute; right: calc(100% + 16px); top: 50%; visibility: hidden; padding: 0 10px; white-space: nowrap; pointer-events: none; font-size: 11px; line-height: 2; background-color: var(--accent); color: var(--on-accent); opacity: 0; transform: translateX(-50%) translateY(-50%); transition: transform .3s ease, opacity .3s ease, visibility 0s .3s ease; }
 .dotstyle-tooltip .hud-tip b { font-weight: 700; opacity: .55; margin-right: 4px; }
-.dotstyle-tooltip .hud-tip::after { /* cssarrowplease.com, pointing right at the dot */ position: absolute; top: 50%; left: 99%; margin-top: -8px; width: 0; height: 0; border: 8px solid transparent; border-left-color: var(--lime); content: ''; pointer-events: none; }
-.dotstyle-tooltip li:has(.hud-dot[aria-current="true"]) { border-color: var(--lime); background-color: var(--lime); }
+.dotstyle-tooltip .hud-tip::after { /* cssarrowplease.com, pointing right at the dot */ position: absolute; top: 50%; left: 99%; margin-top: -8px; width: 0; height: 0; border: 8px solid transparent; border-left-color: var(--accent); content: ''; pointer-events: none; }
+.dotstyle-tooltip li:has(.hud-dot[aria-current="true"]) { border-color: var(--accent); background-color: var(--accent); }
 .dotstyle-tooltip li:has(.hud-dot[aria-current="true"]) .hud-tip,
 .dotstyle-tooltip li:has(.hud-dot:focus-visible) .hud-tip { z-index: 100; visibility: visible; opacity: 1; transform: translateX(0) translateY(-50%); transition: transform .3s ease, opacity .3s ease; }
 @media (hover: hover) {
@@ -120,24 +132,24 @@ a.zp { display: block; color: inherit; text-decoration: none; }
    backdrop-filter becomes the backdrop root for everything inside it). */
 .dotstyle .hud-bead { display: none; }
 #zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"], [data-nav="water"]) { box-sizing: border-box; width: 40px; height: 272px; padding: 12px 0; border-radius: 999px; justify-content: flex-start; }
-#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"], [data-nav="water"])::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035) 55%, rgba(255,255,255,.07)), rgba(13,22,11,.22); -webkit-backdrop-filter: blur(14px) saturate(175%); backdrop-filter: blur(14px) saturate(175%); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(255,255,255,.12), inset 0 0 14px rgba(255,255,255,.07), 0 12px 30px rgba(0,0,0,.38); }
-#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"], [data-nav="water"])::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1.5px; pointer-events: none; background: linear-gradient(140deg, rgba(255,255,255,.75), rgba(255,255,255,.1) 30%, rgba(255,255,255,0) 55%, rgba(194,249,112,.18) 80%, rgba(255,255,255,.45)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"], [data-nav="water"])::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035) 55%, rgba(255,255,255,.07)), color-mix(in srgb, var(--bg) 22%, transparent); -webkit-backdrop-filter: blur(14px) saturate(175%); backdrop-filter: blur(14px) saturate(175%); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -1px 0 rgba(255,255,255,.12), inset 0 0 14px rgba(255,255,255,.07), 0 12px 30px rgba(0,0,0,.38); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"], [data-nav="drop"], [data-nav="water"])::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; padding: 1.5px; pointer-events: none; background: linear-gradient(140deg, rgba(255,255,255,.75), rgba(255,255,255,.1) 30%, rgba(255,255,255,0) 55%, color-mix(in srgb, var(--accent) 18%, transparent) 80%, rgba(255,255,255,.45)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
 /* lens: less frost, more bend */
-#zm-hud.lg-ok:is([data-nav="lens"], [data-nav="water"])::before { background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 50%, rgba(255,255,255,.05)), rgba(13,22,11,.16); -webkit-backdrop-filter: var(--lg-filter, url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12)); backdrop-filter: var(--lg-filter, url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12)); }
+#zm-hud.lg-ok:is([data-nav="lens"], [data-nav="water"])::before { background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0) 50%, rgba(255,255,255,.05)), color-mix(in srgb, var(--bg) 16%, transparent); -webkit-backdrop-filter: var(--lg-filter, url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12)); backdrop-filter: var(--lg-filter, url(#lg-refract) blur(1.2px) saturate(165%) brightness(1.12)); }
 /* water: the WebGL drop (scripts/liquid-nav.ts) draws on a canvas under the dots, bleeding 14px past the capsule */
 #zm-hud .lq-water { position: absolute; left: -14px; top: -14px; z-index: 0; pointer-events: none; }
 #zm-hud[data-nav="water"] ul, #zm-hud[data-nav="water"] #hud-num { position: relative; z-index: 1; }
 #zm-hud[data-nav="water"].lq-on li:has(.hud-dot[aria-current="true"]) { background-color: transparent; border-color: rgba(255,255,255,.9); }
 /* dots inside glass */
-#zm-hud:not([data-nav="dots"]) li { border: 1.5px solid rgba(239,253,216,.85); background-color: rgba(13,22,11,.18); box-shadow: 0 0 0 1px rgba(13,22,11,.5), inset 0 0 0 1px rgba(13,22,11,.35); }
-#zm-hud:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { border-color: var(--lime); background-color: var(--lime); box-shadow: 0 0 10px rgba(194,249,112,.65); }
-#zm-hud:not([data-nav="dots"]) #hud-num { text-shadow: none; color: rgba(239,253,216,.85); }
+#zm-hud:not([data-nav="dots"]) li { border: 1.5px solid color-mix(in srgb, var(--text) 85%, transparent); background-color: color-mix(in srgb, var(--bg) 18%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--bg) 35%, transparent); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { border-color: var(--accent); background-color: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 65%, transparent); }
+#zm-hud:not([data-nav="dots"]) #hud-num { text-shadow: none; color: color-mix(in srgb, var(--text) 85%, transparent); }
 /* labels as glass pills */
-#zm-hud:not([data-nav="dots"]) .hud-tip { border-radius: 999px; padding: 0 12px; line-height: 2.2; color: var(--lime-tint); background-color: rgba(18,28,16,.62); -webkit-backdrop-filter: blur(12px) saturate(170%); backdrop-filter: blur(12px) saturate(170%); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 6px 16px rgba(0,0,0,.35); }
+#zm-hud:not([data-nav="dots"]) .hud-tip { border-radius: 999px; padding: 0 12px; line-height: 2.2; color: var(--text); background-color: color-mix(in srgb, color-mix(in srgb, var(--bg), var(--bg-2)) 62%, transparent); -webkit-backdrop-filter: blur(12px) saturate(170%); backdrop-filter: blur(12px) saturate(170%); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px 0 rgba(255,255,255,.32), 0 6px 16px rgba(0,0,0,.35); }
 #zm-hud:not([data-nav="dots"]) .hud-tip::after { display: none; }
-#zm-hud:not([data-nav="dots"]) li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--lime); }
+#zm-hud:not([data-nav="dots"]) li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--accent-ink); }
 /* drop: a glass bead slides to the current dot, overshooting a little like a drop of liquid */
-#zm-hud[data-nav="drop"] .hud-bead { display: block; position: absolute; left: 50%; top: 3px; z-index: 2; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.75) 0 2px, rgba(255,255,255,.22) 5px, rgba(194,249,112,.1) 55%, rgba(194,249,112,.38) 100%); border: 1px solid rgba(255,255,255,.45); box-shadow: inset 0 -4px 7px rgba(194,249,112,.45), inset 0 2px 3px rgba(255,255,255,.35), 0 4px 10px rgba(0,0,0,.4); -webkit-backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); transition: top .55s cubic-bezier(.45,1.75,.4,1), opacity .25s; }
+#zm-hud[data-nav="drop"] .hud-bead { display: block; position: absolute; left: 50%; top: 3px; z-index: 2; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.75) 0 2px, rgba(255,255,255,.22) 5px, color-mix(in srgb, var(--accent) 10%, transparent) 55%, color-mix(in srgb, var(--accent) 38%, transparent) 100%); border: 1px solid rgba(255,255,255,.45); box-shadow: inset 0 -4px 7px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 2px 3px rgba(255,255,255,.35), 0 4px 10px rgba(0,0,0,.4); -webkit-backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); transition: top .55s cubic-bezier(.45,1.75,.4,1), opacity .25s; }
 #zm-hud[data-nav="drop"] ul:has(.hud-dot[aria-current="true"]) .hud-bead { opacity: 1; }
 #zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(2) .hud-dot[aria-current="true"]) .hud-bead { top: 35px; }
 #zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(3) .hud-dot[aria-current="true"]) .hud-bead { top: 67px; }
@@ -146,21 +158,21 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(6) .hud-dot[aria-current="true"]) .hud-bead { top: 163px; }
 #zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(7) .hud-dot[aria-current="true"]) .hud-bead { top: 195px; }
 /* bubble: no capsule, every dot its own glass bubble */
-#zm-hud[data-nav="bubble"] li { width: 16px; height: 16px; margin: 9px 0; border: 1px solid rgba(255,255,255,.42); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.8) 0 1.5px, rgba(255,255,255,.18) 3.5px, rgba(255,255,255,.04) 70%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.4,1.8,.5,1), background .3s, box-shadow .3s; }
-#zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: scale(1.45); border-color: rgba(194,249,112,.8); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 1.5px, rgba(194,249,112,.45) 4px, rgba(194,249,112,.18) 75%); box-shadow: 0 0 12px rgba(194,249,112,.55), 0 3px 8px rgba(0,0,0,.4); }
+#zm-hud[data-nav="bubble"] li { width: 16px; height: 16px; margin: 9px 0; border: 1px solid rgba(255,255,255,.42); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.8) 0 1.5px, rgba(255,255,255,.18) 3.5px, rgba(255,255,255,.04) 70%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.4,1.8,.5,1), background .3s, box-shadow .3s; }
+#zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: scale(1.45); border-color: color-mix(in srgb, var(--accent) 80%, transparent); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 1.5px, color-mix(in srgb, var(--accent) 45%, transparent) 4px, color-mix(in srgb, var(--accent) 18%, transparent) 75%); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent), 0 3px 8px rgba(0,0,0,.4); }
 #zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%) scale(.69); transform-origin: right center; }
-#zm-hud[data-nav="bubble"] .hud-tip { background-color: rgba(18,28,16,.8); }
+#zm-hud[data-nav="bubble"] .hud-tip { background-color: color-mix(in srgb, color-mix(in srgb, var(--bg), var(--bg-2)) 80%, transparent); }
 @media (prefers-reduced-motion: reduce) { #zm-hud .hud-bead, #zm-hud[data-nav="bubble"] li { transition: none; } }
 /* Four non-glass looks (#zm-hud.nv, ?nav=dock|goo|thread|odometer; motion in scripts/nav-styles.ts).
    .nv first takes back the glass dots and pills that the rules above give every non-"dots" style. */
 #zm-hud.nv li { border: 0; border-radius: 0; background: none; box-shadow: none; }
-#zm-hud.nv #hud-num { color: var(--lime-tint); text-shadow: 0 1px 2px rgba(13,22,11,.8); }
-#zm-hud.nv .hud-tip { border: 0; border-radius: 0; padding: 0 10px; line-height: 2; color: var(--onyx); background-color: var(--lime); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 3px 8px rgba(4,8,3,.4); }
+#zm-hud.nv #hud-num { color: var(--text); text-shadow: 0 1px 2px color-mix(in srgb, var(--bg) 80%, transparent); }
+#zm-hud.nv .hud-tip { border: 0; border-radius: 0; padding: 0 10px; line-height: 2; color: var(--on-accent); background-color: var(--accent); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 3px 8px color-mix(in srgb, var(--shadow) 40%, transparent); }
 #zm-hud.nv .hud-tip::after { display: block; }
-#zm-hud.nv li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--onyx); }
+#zm-hud.nv li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--on-accent); }
 /* dock: plain ring dots, drawn on li::before so the dot can scale without its label */
-#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
-#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--text); border-radius: 50%; box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li:has(.hud-dot[aria-current="true"])::before { border-color: var(--accent); background-color: var(--accent); }
 /* dock: after Magic UI Dock (MIT), vertical. JS springs --ds (dot scale) and --dy (push from the dots above). */
 #zm-hud:is([data-nav="dock"], [data-nav="dockline"]) #hud-num { margin-bottom: 14px !important; } /* room for the top dot to grow */
 #zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li { width: 12px; height: 12px; margin: 10px 0; transform: translateY(var(--dy, 0px)); }
@@ -170,34 +182,34 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 /* dockline: dock + thread. The line runs a little past the end dots (room for the push-apart); the rings are
    solid so the line doesn't show through, and passed knots fill lime. */
 #zm-hud[data-nav="dockline"] .nv-thread { top: -8px; bottom: -8px; }
-#zm-hud[data-nav="dockline"] li::before { background-color: var(--onyx); }
-#zm-hud[data-nav="dockline"] li[data-past]::before { border-color: var(--lime); background-color: var(--lime); }
+#zm-hud[data-nav="dockline"] li::before { background-color: var(--bg); }
+#zm-hud[data-nav="dockline"] li[data-past]::before { border-color: var(--accent); background-color: var(--accent); }
 /* goo: after 21st.dev GooeyPagination by ruixen.ui. Only this small layer carries the filter; labels stay crisp. */
 #zm-hud[data-nav="goo"] .nv-goo { position: absolute; left: -16px; right: -16px; top: -16px; bottom: -16px; z-index: 0; pointer-events: none; filter: url(#nv-goo-f); }
 #zm-hud[data-nav="goo"] .nv-goo > * { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; }
-#zm-hud[data-nav="goo"] .nv-goo i { background: color-mix(in srgb, var(--lime-tint) 55%, var(--onyx)); scale: var(--hv, 1); }
-#zm-hud[data-nav="goo"] .nv-goo b { background: var(--lime); opacity: 0; transition: opacity .25s ease; will-change: transform; }
+#zm-hud[data-nav="goo"] .nv-goo i { background: color-mix(in srgb, var(--paper) 55%, var(--bg)); scale: var(--hv, 1); }
+#zm-hud[data-nav="goo"] .nv-goo b { background: var(--accent); opacity: 0; transition: opacity .25s ease; will-change: transform; }
 #zm-hud[data-nav="goo"] .nv-goo.is-on b { opacity: 1; }
 /* thread: a line filled by the smoothed scroll (scaleY), a knot per section */
-#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(239,253,216,.32); box-shadow: 0 0 0 1px rgba(13,22,11,.35); pointer-events: none; }
-#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread i { position: absolute; inset: 0; background: var(--lime); transform: scaleY(0); transform-origin: 50% 0; }
+#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: color-mix(in srgb, var(--text) 32%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 35%, transparent); pointer-events: none; }
+#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread i { position: absolute; inset: 0; background: var(--accent); transform: scaleY(0); transform-origin: 50% 0; }
 #zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread i.nv-fly { transition: transform .8s cubic-bezier(.65,0,.35,1); }
-#zm-hud[data-nav="thread"] li::before { content: ''; position: absolute; left: 3px; top: 3px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid rgba(239,253,216,.85); border-radius: 50%; background: var(--onyx); pointer-events: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1), background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
-#zm-hud[data-nav="thread"] li[data-past]::before { border-color: var(--lime); background: var(--lime); }
-#zm-hud[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); border-color: var(--lime); background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
+#zm-hud[data-nav="thread"] li::before { content: ''; position: absolute; left: 3px; top: 3px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid color-mix(in srgb, var(--text) 85%, transparent); border-radius: 50%; background: var(--bg); pointer-events: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1), background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
+#zm-hud[data-nav="thread"] li[data-past]::before { border-color: var(--accent); background: var(--accent); }
+#zm-hud[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 1.5px var(--on-accent); }
 @media (hover: hover) { #zm-hud[data-nav="thread"] li:hover::before { transform: scale(1.35); } #zm-hud[data-nav="thread"] li:hover:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); } }
 /* odometer: a ruler (minor ticks on ul::before, a longer tick per section) and a rolling counter (after Magic UI
    Number Ticker (MIT); its overdamped spring is a soft ease-out with a little mechanical overshoot here) */
 #zm-hud[data-nav="odometer"] #hud-num { display: none; }
-#zm-hud[data-nav="odometer"] .nv-odo { display: flex; margin-bottom: 8px; font-size: 12px; line-height: 14px; color: var(--lime-tint); text-shadow: 0 1px 2px rgba(13,22,11,.8); font-variant-numeric: tabular-nums; }
-#zm-hud[data-nav="odometer"] .nv-roll { display: block; height: 14px; overflow: hidden; color: var(--lime); }
+#zm-hud[data-nav="odometer"] .nv-odo { display: flex; margin-bottom: 8px; font-size: 12px; line-height: 14px; color: var(--text); text-shadow: 0 1px 2px color-mix(in srgb, var(--bg) 80%, transparent); font-variant-numeric: tabular-nums; }
+#zm-hud[data-nav="odometer"] .nv-roll { display: block; height: 14px; overflow: hidden; color: var(--accent-ink); }
 #zm-hud[data-nav="odometer"] .nv-strip { display: block; transition: transform .75s cubic-bezier(.22,1.25,.36,1); }
 #zm-hud[data-nav="odometer"] .nv-strip > span { display: block; height: 14px; }
 #zm-hud[data-nav="odometer"] .nv-of { opacity: .6; }
-#zm-hud[data-nav="odometer"] ul::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(239,253,216,.5) 0 1px, transparent 1px 8px); filter: drop-shadow(0 0 1px rgba(13,22,11,.9)); }
+#zm-hud[data-nav="odometer"] ul::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px; pointer-events: none; background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--text) 50%, transparent) 0 1px, transparent 1px 8px); filter: drop-shadow(0 0 1px color-mix(in srgb, var(--bg) 90%, transparent)); }
 #zm-hud[data-nav="odometer"] li { width: 22px; }
-#zm-hud[data-nav="odometer"] li::before { content: ''; position: absolute; right: 0; top: 6px; width: 20px; height: 2px; background: var(--lime-tint); box-shadow: 0 0 0 1px rgba(13,22,11,.45); transform: scaleX(.55); transform-origin: 100% 50%; pointer-events: none; transition: transform .35s cubic-bezier(.3,1.4,.5,1), background-color .2s ease; }
-#zm-hud[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(1); background: var(--lime); height: 3px; top: 5.5px; }
+#zm-hud[data-nav="odometer"] li::before { content: ''; position: absolute; right: 0; top: 6px; width: 20px; height: 2px; background: var(--paper); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 45%, transparent); transform: scaleX(.55); transform-origin: 100% 50%; pointer-events: none; transition: transform .35s cubic-bezier(.3,1.4,.5,1), background-color .2s ease; }
+#zm-hud[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(1); background: var(--accent); height: 3px; top: 5.5px; }
 @media (hover: hover) { #zm-hud[data-nav="odometer"] li:hover:not(:has(.hud-dot[aria-current="true"]))::before { transform: scaleX(.8); } }
 @media (prefers-reduced-motion: reduce) { #zm-hud.nv li, #zm-hud.nv li::before, #zm-hud.nv .nv-strip, #zm-hud.nv .nv-goo b { transition: none; } }
 /* The travelling current-section indicator (every style; nav-styles.ts springs it with goo's spring and stretches
@@ -205,73 +217,81 @@ a.zp { display: block; color: inherit; text-decoration: none; }
    style drops its static current-dot fill so only the traveller marks the section. Not made under reduced motion. */
 #zm-hud .nv-ind { position: absolute; left: 50%; top: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .2s ease; will-change: transform; }
 #zm-hud .nv-ind.is-on { opacity: 1; }
-#zm-hud .nv-ind-disc { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.55); }
-#zm-hud:is([data-nav="frost"], [data-nav="lens"]) .nv-ind-disc { box-shadow: 0 0 10px rgba(194,249,112,.65); }
+#zm-hud .nv-ind-disc { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"]) .nv-ind-disc { box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 65%, transparent); }
 #zm-hud.nv-glide[data-nav="dots"] li:has(.hud-dot[aria-current="true"]) { background-color: transparent; }
-#zm-hud.nv-glide:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { background-color: rgba(13,22,11,.18); box-shadow: 0 0 0 1px rgba(13,22,11,.5), inset 0 0 0 1px rgba(13,22,11,.35); }
+#zm-hud.nv-glide:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { background-color: color-mix(in srgb, var(--bg) 18%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 50%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--bg) 35%, transparent); }
 /* bubble: the lime glass bubble itself travels (backdrop blur kept; no goo filter, it would flatten the glass) */
-#zm-hud .nv-ind-bubble { width: 23px; height: 23px; margin: -11.5px 0 0 -11.5px; box-sizing: border-box; border-radius: 50%; border: 1px solid rgba(194,249,112,.8); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 2px, rgba(194,249,112,.45) 6px, rgba(194,249,112,.18) 75%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 12px rgba(194,249,112,.55), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); }
-#zm-hud.nv-glide[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: none; border-color: rgba(194,249,112,.6); }
+#zm-hud .nv-ind-bubble { width: 23px; height: 23px; margin: -11.5px 0 0 -11.5px; box-sizing: border-box; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--accent) 80%, transparent); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 2px, color-mix(in srgb, var(--accent) 45%, transparent) 6px, color-mix(in srgb, var(--accent) 18%, transparent) 75%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); }
+#zm-hud.nv-glide[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: none; border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
 #zm-hud.nv-glide[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%); }
 /* drop: the glass bead travels by transform instead of the per-dot top positions */
 #zm-hud.nv-glide[data-nav="drop"] .hud-bead { top: 0; margin-top: -13px; transition: opacity .25s; will-change: transform; }
 /* dock: the lime marker rides the magnified dot */
-#zm-hud .nv-ind-dock { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.55); }
+#zm-hud .nv-ind-dock { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 55%, transparent); }
 #zm-hud.nv-glide:is([data-nav="dock"], [data-nav="dockline"]) li:has(.hud-dot[aria-current="true"])::before { background-color: transparent; }
 /* thread: the bead slides along the line */
-#zm-hud .nv-ind-bead { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
+#zm-hud .nv-ind-bead { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 1.5px var(--on-accent); }
 #zm-hud.nv-glide[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: none; box-shadow: none; }
 /* odometer: the long lime tick slides down the ruler */
-#zm-hud .nv-ind-tick { left: auto; right: 0; width: 20px; height: 3px; margin-top: -1.5px; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.45); transform-origin: 100% 50%; }
-#zm-hud.nv-glide[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(.55); background: var(--lime-tint); height: 2px; top: 6px; }
+#zm-hud .nv-ind-tick { left: auto; right: 0; width: 20px; height: 3px; margin-top: -1.5px; background: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 45%, transparent); transform-origin: 100% 50%; }
+#zm-hud.nv-glide[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(.55); background: var(--paper); height: 2px; top: 6px; }
 @media (prefers-reduced-motion: reduce) { #zm-hud .nv-ind { transition: none; } }
 
 
 /* Places map (sections/Map.astro + scripts/places-map.ts) */
 .places { display: flex; flex-wrap: wrap; gap: 28px; }
 .places-main { flex: 2 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
-.places-map { min-width: 0; height: min(520px, 62vh); min-height: 320px; position: relative; background-color: #10180e; box-shadow: 0 16px 34px rgba(4,8,3,.5), inset 0 0 0 2px var(--onyx-3); overflow: hidden; border-radius: 4px; }
+.places-map { min-width: 0; height: min(520px, 62vh); min-height: 320px; position: relative; background-color: var(--bg); box-shadow: 0 16px 34px color-mix(in srgb, var(--shadow) 50%, transparent), inset 0 0 0 2px var(--line); overflow: hidden; border-radius: 4px; }
 .places-fallback { margin: 0; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); }
-.places-map.leaflet-container { background-color: #10180e; font-family: 'JetBrains Mono', monospace; }
+.places-map.leaflet-container { background-color: var(--bg); font-family: 'JetBrains Mono', monospace; }
 /* OSM tiles recoloured: grey, then a hard contrast so water sinks to near-black and land sits at grape. */
 .places-map .leaflet-tile-pane { filter: grayscale(1) brightness(.48) contrast(2.6) sepia(.55) hue-rotate(212deg) saturate(1.9); }
-.places-map .leaflet-control-attribution.leaflet-control { background: rgba(13,22,11,.8); color: var(--muted); font-size: 10px; }
-.places-map .leaflet-control-attribution a { color: var(--lime-tint); }
+/* Colour themes (html[data-theme], scripts/theme.ts): grey tiles (dark land and water on a dark page, light on a light
+   one), tinted by a colour-blend layer of the theme surface above the tiles and below the pins. */
+html[data-theme] .places-map { isolation: isolate; }
+html[data-theme] .places-map .leaflet-tile-pane { filter: grayscale(1) brightness(.48) contrast(2.6); }
+html[data-theme-mode="light"] .places-map .leaflet-tile-pane { filter: grayscale(1) brightness(1.15) contrast(1.6); }
+html[data-theme] .places-map::after { content: ""; position: absolute; inset: 0; z-index: 450; pointer-events: none; background: var(--surface); mix-blend-mode: color; }
+/* the collage map card: its baked map image, recoloured to the theme surface by luminosity */
+html[data-theme] .mapcard { background-color: var(--surface) !important; background-blend-mode: luminosity; }
+.places-map .leaflet-control-attribution.leaflet-control { background: color-mix(in srgb, var(--bg) 80%, transparent); color: var(--muted); font-size: 10px; }
+.places-map .leaflet-control-attribution a { color: var(--text); }
 .places-map .leaflet-bar { border: 0; box-shadow: none; }
-.places-map .leaflet-bar a { background: var(--onyx-2); color: var(--lime); border-bottom: 1px solid var(--onyx-3); width: 34px; height: 34px; line-height: 34px; }
-.places-map .leaflet-bar a:hover { background: var(--onyx-3); }
-.places-map .leaflet-bar a.leaflet-disabled { background: var(--onyx-2); color: var(--onyx-3); }
+.places-map .leaflet-bar a { background: var(--bg-2); color: var(--accent-ink); border-bottom: 1px solid var(--line); width: 34px; height: 34px; line-height: 34px; }
+.places-map .leaflet-bar a:hover { background: var(--line); }
+.places-map .leaflet-bar a.leaflet-disabled { background: var(--bg-2); color: var(--line); }
 .places-pin { background: none; border: 0; }
-.places-pin i { position: relative; display: block; width: 14px; height: 14px; margin: 1px; border-radius: 50%; background: var(--grape-lite); border: 3px solid var(--onyx); transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s, background-color .18s; }
-.places-pin.is-home i { background: var(--lime); }
+.places-pin i { position: relative; display: block; width: 14px; height: 14px; margin: 1px; border-radius: 50%; background: var(--deco); border: 3px solid var(--bg); transition: transform .18s cubic-bezier(.3,1.6,.5,1), box-shadow .18s, background-color .18s; }
+.places-pin.is-home i { background: var(--accent); }
 .places-pin.is-ph i { opacity: .75; }
-.places-pin:hover i, .places-pin:focus-visible i, .places-pin.is-on i { transform: scale(1.35); background: var(--lime); box-shadow: 0 0 0 5px rgba(194,249,112,.25); }
-.places-pin.is-home i::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--lime); opacity: 0; animation: places-ping 2.4s ease-out infinite; }
+.places-pin:hover i, .places-pin:focus-visible i, .places-pin.is-on i { transform: scale(1.35); background: var(--accent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent); }
+.places-pin.is-home i::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: places-ping 2.4s ease-out infinite; }
 @keyframes places-ping { from { transform: scale(.6); opacity: .7; } to { transform: scale(1.9); opacity: 0; } }
-.leaflet-tooltip.places-tip { background: var(--lime); color: var(--onyx); border: 0; border-radius: 999px; box-shadow: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; }
+.leaflet-tooltip.places-tip { background: var(--accent); color: var(--on-accent); border: 0; border-radius: 999px; box-shadow: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; }
 .leaflet-tooltip.places-tip::before { display: none; }
-.places-card { font-family: var(--font-display); position: relative; margin-left: 18px; width: min(420px, calc(100% - 36px)); box-sizing: border-box; padding: 16px 18px 18px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(-1.5deg); animation: places-in .22s cubic-bezier(.3,1.4,.5,1); }
+.places-card { font-family: var(--font-display); position: relative; margin-left: 18px; width: min(420px, calc(100% - 36px)); box-sizing: border-box; padding: 16px 18px 18px; background: var(--paper); color: var(--ink); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); transform: rotate(-1.5deg); animation: places-in .22s cubic-bezier(.3,1.4,.5,1); }
 .places-card[hidden] { display: none; }
 .places-card h3 { margin: 0 0 6px; font-size: 24px; line-height: 1.1; font-weight: 800; letter-spacing: -0.01em; }
-.places-when { margin: 0 0 4px; font-size: 11px; color: var(--grape); }
+.places-when { margin: 0 0 4px; font-size: 11px; color: var(--ink-surface); }
 .places-note { margin: 0; font-size: 16px; line-height: 1.45; }
-.places-x { position: absolute; right: 6px; top: 4px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--onyx); font-size: 22px; cursor: pointer; }
+.places-x { position: absolute; right: 6px; top: 4px; width: 32px; height: 32px; border: 0; background: transparent; color: var(--ink); font-size: 22px; cursor: pointer; }
 @keyframes places-in { from { opacity: 0; transform: rotate(-1.5deg) translateY(8px); } }
 .places-list { flex: 1 1 280px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
-.places-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 4px; border: 0; background: transparent; color: var(--lime-tint); font: inherit; font-size: 18px; text-align: left; cursor: pointer; transition: color .15s, padding .18s; }
+.places-list button { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 4px; border: 0; background: transparent; color: var(--text); font: inherit; font-size: 18px; text-align: left; cursor: pointer; transition: color .15s, padding .18s; }
 .places-list button .mono { font-size: 13px; color: var(--muted); }
-.places-list button[aria-pressed="true"] { color: var(--lime); padding-left: 12px; }
+.places-list button[aria-pressed="true"] { color: var(--accent-ink); padding-left: 12px; }
 @media (prefers-reduced-motion: reduce) { .places-pin i, .places-card, .places-list button { transition: none; animation: none; } .places-pin.is-home i::after { animation: none; } }
 /* Collage map card (MapScrap): pins over the baked OpenStreetMap image. */
-.mappin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--grape-lite); box-shadow: 0 0 0 2px var(--onyx); }
-.mappin.is-home { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--lime); box-shadow: 0 0 0 2px var(--onyx), 0 0 0 4px rgba(194,249,112,.35); }
-.mapcredit { position: absolute; right: 4px; bottom: 2px; font-size: 6px; line-height: 1; color: rgba(194,249,112,.55); }
+.mappin { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--deco); box-shadow: 0 0 0 2px var(--bg); }
+.mappin.is-home { width: 12px; height: 12px; margin: -6px 0 0 -6px; background: var(--accent); box-shadow: 0 0 0 2px var(--on-accent), 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
+.mapcredit { position: absolute; right: 4px; bottom: 2px; font-size: 6px; line-height: 1; color: color-mix(in srgb, var(--accent) 55%, transparent); }
 
 /* ---------- Magic UI ports (plain CSS + small vanilla modules; nothing runs while idle) ---------- */
 /* Interactive hover button: after Magic UI Interactive Hover Button (MIT). The dot sits in the left padding so the
    pill keeps its size; on hover it floods the pill, the label slides out and a copy with an arrow slides in. */
-.ihb { position: relative; overflow: hidden; isolation: isolate; --ihb-flood: var(--onyx); --ihb-fg: var(--lime); --ihb-dot: 8px; --ihb-dot-x: 9px; --ihb-scale: 52; --ihb-from: 48px; }
-.ihb--outline { --ihb-flood: var(--lime); --ihb-fg: var(--onyx); --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 70; --ihb-from: -48px; }
+.ihb { position: relative; overflow: hidden; isolation: isolate; --ihb-flood: var(--on-accent); --ihb-fg: var(--accent); --ihb-dot: 8px; --ihb-dot-x: 9px; --ihb-scale: 52; --ihb-from: 48px; }
+.ihb--outline { --ihb-flood: var(--accent); --ihb-fg: var(--on-accent); --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 70; --ihb-from: -48px; }
 .ihb--sm { --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 60; }
 .ihb-dot { position: absolute; left: var(--ihb-dot-x); top: 50%; z-index: -1; width: var(--ihb-dot); height: var(--ihb-dot); margin-top: calc(var(--ihb-dot) / -2); border-radius: 50%; background: var(--ihb-flood); pointer-events: none; transform: scale(0); } /* hidden at rest; only the hover flood shows */
 .ihb-label { display: inline-block; }
@@ -283,8 +303,8 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 
 /* Spotlight cards: after Magic UI Magic Card (MIT). scripts/magic-card.ts writes --mx/--my on pointermove;
    ::before is the glow under the content, ::after the rim. Both only fade in on hover. */
-.mc { isolation: isolate; --mc-glow: rgba(194,249,112,.55); --mc-warm: rgba(255,214,140,.28); --mc-rim: #7DB82F; }
-.mc--dark { --mc-glow: rgba(194,249,112,.10); --mc-warm: rgba(194,249,112,.04); --mc-rim: rgba(194,249,112,.55); }
+.mc { isolation: isolate; --mc-glow: color-mix(in srgb, var(--accent) 55%, transparent); --mc-warm: rgba(255,214,140,.28); --mc-rim: color-mix(in srgb, var(--accent) 72%, var(--ink)); }
+.mc--dark { --mc-glow: color-mix(in srgb, var(--accent) 10%, transparent); --mc-warm: color-mix(in srgb, var(--accent) 4%, transparent); --mc-rim: color-mix(in srgb, var(--accent) 55%, transparent); }
 .mc::before, .mc::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; }
 .mc::before { z-index: -1; background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--mc-glow), var(--mc-warm) 45%, transparent 100%); }
 .mc::after { z-index: 3; padding: 1.5px; background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), var(--mc-rim), transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }

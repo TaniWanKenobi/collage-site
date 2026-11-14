@@ -29,8 +29,8 @@ const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 3
         <span aria-hidden="true" class="proj-tape"></span>
         <Model3D id={m.id as 'ice3dp' | 'tamagotchi'} kind={Astro.props.back ? 'page' : 'flow'} {...VIEW[m.id as keyof typeof VIEW]} />
         <h3 style="margin: 6px 0 0; font-weight: 800; font-size: 24px; line-height: 1.1">{m.title}</h3>
-        <p style="margin: 0; font-size: 14px; color: var(--onyx-3)">{m.caption}</p>
-        <a class="mono" href={m.repo} style="font-size: 13px; color: var(--grape)">{m.repo.replace('https://', '')} →</a>
+        <p style="margin: 0; font-size: 14px; color: color-mix(in srgb, var(--ink) 70%, var(--ink-2))">{m.caption}</p>
+        <a class="mono" href={m.repo} style="font-size: 13px; color: var(--ink-surface)">{m.repo.replace('https://', '')} →</a>
       </article>
     ))}
   </div>
@@ -42,7 +42,7 @@ const VIEW = { ice3dp: { elev: 22, azim: 35, fill: 1.06 }, tamagotchi: { elev: 3
           ? <img src={`${base}/${p.data.image}`} alt="" class="proj-shot" loading="lazy" />
           : <img src={phShots[i % phShots.length]} alt="" class="proj-shot" loading="lazy" data-ph style="object-fit: cover" />}
         <h3 style="margin: 6px 0 0; font-weight: 800; font-size: 24px; line-height: 1.1">{p.data.title}</h3>
-        <p style="margin: 0; font-size: 14px; color: var(--grape)">{p.data.blurb}</p>
+        <p style="margin: 0; font-size: 14px; color: var(--ink-surface)">{p.data.blurb}</p>
         <ul class="tags">{p.data.tags.map((t) => <li class="mono">{t}</li>)}</ul>
       </article>
     ))}

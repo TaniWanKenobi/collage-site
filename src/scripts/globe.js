@@ -2,9 +2,11 @@
 // on a plain 2D canvas. Same geometry, tilt, spin and camera as the old React Three Fiber version, at
 // ~3 KB instead of ~300 KB gzipped (three + React). Desktop only, loaded after the page is idle.
 import { worldRect, onScreen, zoomDpr, prefersStatic, whenIdle } from './slot-view.js';
+import { readTheme, onTheme } from './theme-vars';
 
-const GRAPE_LITE = '#8F86C0';
-const LIME = '#C2F970';
+// Line and marker colours: the theme's deco and accent (scripts/theme.ts), read at start and on a switch.
+let GRAPE_LITE = '', LIME = '';
+const useColors = (c) => { GRAPE_LITE = c.deco; LIME = c.accent; };
 const SIZE = 294; // CSS px of the slot
 const CAM_Z = 3.05, FOV = 40; // the old three.js camera
 const TILT_X = 0.35, TILT_Z = -0.18; // group rotation [0.35, 0, -0.18] (Euler XYZ)
@@ -111,6 +113,8 @@ function mount(slot) {
   }
 
   window.addEventListener('zoomcam', sync);
+  // A theme switch: redraw the current frame once (no rAF; a running spin carries on as before).
+  onTheme(() => { if (dpr) draw(); });
   let lastInput = performance.now();
   const wake = () => { lastInput = performance.now(); if (visible && !raf) raf = requestAnimationFrame(frame); };
   for (const ev of ['pointermove', 'pointerdown', 'wheel', 'scroll', 'keydown', 'touchstart']) window.addEventListener(ev, wake, { passive: true, capture: true });
@@ -120,5 +124,7 @@ function mount(slot) {
 
 export function initGlobe() {
   if (prefersStatic()) return;
+  useColors(readTheme());
+  onTheme(useColors);
   whenIdle(() => document.querySelectorAll('[data-three-slot="globe"]').forEach(mount));
 }

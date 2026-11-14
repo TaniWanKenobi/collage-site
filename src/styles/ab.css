@@ -12,7 +12,7 @@ html[data-ab-hover="a"] [data-hover-list] > :is(button, a),
 html[data-ab-hover="a"] [data-hover-list] > li:not(:has(> :is(button, a))) { transition: color .15s, padding .18s; }
 html[data-ab-hover="a"] [data-hover-list] > li > :is(button, a):is(:hover, :focus-visible),
 html[data-ab-hover="a"] [data-hover-list] > :is(button, a):is(:hover, :focus-visible),
-html[data-ab-hover="a"] [data-hover-list] > li:not(:has(> :is(button, a))):hover { color: var(--lime); padding-left: 12px; }
+html[data-ab-hover="a"] [data-hover-list] > li:not(:has(> :is(button, a))):hover { color: var(--accent-ink); padding-left: 12px; }
 
 /* Variant B: one rounded onyx-3 pill behind the hovered/focused row, sliding between rows on a spring
    (ported from hexaa.sh's AnimatedBackground, CC0). Positioned by scripts/ab.ts in the list's own coordinates. */
@@ -24,8 +24,8 @@ html[data-ab-hover="b"] [data-hover-list] > :is(button, a):focus-visible { outli
   width: calc(var(--ab-w, 0px) + 2 * var(--ab-hl-pad, 10px));
   height: var(--ab-h, 0px);
   transform: translate(calc(var(--ab-x, 0px) - var(--ab-hl-pad, 10px)), var(--ab-y, 0px));
-  border-radius: 12px; background-color: var(--ab-hl-bg, var(--onyx-3));
-  box-shadow: inset 0 0 0 1px rgba(194,249,112,.08);
+  border-radius: 12px; background-color: var(--ab-hl-bg, var(--line));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 8%, transparent);
   opacity: 0;
   transition: transform .5s var(--ab-spring), width .5s var(--ab-spring), height .5s var(--ab-spring), opacity .18s ease;
 }
@@ -35,56 +35,71 @@ html:not([data-ab-hover="b"]) .ab-hl { display: none; }
 @media (prefers-reduced-motion: reduce) { .ab-hl { transition: opacity .12s linear; } }
 
 /* ---------- The floating A/B pill (bottom-left: clear of the right-hand HUD and the top-left "Tanishq" pill) ---------- */
-.ab-tool { position: fixed; left: 10px; bottom: 8px; z-index: 2000; font-family: var(--font-mono); font-size: 12px; line-height: 1.3; color: var(--lime-tint); }
-.ab-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px dashed var(--lime); border-radius: 999px; background-color: var(--onyx-2); color: var(--lime); font: inherit; font-weight: 500; cursor: pointer; box-shadow: 0 14px 30px rgba(4,8,3,.5); }
-.ab-toggle:hover, .ab-toggle[aria-expanded="true"] { background-color: var(--onyx-3); }
-.ab-toggle:focus-visible, .ab-panel button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
-.ab-panel { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: min(320px, calc(100vw - 28px)); box-sizing: border-box; padding: 12px 14px 14px; border: 1px solid var(--onyx-3); border-radius: 14px; background-color: var(--onyx-2); box-shadow: 0 14px 30px rgba(4,8,3,.5); }
+.ab-tool { position: fixed; left: 10px; bottom: 8px; z-index: 2000; font-family: var(--font-mono); font-size: 12px; line-height: 1.3; color: var(--text); }
+.ab-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; border: 1px dashed var(--accent); border-radius: 999px; background-color: var(--bg-2); color: var(--accent-ink); font: inherit; font-weight: 500; cursor: pointer; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 50%, transparent); }
+.ab-toggle:hover, .ab-toggle[aria-expanded="true"] { background-color: var(--line); }
+.ab-toggle:focus-visible, .ab-panel button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ab-panel { position: absolute; left: 0; bottom: calc(100% + 8px); width: max-content; max-width: min(320px, calc(100vw - 28px)); box-sizing: border-box; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 14px; background-color: var(--bg-2); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 50%, transparent); }
 .ab-panel[hidden] { display: none; }
-.ab-panel h2 { margin: 0 0 2px; font: inherit; font-size: 12px; color: var(--lime); }
+.ab-panel h2 { margin: 0 0 2px; font: inherit; font-size: 12px; color: var(--accent-ink); }
 .ab-note { margin: 0 0 10px; font-size: 10px; color: var(--muted); }
-.ab-test { margin: 0; padding: 8px 0 0; border: 0; border-top: 1px solid var(--onyx-3); }
+.ab-test { margin: 0; padding: 8px 0 0; border: 0; border-top: 1px solid var(--line); }
 .ab-test + .ab-test { margin-top: 8px; }
-.ab-test legend { padding: 0; font-size: 11px; color: var(--lime-tint); }
+.ab-test legend { padding: 0; font-size: 11px; color: var(--text); }
 .ab-opts { display: flex; gap: 6px; margin-top: 6px; }
-.ab-opts button { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 6px 9px; border: 1px solid var(--onyx-3); border-radius: 10px; background: transparent; color: var(--lime-tint); font: inherit; font-size: 10px; text-align: left; cursor: pointer; }
+.ab-opts button { flex: 1 1 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; padding: 6px 9px; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: var(--text); font: inherit; font-size: 10px; text-align: left; cursor: pointer; }
 .ab-opts button b { font-size: 13px; }
-.ab-opts button[aria-pressed="true"] { border-color: var(--lime); background-color: var(--lime); color: var(--onyx); }
-.ab-opts button:not([aria-pressed="true"]):hover { background-color: var(--onyx-3); }
+.ab-opts button[aria-pressed="true"] { border-color: var(--accent); background-color: var(--accent); color: var(--on-accent); }
+.ab-opts button:not([aria-pressed="true"]):hover { background-color: var(--line); }
 
 /* ---------- "Looks" picker (scripts/looks.ts): URL-driven variants, inside the A/B panel ---------- */
 .ab-panel:has(.looks) { max-height: calc(100vh - 60px); overflow-y: auto; max-width: min(340px, calc(100vw - 28px)); }
-.looks { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--lime); }
+.looks { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--accent); }
 .looks:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 .looks-group + .looks-group { margin-top: 8px; }
 .looks-opts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-.looks-opts button, .looks-reset { padding: 4px 9px; border: 1px solid var(--onyx-3); border-radius: 999px; background: transparent; color: var(--lime-tint); font: inherit; font-size: 11px; cursor: pointer; }
-.looks-opts button[aria-pressed="true"] { border-color: var(--lime); background-color: var(--lime); color: var(--onyx); }
-.looks-opts button:not([aria-pressed="true"]):hover, .looks-reset:hover { background-color: var(--onyx-3); }
+.looks-opts button, .looks-reset { padding: 4px 9px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 11px; cursor: pointer; }
+.looks-opts button[aria-pressed="true"] { border-color: var(--accent); background-color: var(--accent); color: var(--on-accent); }
+.looks-opts button:not([aria-pressed="true"]):hover, .looks-reset:hover { background-color: var(--line); }
 .looks-opts .looks-extra { border-style: dashed; }
 .looks-reset { margin-top: 10px; color: var(--muted); }
-.looks button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.looks button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Scroll smoothing: range bar + number box + preset dots on the track (scripts/looks.ts smoothControl) */
 .looks-smooth { --ls-fill: 22%; margin-top: 8px; }
 .ls-row { display: flex; align-items: center; gap: 10px; }
 .ls-track { position: relative; flex: 1 1 auto; min-width: 180px; height: 22px; }
 .ls-track input[type=range] { position: absolute; inset: 0; width: 100%; height: 22px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }
-.ls-track input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--lime) var(--ls-fill), var(--onyx-3) var(--ls-fill)); }
-.ls-track input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--lime) var(--ls-fill), var(--onyx-3) var(--ls-fill)); }
-.ls-track input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--lime); border: 2px solid var(--onyx); box-shadow: 0 0 0 1px var(--lime); position: relative; z-index: 2; }
-.ls-track input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--lime); border: 2px solid var(--onyx); box-shadow: 0 0 0 1px var(--lime); }
-.ls-track input[type=range]:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 6px; }
+.ls-track input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--accent) var(--ls-fill), var(--line) var(--ls-fill)); }
+.ls-track input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--accent) var(--ls-fill), var(--line) var(--ls-fill)); }
+.ls-track input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%; background: var(--accent); border: 2px solid var(--on-accent); box-shadow: 0 0 0 1px var(--accent); position: relative; z-index: 2; }
+.ls-track input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--on-accent); box-shadow: 0 0 0 1px var(--accent); }
+.ls-track input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 .ls-dots { position: absolute; inset: 0; pointer-events: none; }
-.ls-dot { position: absolute; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; padding: 0; border: 1.5px solid var(--lime-tint); border-radius: 50%; background: var(--onyx-2); cursor: pointer; pointer-events: auto; z-index: 1; }
-.ls-dot:hover { background: var(--lime-tint); }
-.ls-dot[aria-pressed="true"] { border-color: var(--lime); background: var(--lime); }
-.ls-dot:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+.ls-dot { position: absolute; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; padding: 0; border: 1.5px solid var(--text); border-radius: 50%; background: var(--bg-2); cursor: pointer; pointer-events: auto; z-index: 1; }
+.ls-dot:hover { background: var(--paper); }
+.ls-dot[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); }
+.ls-dot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .ls-names { position: relative; height: 14px; margin: 1px 0; margin-right: calc(10px + 74px); /* line up under the track, not the number box */ }
 .ls-name { position: absolute; top: 0; transform: translateX(-50%); padding: 0 2px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 9.5px; white-space: nowrap; cursor: pointer; }
-.ls-name:hover, .ls-name[aria-pressed="true"] { color: var(--lime); }
+.ls-name:hover, .ls-name[aria-pressed="true"] { color: var(--accent-ink); }
 .ls-name[data-ms="0"] { transform: none; left: 0 !important; }
 .ls-num { display: inline-flex; align-items: center; gap: 4px; width: 74px; flex: 0 0 auto; color: var(--muted); font-size: 10px; }
-.ls-num input { width: 48px; padding: 3px 6px; border: 1px solid var(--onyx-3); border-radius: 8px; background: var(--onyx); color: var(--lime-tint); font: inherit; font-size: 11px; text-align: right; -moz-appearance: textfield; }
+.ls-num input { width: 48px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-size: 11px; text-align: right; -moz-appearance: textfield; }
 .ls-num input::-webkit-inner-spin-button, .ls-num input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.ls-num input:focus-visible { outline: 2px solid var(--lime); outline-offset: 1px; }
+.ls-num input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Theme: preset chips with their palette as swatches, and the paste box (scripts/looks.ts themeControl) */
+.looks-themes button { display: inline-flex; align-items: center; gap: 6px; }
+.looks-themes button[hidden] { display: none; }
+.lt-sw { display: inline-flex; }
+.lt-sw i { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 45%, transparent); }
+.lt-sw i + i { margin-left: -3px; }
+.looks-themes button[aria-pressed="true"] .lt-sw i { box-shadow: 0 0 0 1px var(--on-accent); }
+.lt-paste { margin-top: 6px; }
+.lt-paste input { box-sizing: border-box; width: 100%; padding: 5px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; font-size: 11px; }
+.lt-paste input::placeholder { color: var(--muted); opacity: 1; }
+.lt-paste input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.lt-paste input[aria-invalid="true"] { border-color: var(--accent); }
+.lt-msg { margin: 3px 0 0; min-height: 0; font-size: 10px; color: var(--accent-ink); }
+.lt-msg:empty { display: none; }

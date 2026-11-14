@@ -10,11 +10,9 @@ uniform float u_z;
 uniform vec2 u_pan;
 out vec4 o_col;
 
-const vec3 ONYX  = vec3(0.051, 0.086, 0.043); // #0D160B
-const vec3 ONYX2 = vec3(0.090, 0.137, 0.082); // #172315
-const vec3 LIME  = vec3(0.761, 0.976, 0.439); // #C2F970
-const vec3 TINT  = vec3(0.937, 0.992, 0.847); // #EFFDD8
-const vec3 LAV   = vec3(0.561, 0.525, 0.753); // #8F86C0 (use sparingly)
+// Palette (sRGB 0..1), set by shader-bg.ts from the colour theme (scripts/theme-vars.ts): ONYX = bg, ONYX2 = bg-2,
+// LIME = accent, TINT = text, LAV = deco (use sparingly). Default theme: #0D160B, #172315, #C2F970, #EFFDD8, #8F86C0.
+uniform vec3 ONYX, ONYX2, LIME, TINT, LAV;
 
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p) {

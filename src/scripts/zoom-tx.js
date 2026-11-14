@@ -128,7 +128,7 @@ export function initTx(o) {
       var R = e * (Math.hypot(w, h) / 2 + 4);
       put(pg, 'clipPath', mid ? 'circle(' + r2(R) + 'px at 50% 50%)' : '', 'k' + k);
       put(x.ring, 'display', mid ? 'block' : 'none', 'rd' + k);
-      if (mid) put(x.ring, 'background', 'radial-gradient(circle at 50% 50%, transparent ' + r2(R - 5) + 'px, #C2F970 ' + r2(R - 4) + 'px, #C2F970 ' + r2(R) + 'px, transparent ' + r2(R) + 'px)', 'rb' + k);
+      if (mid) put(x.ring, 'background', 'radial-gradient(circle at 50% 50%, transparent ' + r2(R - 5) + 'px, var(--accent) ' + r2(R - 4) + 'px, var(--accent) ' + r2(R) + 'px, transparent ' + r2(R) + 'px)', 'rb' + k);
     } else if (name === 'dither') {
       // Two offset dot grids (10px cells, the second shifted half a cell): sparse dots, then the gaps, then solid.
       var ra = clamp(e / 0.65, 0, 1) * 5.4, rb = clamp((e - 0.35) / 0.65, 0, 1) * 5.4;

@@ -26,7 +26,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
     <span></span>
     <nav aria-label="Collage" class="mono" style="display: flex; align-items: center; gap: 4px 22px; font-size: 13px">
       {NAV.map(([k, label]) => <a href={url(k)} data-fly={k} style="color: var(--muted); text-decoration: none">{label}</a>)}
-      <a href={url('contact')} data-fly="contact" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--lime); color: var(--onyx); font-weight: 500; text-decoration: none" class="ihb ihb--sm"><span aria-hidden="true" class="ihb-dot"></span><span class="ihb-label">Email me</span><span aria-hidden="true" class="ihb-alt">Email me <span>→</span></span></a>
+      <a href={url('contact')} data-fly="contact" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-weight: 500; text-decoration: none" class="ihb ihb--sm"><span aria-hidden="true" class="ihb-dot"></span><span class="ihb-label">Email me</span><span aria-hidden="true" class="ihb-alt">Email me <span>→</span></span></a>
     </nav>
   </div>
 )}
@@ -37,8 +37,8 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <Tagline mode={mode} />
 {desk && (
   <>
-    <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--lime-tint)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
-    <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(114px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--lime)">scroll to zoom in ↓</p>
+    <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--text)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
+    <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(114px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--accent-ink)">scroll to zoom in ↓</p>
   </>
 )}
 <Trophy mode={mode} />

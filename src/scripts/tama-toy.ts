@@ -7,6 +7,7 @@ import {
   CanvasTexture, Mesh, MeshBasicMaterial, PlaneGeometry, CylinderGeometry, Raycaster, Vector2, NearestFilter, SRGBColorSpace,
   type Object3D, type PerspectiveCamera,
 } from 'three';
+import { readTheme, onTheme } from './theme-vars';
 
 interface Opts { el: HTMLElement; canvas: HTMLCanvasElement; camera: PerspectiveCamera; model: Object3D; redraw: () => void }
 
@@ -21,7 +22,8 @@ const BTN_Y = 0.0125, BTN_R = 0.0055;
 
 // The OLED: 96 x 64 logical pixels, drawn 4x so the texture stays crisp at any zoom.
 const PW = 96, PH = 64, K = 4;
-const INK = '#0D160B', LIT = '#C2F970';
+// Screen colours: the theme's ink and accent (scripts/theme.ts); a theme switch repaints the screen once.
+let INK = readTheme().ink, LIT = readTheme().accent;
 
 type Item = 'FEED' | 'PLAY' | 'WORK' | 'HI';
 const MENU: Item[] = ['FEED', 'PLAY', 'WORK', 'HI'];
@@ -184,6 +186,8 @@ export function attachToy({ el, camera, model, redraw }: Opts) {
   // The screen animates a few times a second while the page is visible. The sway already redraws the model, which
   // picks up the new texture, so this never wakes the render loop by itself (it sleeps after 20 s without input).
   draw(performance.now());
+  // A theme switch: repaint the screen; model-stage.ts redraws the model once for the same event.
+  onTheme((c) => { INK = c.ink; LIT = c.accent; draw(performance.now()); });
   setInterval(() => { if (!document.hidden) draw(performance.now()); }, reduce ? 1000 : 125);
   // Needs drift slowly, like a real pet.
   setInterval(() => { hunger = Math.max(0, hunger - 1); joy = Math.max(0, joy - 1); }, 90000);

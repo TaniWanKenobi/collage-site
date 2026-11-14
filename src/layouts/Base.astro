@@ -30,6 +30,14 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
       });
     })();
   </script>
+  <!-- ?theme=: paint the last-resolved theme colours before first paint (scripts/theme.ts stores them; it re-applies
+       them when it loads, and resolves a theme it has not stored yet). -->
+  <script is:inline>
+    try {
+      var tq = new URLSearchParams(location.search).get('theme'), ts = tq && JSON.parse(localStorage.getItem('theme-vars') || 'null');
+      if (ts && ts.spec === tq) { var de = document.documentElement; de.style.cssText += ';' + ts.css; de.setAttribute('data-theme', ts.name); de.setAttribute('data-theme-mode', ts.mode); }
+    } catch (e) {}
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{title}</title>
   <meta name="description" content={description}>
@@ -72,6 +80,8 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
   <script>import '../scripts/ab'; import '../scripts/looks';</script>
   <!-- ?bg=<name>: shader background (scripts/shader-bg.ts), loaded only when asked for. -->
   <script>if (/[?&]bg=/.test(location.search)) import('../scripts/shader-bg');</script>
+  <!-- ?theme=<preset|custom:HEX-HEX-HEX>: colour theme (scripts/theme.ts), loaded only when asked for. -->
+  <script>if (/[?&]theme=/.test(location.search)) import('../scripts/theme');</script>
   <!-- ?music=<track> / ?sfx=<set>: sounds (scripts/sound.ts), loaded only when asked for. -->
   <script>if (/[?&](music|sfx)=/.test(location.search)) import('../scripts/sound');</script>
 </body>

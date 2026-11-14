@@ -18,7 +18,8 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { worldRect, onScreen } from './slot-view.js';
-import { prepare, applyStyle, contactBlob, setLineFade, DEFAULT_STYLE } from './toon.js';
+import { prepare, applyStyle, contactBlob, setLineFade, setThemeColors, setBlobColor, DEFAULT_STYLE } from './toon.js';
+import { readTheme, onTheme, themed, rgbOf, rgba, type Theme } from './theme-vars';
 
 type Kind = 'world' | 'page' | 'flow';
 // key/prog: which piece the camera is heading for, and how far into it (0 = overview, 1 = landed).
@@ -32,6 +33,8 @@ interface Slot {
   pivot: Group | null; sway: boolean;
   // World slots draw their own drop shadow (see SHADOW): hover state, eased like the old CSS transition.
   hovFrom: number; hovTo: number; hovAt: number;
+  // A colour theme changed: draw once even if the slot is asleep or between spin frames.
+  repaint?: boolean;
 }
 
 // World slots (collage objects): the soft drop shadow is drawn into the 2D canvas with the model, not a CSS
@@ -45,6 +48,19 @@ const SHADOW = {
   hover: { dy: 24, blur: 22, a: 0.55, glow: 18, glowA: 0.18 }, // was ...(0 24px 22px rgba(4,8,3,.55)) drop-shadow(0 0 18px rgba(194,249,112,.18))
   ms: 250,
 };
+// Colour theme (scripts/theme.ts): the toon materials, the contact blob and the drawn shadow/glow follow it.
+// On onyx the shadow colour is barely darker than the page. On a theme's lighter page it shows much more, so the drawn
+// shadow is lighter (shadowK) and the contact blob kept near-invisible, as on onyx (the model's frame clips the blob,
+// which would show as a hard edge).
+let shadowRgb = '4,8,3', glowRgb = '194,249,112', shadowK = 1;
+function useTheme(c: Theme, on: boolean) {
+  const light = document.documentElement.getAttribute('data-theme-mode') === 'light';
+  setThemeColors(on ? { accent: c.accent, surface: c.surface, bg: c.bg } : null);
+  shadowRgb = rgbOf(c.shadow).join(',');
+  glowRgb = rgbOf(c.accent).join(',');
+  shadowK = !on ? 1 : light ? 0.55 : 0.8;
+  setBlobColor(rgba(c.shadow, !on ? 0.55 : light ? 0.07 : 0.2));
+}
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const hoverAmt = (s: Slot, t: number) => {
   const p = reduceMotion ? 1 : Math.min(1, (t - s.hovAt) / SHADOW.ms), e = p * p * (3 - 2 * p);
@@ -105,6 +121,8 @@ function init(): boolean {
     kick();
   }, { rootMargin: '100px' });
   window.addEventListener('zoomcam', onCam);
+  useTheme(readTheme(), themed());
+  onTheme((c, d) => { useTheme(c, !!d.spec); slots.forEach((s) => { s.repaint = true; }); kick(); });
   window.addEventListener('resize', () => { slots.forEach((s) => { if (s.kind === 'world') s.wr = worldRect(s.el); }); kick(); });
   document.addEventListener('visibilitychange', kick);
   const wake = () => { lastInput = performance.now(); kick(); };
@@ -251,7 +269,7 @@ function tick() {
     if (!s.active) { s.drawn = 0; continue; }
     const user = s.dragging || (t < s.userUntil && !moving);
     // Asleep (no input for SLEEP_MS): keep the last frame and stop the loop.
-    if (s.drawn && !user && t - lastInput > SLEEP_MS) continue;
+    if (s.drawn && !user && !s.repaint && t - lastInput > SLEEP_MS) continue;
     again = true; // auto-rotate keeps visible slots moving
     // Camera in motion (scroll or fly-to): no WebGL work at all, the slot keeps its last frame and CSS scales it.
     // On a weak integrated GPU the spin was what made scrolling stutter. Exceptions: a drag, and the model the
@@ -261,7 +279,7 @@ function tick() {
     // Camera in motion: the models keep spinning, but at their current canvas size (CSS scales it), so a zoom
     // never reallocates canvases mid-flight. They pick up the sharp size for the new zoom once the camera rests.
     // A drag redraws every frame when a draw is cheap, and leaves frames free in between when it is not.
-    if (s.drawn && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) continue;
+    if (s.drawn && !s.repaint && (user ? t - s.drawn < Math.min(s.cost * 1.5, 100) - 2 : !spinDue)) continue;
     const cw = s.el.offsetWidth, ch = s.el.offsetHeight;
     if (!cw || !ch) continue;
     if (!s.drawn && !s.el.classList.contains('is-live') && firsts++) continue;
@@ -303,7 +321,7 @@ function tick() {
         s.camera.lookAt(f.multiplyScalar(m));
       }
     }
-    s.drawn = t; s.w = w; s.h = h;
+    s.drawn = t; s.w = w; s.h = h; s.repaint = false;
     renderer.setViewport(0, 0, w, h);
     renderer.setScissor(0, 0, w, h);
     renderer.clear();
@@ -321,8 +339,8 @@ function tick() {
         ctx.shadowColor = color; ctx.shadowBlur = blur * kk; ctx.shadowOffsetX = off; ctx.shadowOffsetY = dy * kk;
         ctx.drawImage(src, 0, bufH - h, w, h, pl - off, pt, w, h);
       };
-      if (hv > 0.001) pass(`rgba(194,249,112,${(H.glowA * hv).toFixed(3)})`, H.glow, 0);
-      pass(`rgba(4,8,3,${(R.a + (H.a - R.a) * hv).toFixed(3)})`, R.blur + (H.blur - R.blur) * hv, R.dy + (H.dy - R.dy) * hv);
+      if (hv > 0.001) pass(`rgba(${glowRgb},${(H.glowA * hv).toFixed(3)})`, H.glow, 0);
+      pass(`rgba(${shadowRgb},${((R.a + (H.a - R.a) * hv) * shadowK).toFixed(3)})`, R.blur + (H.blur - R.blur) * hv, R.dy + (H.dy - R.dy) * hv);
       ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
     }
     ctx.drawImage(src, 0, bufH - h, w, h, pl, pt, w, h);

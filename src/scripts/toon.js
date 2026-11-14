@@ -11,7 +11,7 @@
 // EdgesGeometry, no AO.
 import {
   Color, ShaderMaterial, MeshStandardMaterial, LineSegments, EdgesGeometry, Mesh, PlaneGeometry,
-  MeshBasicMaterial, CanvasTexture, Vector3, Box3, SRGBColorSpace,
+  MeshBasicMaterial, CanvasTexture, Vector3, Vector4, Box3, SRGBColorSpace,
 } from 'three';
 
 // ---------- palette (section d of the spec: hue-snap, keep lightness order, in OKLCH) ----------
@@ -151,6 +151,9 @@ const U = {
   uAOMin: { value: 0 }, uPalK: { value: 1 }, uPastel: { value: 0 }, uSil: { value: 0 },
   uInk: { value: col('#0D160B') }, uInkAlt: { value: col('#C2F970') }, uInkAlpha: { value: 1 }, uInkAltAlpha: { value: 1 },
   uDarkLum: { value: 0.06 }, uLineFade: { value: 1 },
+  // Colour themes (setThemeColors): per class of baked palette colour (lime, grape, neutral), a hue turn and chroma
+  // scale (x = s*cos, y = s*sin of the turn, on OKLab a/b) and a lightness map L0 -> L1 (z, w). Off by default.
+  uRemapOn: { value: 0 }, uRmLime: { value: new Vector4(1, 0, 0.5, 0.5) }, uRmGrape: { value: new Vector4(1, 0, 0.5, 0.5) }, uRmNeut: { value: new Vector4(1, 0, 0.5, 0.5) },
 };
 let current = DEFAULT_STYLE;
 /** Point every toon material at a style's parameters (cheap: uniforms only). */
@@ -160,8 +163,43 @@ export function setStyle(name) {
   U.uSteps.value.set(...s.steps); U.uCuts.value = s.cuts; U.uSoft.value = s.soft; U.uFill.value = s.fill;
   U.uRim.value = s.rim; U.uRimEdge.value = s.rimEdge; U.uSpec.value = s.spec; U.uSpecCut.value = s.specCut; U.uSpecSoft.value = s.specSoft;
   U.uAOMin.value = s.aoMin; U.uPalK.value = s.palK; U.uPastel.value = s.pastel; U.uSil.value = s.sil;
-  U.uInk.value.set(s.ink); U.uInkAlt.value.set(s.inkAlt); U.uInkAlpha.value = s.inkAlpha; U.uInkAltAlpha.value = s.inkAltAlpha; U.uDarkLum.value = s.darkLum;
+  U.uInk.value.set(remapHex(s.ink)); U.uInkAlt.value.set(remapHex(s.inkAlt)); U.uInkAlpha.value = s.inkAlpha; U.uInkAltAlpha.value = s.inkAltAlpha; U.uDarkLum.value = s.darkLum;
   return s;
+}
+// ---------- colour themes ----------
+// The baked models carry the site palette (lime / grape / neutral ladders) in their vertex colours. A theme turns
+// each ladder onto its own colour (lime -> accent, grape -> surface, neutral -> the page background's hue), keeping
+// every part's lightness order: on the GPU (remapPal in FS_SURF) and here for the uniform colours. No model reload.
+const REF = { lime: '#C2F970', grape: '#564D80', neut: '#0D160B' };
+const BASE = { sky: '#8E968A', ground: '#263424', rim: '#EFFDD8' };
+let remap = null; // { lime, grape, neut }: [s*cos, s*sin, L0, L1, turn (deg), s]
+const classOf = (C, h) => (C > 0.015 && h > 220 && h < 340 ? 'grape' : C < 0.06 ? 'neut' : 'lime');
+const mapL = (L, L0, L1) => (L1 < L0 ? (L * L1) / L0 : 1 - ((1 - L) * (1 - L1)) / (1 - L0));
+/** A site-palette colour as the current theme shows it (unchanged when no theme is on). */
+export function remapHex(hex) {
+  if (!remap) return hex;
+  const [L, C, h] = oklch(hexRgb(hex)), r = remap[classOf(C, h)];
+  return rgbHex(fromOklch([Math.min(0.98, Math.max(0.05, mapL(L, r[2], r[3]))), C * r[5], h + r[4]]));
+}
+/**
+ * Recolour every toon material for a colour theme (uniforms only, shared by all materials).
+ * @param {{accent: string, surface: string, bg: string} | null} t  hex colours, or null for the default palette
+ * Callers redraw once afterwards.
+ */
+export function setThemeColors(t) {
+  if (!t) remap = null;
+  else {
+    const part = (ref, to, keepL) => {
+      const [L0, C0, h0] = oklch(hexRgb(ref)), [L1, C1, h1] = oklch(hexRgb(to));
+      const turn = h1 - h0, sc = Math.min(C1 / Math.max(C0, 1e-4), 2.5), a = (turn * Math.PI) / 180;
+      return [sc * Math.cos(a), sc * Math.sin(a), keepL ? 0.5 : L0, keepL ? 0.5 : L1, turn, sc];
+    };
+    remap = { lime: part(REF.lime, t.accent), grape: part(REF.grape, t.surface), neut: part(REF.neut, t.bg, true) };
+    U.uRmLime.value.fromArray(remap.lime); U.uRmGrape.value.fromArray(remap.grape); U.uRmNeut.value.fromArray(remap.neut);
+  }
+  U.uRemapOn.value = remap ? 1 : 0;
+  U.uSky.value.set(remapHex(BASE.sky)); U.uGround.value.set(remapHex(BASE.ground)); U.uRimCol.value.set(remapHex(BASE.rim));
+  setStyle(current);
 }
 setStyle(DEFAULT_STYLE);
 /** Line opacity multiplier (fades ink on very small slots so it does not turn into hatching). */
@@ -192,7 +230,24 @@ const VS_SURF = /* glsl */ `
   }`;
 const FS_SURF = /* glsl */ `
   uniform vec3 uKey, uSteps, uSky, uGround, uRimCol; uniform vec2 uCuts, uRimEdge;
-  uniform float uSoft, uFill, uRim, uSpec, uSpecCut, uSpecSoft, uAOMin, uPalK, uPastel, uSil, uAlpha;
+  uniform float uSoft, uFill, uRim, uSpec, uSpecCut, uSpecSoft, uAOMin, uPalK, uPastel, uSil, uAlpha, uRemapOn;
+  uniform vec4 uRmLime, uRmGrape, uRmNeut;
+  // Colour theme (setThemeColors): linear sRGB -> OKLab, turn + scale a/b and map L by the colour's class, and back.
+  vec3 remapPal(vec3 c) {
+    vec3 lms = pow(max(vec3(dot(vec3(0.4122214708, 0.5363325363, 0.0514459929), c), dot(vec3(0.2119034982, 0.6806995451, 0.1073969566), c),
+      dot(vec3(0.0883024619, 0.2817188376, 0.6299787005), c)), 0.0), vec3(1.0 / 3.0));
+    float L = dot(vec3(0.2104542553, 0.793617785, -0.0040720468), lms);
+    vec2 ab = vec2(dot(vec3(1.9779984951, -2.428592205, 0.4505937099), lms), dot(vec3(0.0259040371, 0.7827717662, -0.808675766), lms));
+    float C = length(ab), h = degrees(atan(ab.y, ab.x));
+    if (h < 0.0) h += 360.0;
+    vec4 r = (C > 0.015 && h > 220.0 && h < 340.0) ? uRmGrape : (C < 0.06 ? uRmNeut : uRmLime);
+    ab = vec2(r.x * ab.x - r.y * ab.y, r.y * ab.x + r.x * ab.y);
+    L = clamp(r.w < r.z ? L * r.w / r.z : 1.0 - (1.0 - L) * (1.0 - r.w) / (1.0 - r.z), 0.05, 0.98);
+    vec3 q = vec3(L + 0.3963377774 * ab.x + 0.2158037573 * ab.y, L - 0.1055613458 * ab.x - 0.0638541728 * ab.y, L - 0.0894841775 * ab.x - 1.291485548 * ab.y);
+    q = q * q * q;
+    return max(vec3(4.0767416621 * q.x - 3.3077115913 * q.y + 0.2309699292 * q.z, -1.2684380046 * q.x + 2.6097574011 * q.y - 0.3413193965 * q.z,
+      -0.0041960863 * q.x - 0.7034186147 * q.y + 1.707614701 * q.z), 0.0);
+  }
   #ifdef TMAP
   uniform sampler2D map; uniform vec3 uLo, uHi; varying vec2 vUv;
   #endif
@@ -207,6 +262,7 @@ const FS_SURF = /* glsl */ `
     float lum = dot(tx, vec3(0.2126, 0.7152, 0.0722));
     base = mix(tx, mix(uLo, uHi, smoothstep(0.0, 0.6, sqrt(lum))), uPalK);
     #endif
+    if (uRemapOn > 0.5) base = remapPal(base);
     base = mix(base, vec3(1.0), uPastel);
     if (vFlag < 0.5) { gl_FragColor = vec4(base, uAlpha); }
     else {
@@ -376,14 +432,23 @@ function originalMaterial(o) {
 }
 
 // ---------- contact blob ----------
-let blobMat = null;
+let blobMat = null, blobCanvas = null, blobColor = 'rgba(4,8,3,0.55)';
+function paintBlob() {
+  const g = blobCanvas.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, blobColor); grd.addColorStop(0.55, blobColor.replace(/[\d.]+\)$/, '0.22)')); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.clearRect(0, 0, 128, 128); g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+}
+/** Recolour the shared contact blob ('rgba(r,g,b,a)'), e.g. to a colour theme's shadow. Callers redraw once. */
+export function setBlobColor(color) {
+  blobColor = color;
+  if (blobCanvas) { paintBlob(); blobMat.map.needsUpdate = true; }
+}
 /** A soft grape "glow pad" under the model (a baked radial gradient on a quad: no per-frame cost). */
-export function contactBlob(box, { color = 'rgba(4,8,3,0.55)', size = 1.25 } = {}) {
+export function contactBlob(box, { color = blobColor, size = 1.25 } = {}) {
   if (!blobMat) {
-    const c = document.createElement('canvas'); c.width = c.height = 128;
-    const g = c.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grd.addColorStop(0, color); grd.addColorStop(0.55, color.replace(/[\d.]+\)$/, '0.22)')); grd.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    blobColor = color;
+    const c = (blobCanvas = document.createElement('canvas')); c.width = c.height = 128;
+    paintBlob();
     const t = new CanvasTexture(c); t.colorSpace = SRGBColorSpace;
     blobMat = new MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, toneMapped: false });
   }

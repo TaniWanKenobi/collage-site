@@ -2,14 +2,14 @@
    except the stagger, which is one-shot CSS keyed on .zpage.is-held (added when the page lands, removed on leaving). */
 
 /* morph: the dimming veil over the collage, with a hole cut for the target panel (clip-path set per frame). */
-.tx-veil { position: absolute; inset: 0; z-index: 5; display: none; background: #0D160B; pointer-events: none; opacity: 0; }
+.tx-veil { position: absolute; inset: 0; z-index: 5; display: none; background: var(--bg); pointer-events: none; opacity: 0; }
 
 /* iris: the lime rim drawn at the edge of the circular reveal (background set per frame). */
 .tx-ring { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 3; display: none; pointer-events: none; }
 
 /* paper: while it travels the sheet is one screen tall, may hang outside its panel, casts a shadow and wears a tape strip. */
 #zm-root.tx-paper .zpage.tx-moving { overflow: visible; background-color: transparent; }
-#zm-root.tx-paper .zpage.tx-moving .zs { max-height: 100%; overflow: hidden; box-shadow: 0 30px 70px rgba(4,8,3,.6), 0 6px 16px rgba(4,8,3,.45); }
+#zm-root.tx-paper .zpage.tx-moving .zs { max-height: 100%; overflow: hidden; box-shadow: 0 30px 70px color-mix(in srgb, var(--shadow) 60%, transparent), 0 6px 16px color-mix(in srgb, var(--shadow) 45%, transparent); }
 #zm-root.tx-paper .zpage .zs { position: relative; transform-origin: 50% 60%; }
 #zm-root.tx-paper .zpage.tx-moving .zs::before { content: ''; position: absolute; left: 50%; top: -6px; z-index: 4; width: 230px; height: 46px; margin-left: -115px; transform: rotate(-3deg); background: url('../assets/tape/cream.webp') center / 100% 100% no-repeat; pointer-events: none; }
 

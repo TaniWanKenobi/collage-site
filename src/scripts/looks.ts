@@ -1,13 +1,17 @@
 // "Looks" picker (temporary, lives in the A/B panel): switches the URL-driven variants — section nav (?nav=),
 // section transition (?tx=), shader background (?bg=), music (?music=), UI sounds (?sfx=) and scroll smoothing
-// (?smooth=) — live, in place. A pick rewrites the query (replaceState, so the link and a reload keep the look),
+// (?smooth=) and colour theme (?theme=) — live, in place. A pick rewrites the query (replaceState, so the link and a reload keep the look),
 // then sends a window "looks:change" event { key, value } that the module concerned applies at once
-// (nav-styles.ts, zoom-camera.js for tx + smooth, shader-bg.ts, sound.ts). Modules that load only when their
+// (nav-styles.ts, zoom-camera.js for tx + smooth, shader-bg.ts, sound.ts, theme.ts). Modules that load only when their
 // param is set are imported first. Remove with the A/B tool.
+
+import { PRESETS as THEMES, parseColors, customSpec } from './theme-core';
+import { DEFAULT_THEME } from './theme-vars';
 
 type Group = { key: string; label: string; opts: [string, string][]; def: string };
 
 const GROUPS: Group[] = [
+  { key: 'theme', label: 'Theme', def: '', opts: [] }, // preset chips with swatches + a paste box (themeControl)
   { key: 'nav', label: 'Section nav', def: 'dots', opts: [
     ['dots', 'dots'], ['frost', 'frost'], ['lens', 'lens'], ['drop', 'drop'], ['bubble', 'bubble'], ['water', 'water'],
     ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
@@ -29,6 +33,7 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
   bg: () => import('./shader-bg'),
   music: () => import('./sound'),
   sfx: () => import('./sound'),
+  theme: () => import('./theme'),
 };
 
 const params = () => new URLSearchParams(location.search);
@@ -54,7 +59,7 @@ function go(mut: (p: URLSearchParams) => void) {
   const before = params();
   const p = params();
   mut(p);
-  const q = p.toString().replace(/%2B/g, '+');
+  const q = p.toString().replace(/%2B/g, '+').replace(/%3A/gi, ':');
   history.replaceState(history.state, '', location.pathname + (q ? '?' + q : '') + location.hash);
   sync();
   for (const g of GROUPS) {
@@ -62,7 +67,7 @@ function go(mut: (p: URLSearchParams) => void) {
     if (was === now) continue;
     const send = () => window.dispatchEvent(new CustomEvent('looks:change', { detail: { key: g.key, value: now } }));
     const load = LOADERS[g.key];
-    // Turning bg / music / sfx off needs no module: if it never loaded, there is nothing to stop.
+    // Turning bg / music / sfx / theme off needs no module: if it never loaded, there is nothing to stop.
     if (load && (now !== '' || g.key === 'nav')) load().then(send, () => {});
     else send();
   }
@@ -77,6 +82,7 @@ let box: HTMLElement | null = null;
 function sync() {
   if (!box) return;
   syncSmooth();
+  syncTheme();
   const p = params(), t = txOf(p);
   box.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach((b) => {
     const key = b.dataset.key!;
@@ -98,6 +104,7 @@ function mount() {
     lg.textContent = g.label;
     fs.append(lg);
     if (g.key === 'smooth') { fs.append(smoothControl()); box.append(fs); continue; }
+    if (g.key === 'theme') { fs.append(themeControl()); box.append(fs); continue; }
     const row = document.createElement('div');
     row.className = 'looks-opts';
     for (const [val, text] of g.opts) {
@@ -201,6 +208,72 @@ function smoothControl() {
     wrap.querySelectorAll<HTMLElement>('[data-ms]').forEach((el) => el.setAttribute('aria-pressed', String(+el.dataset.ms! === ms)));
   };
   syncSmooth();
+  return wrap;
+}
+
+// ---- Theme: a chip per preset (name + its palette as swatches), "default", and a paste box for any 3-5 hex colours ----
+let syncTheme = () => {};
+
+function swatches(cols: string[]) {
+  const s = document.createElement('span');
+  s.className = 'lt-sw';
+  s.setAttribute('aria-hidden', 'true');
+  for (const c of cols) { const i = document.createElement('i'); i.style.background = c; s.append(i); }
+  return s;
+}
+
+function themeControl() {
+  const wrap = document.createElement('div');
+  const row = document.createElement('div');
+  row.className = 'looks-opts looks-themes';
+  const chip = (val: string, name: string, cols: string[]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.key = 'theme';
+    b.dataset.val = val;
+    if (cols.length) b.append(swatches(cols));
+    b.append(name);
+    b.addEventListener('click', () => {
+      if (b.getAttribute('aria-pressed') === 'true') return;
+      const v = b.dataset.val || '';
+      go((p) => { if (v) p.set('theme', v); else p.delete('theme'); });
+    });
+    row.append(b);
+    return b;
+  };
+  chip('', 'default', [DEFAULT_THEME.bg, DEFAULT_THEME.surface, DEFAULT_THEME.accent]); // the :root palette
+  for (const p of THEMES) chip(p.name, p.label, p.palette);
+  const mine = chip('', 'custom', []); // shows the pasted palette while one is on
+  mine.hidden = true;
+  const form = document.createElement('div');
+  form.className = 'lt-paste';
+  form.innerHTML = '<input type="text" spellcheck="false" autocomplete="off" placeholder="paste 3-5 hex colours" aria-label="Paste 3 to 5 hex colours for a custom theme"><p class="lt-msg" role="status" aria-live="polite"></p>';
+  const input = form.querySelector('input')!, msg = form.querySelector<HTMLElement>('.lt-msg')!;
+  const apply = () => {
+    if (!input.value.trim()) { msg.textContent = ''; return; }
+    const cols = parseColors(input.value);
+    if (typeof cols === 'string') { msg.textContent = cols; input.setAttribute('aria-invalid', 'true'); return; }
+    msg.textContent = '';
+    input.removeAttribute('aria-invalid');
+    go((p) => p.set('theme', customSpec(cols)));
+  };
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') apply(); });
+  input.addEventListener('paste', () => setTimeout(apply, 0));
+  input.addEventListener('input', () => { if (input.hasAttribute('aria-invalid')) { msg.textContent = ''; input.removeAttribute('aria-invalid'); } });
+  let shown: string | null = null;
+  syncTheme = () => {
+    const v = params().get('theme') || '';
+    if (shown !== null && v !== shown) { msg.textContent = ''; input.removeAttribute('aria-invalid'); } // a new pick clears an old error
+    shown = v;
+    const custom = v.startsWith('custom:') ? parseColors(v.slice(7).replace(/[-_]/g, ' ')) : null;
+    mine.hidden = !Array.isArray(custom);
+    if (Array.isArray(custom)) {
+      mine.dataset.val = v;
+      mine.replaceChildren(swatches(custom), 'custom');
+    }
+  };
+  wrap.append(row, form);
+  syncTheme();
   return wrap;
 }
 

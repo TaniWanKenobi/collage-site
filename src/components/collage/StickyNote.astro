@@ -11,17 +11,17 @@ const attrs = desk
   : { href: '#sec-guestbook', 'aria-label': 'Guestbook' };
 const Tag = desk ? 'div' : 'a';
 ---
-<Tag class="zp" {...attrs} style={`left: ${Astro.props.at?.[0] ?? 368}px; top: ${Astro.props.at?.[1] ?? 564}px; width: 204px; height: 168px; padding: 14px; background: var(--lime-tint); color: var(--onyx); box-shadow: 0 14px 30px rgba(4,8,3,.55); transform: rotate(6deg)`}>
+<Tag class="zp" {...attrs} style={`left: ${Astro.props.at?.[0] ?? 368}px; top: ${Astro.props.at?.[1] ?? 564}px; width: 204px; height: 168px; padding: 14px; background: var(--paper); color: var(--ink); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); transform: rotate(6deg)`}>
 <span aria-hidden="true" class="tape t-purple" style="top: -12px; left: 58px; width: 88px; transform: rotate(-3deg)"></span>
-<div class="zpanel" style="width: 176px; height: 110px; background-color: var(--lime-tint)">
+<div class="zpanel" style="width: 176px; height: 110px; background-color: var(--paper)">
 <div data-cover={desk ? 'guestbook' : undefined} style="position: absolute; inset: 0; display: flex; flex-direction: column; gap: 6px">
 <span style="font-family: var(--font-display); font-size: 19px; font-weight: 800; line-height: 1">sign my guestbook</span>
-<span aria-hidden="true" style="position: relative; flex: 1; border: 1.5px dashed var(--grape); border-radius: 3px; display: flex; align-items: flex-end; justify-content: space-between; padding: 5px 6px">
-<span class="mono" style="font-size: 9px; color: var(--grape)">draw something →</span>
-<span style="display: flex; gap: 3px">{['var(--onyx)', 'var(--grape)', 'var(--grape-lite)', 'var(--lime)'].map((c) => <span style={`width: 9px; height: 9px; border-radius: 50%; background: ${c}; box-shadow: 0 0 0 1px var(--onyx)`}></span>)}</span>
+<span aria-hidden="true" style="position: relative; flex: 1; border: 1.5px dashed var(--ink-surface); border-radius: 3px; display: flex; align-items: flex-end; justify-content: space-between; padding: 5px 6px">
+<span class="mono" style="font-size: 9px; color: var(--ink-surface)">draw something →</span>
+<span style="display: flex; gap: 3px">{['var(--ink)', 'var(--surface)', 'var(--deco)', 'var(--accent)'].map((c) => <span style={`width: 9px; height: 9px; border-radius: 50%; background: ${c}; box-shadow: 0 0 0 1px var(--ink)`}></span>)}</span>
 </span>
 </div>
 {desk && <ZoomPage section="guestbook" panelWidth={PANEL_W} />}
 </div>
-<span class="mono" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--grape)"><span>— you</span><span>today</span></span>
+<span class="mono" style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: var(--ink-surface)"><span>— you</span><span>today</span></span>
 </Tag>

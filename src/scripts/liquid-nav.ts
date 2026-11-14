@@ -12,6 +12,7 @@
 // (the water drop's WebGL context is released with WEBGL_lose_context).
 
 import { spring, stretch, GOO_K, GOO_C, initNavStyle, own, listen, navGen } from './nav-styles';
+import { readTheme, themed, rgbOf } from './theme-vars';
 
 const isSafari = () => /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
 const urlBackdrop = () => typeof CSS !== 'undefined' && (CSS.supports('backdrop-filter', 'url(#x)') || CSS.supports('-webkit-backdrop-filter', 'url(#x)'));
@@ -100,12 +101,19 @@ ${disp(scale - ab, 'dB')}<feColorMatrix in="dB" type="matrix" values="0 0 0 0 0 
 }
 
 /* ---------------- water drop (gughigug), vertical ---------------- */
+// Drop colours (sRGB 0..1): its shadow, body tint and rim. The default theme keeps the original lime values; a colour
+// theme (scripts/theme.ts) derives them from its accent and page background.
+function waterColors() {
+  if (!themed()) return { sh: [0.01, 0.05, 0.01], tint: [0.78, 0.98, 0.52], lc: [0.45, 0.75, 0.16] };
+  const c = readTheme(), f = (h: string, k: number, to: number) => rgbOf(h).map((v) => (v / 255) * (1 - k) + to * k);
+  return { sh: f(c.bg, 0.4, 0), tint: f(c.accent, 0.25, 1), lc: f(c.accent, 0.3, 0) };
+}
 const PAD = 14;
 const VERT = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
 // The original shader, laid along the capsule: p.yx turns the vertical capsule into its horizontal pill space.
 const FRAG = `precision highp float;
 uniform vec2 uRes;uniform float uDpr;uniform float uTime;uniform vec4 uPill;
-uniform vec4 uBlob[6];uniform float uSy[6];uniform vec4 uRip[6];
+uniform vec4 uBlob[6];uniform float uSy[6];uniform vec4 uRip[6];uniform vec3 uSh,uTint,uLc;
 float sdRB(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
 float sdCap(vec2 p,vec4 B,float sy){p-=B.xy;p.y/=sy;p.x=max(abs(p.x)-B.z,0.);return(length(p)-B.w)*min(1.,sy);}
 float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
@@ -126,17 +134,17 @@ void main(){
  vec3 irid=.5+.5*cos(6.2831*(vec3(0.,.33,.67)+fres*.85+p.x*.0028+uTime*.035));
  float pm=smoothstep(1.,-1.,dp);float dm=smoothstep(1.,-1.,dd)*smoothstep(1.,-2.,dp);
  float sh=smoothstep(9.,-9.,dropD(p-vec2(0.,5.)))*(1.-dm)*pm*.18;
- vec3 c=vec3(.01,.05,.01)*sh;float a=sh;
+ vec3 c=uSh*sh;float a=sh;
  float pa=clamp(pm*(fres*.5+spec*.9+spec2),0.,1.);
  c=mix(vec3(1.),irid,.5*fres)*pa+c*(1.-pa);a=pa+a*(1.-pa);
  float th=lens(dd,9.);
  float cs=caus((p+n.xy*th*18.)*.085,uTime*.9);
- vec3 tint=vec3(.78,.98,.52);
+ vec3 tint=uTint;
  float rim=dm*(1.-smoothstep(0.,7.,-dd));
  float cres=dm*smoothstep(.12,.55,dot(n.xy,normalize(vec2(.55,.85))))*smoothstep(0.,3.,-dd);
  float body=.5+.5*clamp(-n.y*3.,-1.,1.);
  float da=dm*(.52+.2*body);vec3 dc=mix(tint,vec3(1.),body*.5);
- float la=rim*.3;vec3 lc=vec3(.45,.75,.16);dc=lc*la+dc*da*(1.-la);da=la+da*(1.-la);
+ float la=rim*.3;vec3 lc=uLc;dc=lc*la+dc*da*(1.-la);da=la+da*(1.-la);
  la=clamp(cres*.7+smoothstep(.6,1.,cs)*.28*th*dm,0.,1.);dc=vec3(1.)*la+dc*(1.-la);da=la+da*(1.-la);
  la=clamp(dm*(spec*1.2+spec2*.5),0.,1.);dc=vec3(1.)*la+dc*(1.-la);da=la+da*(1.-la);
  la=dm*smoothstep(-2.,0.,dd)*.4;dc=mix(vec3(1.),irid,.35)*la+dc*(1.-la);da=la+da*(1.-la);
@@ -160,7 +168,7 @@ function initGL(cv: HTMLCanvasElement) {
   gl.enableVertexAttribArray(loc);
   gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
   const u: Record<string, WebGLUniformLocation | null> = {};
-  for (const n of ['uRes', 'uDpr', 'uTime', 'uPill', 'uBlob', 'uSy', 'uRip']) u[n] = gl.getUniformLocation(p, n);
+  for (const n of ['uRes', 'uDpr', 'uTime', 'uPill', 'uBlob', 'uSy', 'uRip', 'uSh', 'uTint', 'uLc']) u[n] = gl.getUniformLocation(p, n);
   return { gl, u };
 }
 
@@ -177,6 +185,7 @@ function water(hud: HTMLElement) {
   // Undo (runs after the listeners below are removed, so losing the context on purpose is not a fallback).
   own(() => { if (s.raf) cancelAnimationFrame(s.raf); s.raf = 0; glc.gl.getExtension('WEBGL_lose_context')?.loseContext(); cv.remove(); });
   const reduce = reduceMotion();
+  let cols = waterColors();
   // Positions are along the capsule (top to bottom) in canvas px; cy is the capsule's middle across.
   const s = {
     a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, sy: { s: 1 }, lead: 0, lagFrom: 0,
@@ -217,6 +226,7 @@ function water(hud: HTMLElement) {
     const rips = new Float32Array(24);
     s.rips.slice(-6).forEach((p, i) => rips.set([p.x, p.y, p.age, p.amp], i * 4));
     gl.uniform4fv(u.uRip, rips);
+    gl.uniform3fv(u.uSh, cols.sh); gl.uniform3fv(u.uTint, cols.tint); gl.uniform3fv(u.uLc, cols.lc);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -283,6 +293,8 @@ function water(hud: HTMLElement) {
     }
     loop();
   };
+  // A theme switch: new drop colours, one redraw.
+  listen(window, 'theme:change', () => { cols = waterColors(); draw(); });
   const current = () => dots.findIndex((d) => d.getAttribute('aria-current') === 'true');
   measure();
   draw();

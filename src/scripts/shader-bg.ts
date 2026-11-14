@@ -15,6 +15,7 @@
 //  - prefers-reduced-motion: one static frame. No WebGL2 / compile error / lost context: the CSS background.
 import { STACKED_MQ } from './slot-view.js';
 import { HEAD, main, type BgVariant } from './shaders/common.glsl';
+import { readTheme, rgbOf, type Theme } from './theme-vars';
 
 const LOADERS: Record<string, () => Promise<{ default: BgVariant }>> = {
   satin: () => import('./shaders/satin.glsl'),
@@ -105,6 +106,11 @@ function start() {
   let drift = 0, lastEvt = 0, raf = 0, dirty = true, lost = false;
   window.__bgFrames = 0;
 
+  // Palette uniforms (the colour theme): set on the variant program before it draws (live) or bakes.
+  const PAL: [string, keyof Theme][] = [['ONYX', 'bg'], ['ONYX2', 'bg2'], ['LIME', 'accent'], ['TINT', 'text'], ['LAV', 'deco']];
+  let pal = readTheme();
+  const setPal = (p: WebGLProgram) => { for (const [n, r] of PAL) { const [x, y, z] = rgbOf(pal[r]); gl.uniform3f(loc(p, n), x / 255, y / 255, z / 255); } };
+
   function size() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const k = Math.min(0.5 * dpr, 1);
@@ -125,6 +131,7 @@ function start() {
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, fbo);
     gl!.framebufferTexture2D(gl!.FRAMEBUFFER, gl!.COLOR_ATTACHMENT0, gl!.TEXTURE_2D, tex, 0);
     gl!.useProgram(shadeProg);
+    setPal(shadeProg!);
     gl!.viewport(0, 0, texW, texH);
     gl!.uniform2f(loc(shadeProg!, 'u_res'), texW, texH);
     gl!.uniform1f(loc(shadeProg!, 'u_t'), 0);
@@ -150,7 +157,7 @@ function start() {
     gl!.uniform2f(loc(showProg!, 'u_res'), canvas.width, canvas.height);
     gl!.uniform1f(loc(showProg!, 'u_z'), z);
     gl!.uniform2f(loc(showProg!, 'u_pan'), px, py);
-    if (!baked) gl!.uniform1f(loc(showProg!, 'u_t'), speed * (p * 0.6 + drift * 0.25));
+    if (!baked) { gl!.uniform1f(loc(showProg!, 'u_t'), speed * (p * 0.6 + drift * 0.25)); setPal(showProg!); }
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
     window.__bgFrames!++;
   }
@@ -168,6 +175,8 @@ function start() {
     if (!cam.open) request();
   });
   on(window, 'resize', () => { dirty = true; request(); });
+  // A theme switch: one redraw (a baked variant re-bakes its texture first).
+  on(window, 'theme:change', (e) => { pal = (e as CustomEvent<{ colors: Theme }>).detail.colors; texW = texH = 0; dirty = true; request(); });
   on(document, 'visibilitychange', () => { if (!document.hidden) { dirty = true; request(); } });
   on(stacked, 'change', () => { dirty = true; request(); });
   on(reducedMq, 'change', () => { dirty = true; request(); });
