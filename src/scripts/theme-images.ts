@@ -11,7 +11,7 @@
 //  - the outline is the silhouette dilated 3px in the accent, the shadow the theme's shadow colour.
 // The result is set as the img (and <source>) URL; the default theme puts the original files back. Nothing runs
 // per frame: the zoomed collage paints a plain image, as before. Results are cached per theme.
-// Per-preset photo tuning (PHOTO_TUNE): olive's greens are kept low in chroma and its shadows lean into the purple
+// Photo tuning (DEFAULT_TUNE, PHOTO_TUNE per preset): olive's greens are kept low in chroma and its shadows lean into the purple
 // page. Simultaneous contrast does the rest: a muted, near-grey green next to a purple surround (its complement)
 // reads as clearly green, so the photo still looks olive without being as loud as the background.
 //
@@ -51,9 +51,11 @@ const PHOTO_TUNE: Record<string, Tune> = {
   // page the low-chroma green still reads as green (complementary contrast), it just doesn't shout
   olive: { dark: 1, mid: 0.6, light: 0.6, midFromBg: true, lightRot: 25 },
 };
-const NO_TUNE: Tune = { dark: 0.6, mid: 1, light: 1 };
+// Every other theme gets the same idea without the hue turn: shadows and mid-tones take the page's hue (so the
+// photo sits in the page), highlights the accent at 60% chroma (it still reads as the accent next to the page).
+const DEFAULT_TUNE: Tune = { dark: 1, mid: 0.6, light: 0.6, midFromBg: true };
 
-function ramp(t: Theme, light: boolean, tune: Tune = NO_TUNE) {
+function ramp(t: Theme, light: boolean, tune: Tune = DEFAULT_TUNE) {
   const hue = [light ? t.ink : t.bg, tune.midFromBg ? t.bg : t.surface, t.accent].map((h) => toLab(rgbOf(h)));
   if (tune.lightRot) {
     const r = (-tune.lightRot * Math.PI) / 180, [, a, b] = hue[2];
@@ -140,7 +142,7 @@ async function apply(t: Theme, spec: string, light: boolean) {
     if (!img.dataset.origSrc) { img.dataset.origSrc = img.getAttribute('src') || ''; sources.forEach((s) => (s.dataset.origSrcset = s.getAttribute('srcset') || '')); }
     if (!spec) { img.src = img.dataset.origSrc; sources.forEach((s) => s.setAttribute('srcset', s.dataset.origSrcset || '')); continue; }
     const key = spec;
-    if (!cache.has(key)) cache.set(key, bake(t, light, img.dataset.origSrc, PHOTO_TUNE[spec]));
+    if (!cache.has(key)) cache.set(key, bake(t, light, img.dataset.origSrc, PHOTO_TUNE[spec] || DEFAULT_TUNE));
     let url: string;
     try { url = await cache.get(key)!; } catch { cache.delete(key); return; }
     if (want !== spec) return; // switched again while baking
