@@ -18,7 +18,8 @@ const GROUPS: Group[] = [
   { key: 'tx', label: 'Transition', def: '', opts: [
     ['', 'fade'], ['morph', 'morph'], ['iris', 'iris'], ['paper', 'paper'], ['dither', 'dither']] },
   { key: 'bg', label: 'Background', def: '', opts: [
-    ['', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours']] },
+    ['', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours'],
+    ['ripple', 'ripple'], ['reveal', 'reveal']] },
   { key: 'music', label: 'Music', def: '', opts: [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
   { key: 'sfx', label: 'UI sounds', def: '', opts: [

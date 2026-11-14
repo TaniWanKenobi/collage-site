@@ -14,6 +14,14 @@ out vec4 o_col;
 // LIME = accent, TINT = text, LAV = deco (use sparingly). Default theme: #0D160B, #172315, #C2F970, #EFFDD8, #8F86C0.
 uniform vec3 ONYX, ONYX2, LIME, TINT, LAV;
 
+// Pointer (variants with a "pointer" kind; shader-bg.ts eases these): u_ptr = pointer in canvas px, u_pk = strength
+// 0..1 (0 = no effect), u_pv = pointer velocity in viewport heights per second (y-up).
+uniform vec2 u_ptr;
+uniform float u_pk;
+uniform vec2 u_pv;
+// Screen-space offset of this pixel from the pointer, in viewport heights (independent of the camera zoom/pan).
+vec2 ptrQ(vec2 fc) { return (fc - u_ptr) / u_res.y; }
+
 float h21(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vnoise(vec2 p) {
   vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
@@ -49,4 +57,7 @@ export interface BgVariant {
   pixelated?: boolean;
   /** Too heavy to redraw per frame: bake once into a texture, then only pan/zoom it with the camera. */
   baked?: boolean;
+  /** Reacts to the (mouse/pen) pointer: 'wake' = a dent while it moves that springs back after it stops,
+   *  'light' = a glow that stays while it is over the page. Live variants only. */
+  pointer?: 'wake' | 'light';
 }

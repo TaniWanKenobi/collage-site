@@ -12,6 +12,8 @@
 //  - Drawn at half the device resolution (capped at 1 canvas px per CSS px) and upscaled by CSS.
 //  - Heavy variants (baked: true) are drawn once into a texture; per frame only that texture is panned/zoomed.
 //  - Not drawn while a section page covers the world (its panel is opaque), nor on the phone layout.
+//  - Pointer variants (pointer: 'wake' | 'light', e.g. ripple, reveal) also draw on a window pointermove (mouse/pen
+//    only; touch keeps the base look). A short eased settle (<= ~1 s) follows, then the loop stops: no rAF at rest.
 //  - prefers-reduced-motion: one static frame. No WebGL2 / compile error / lost context: the CSS background.
 import { STACKED_MQ } from './slot-view.js';
 import { HEAD, main, type BgVariant } from './shaders/common.glsl';
@@ -24,6 +26,8 @@ const LOADERS: Record<string, () => Promise<{ default: BgVariant }>> = {
   smoke: () => import('./shaders/smoke.glsl'),
   dither: () => import('./shaders/dither.glsl'),
   contours: () => import('./shaders/contours.glsl'),
+  ripple: () => import('./shaders/ripple.glsl'),
+  reveal: () => import('./shaders/reveal.glsl'),
 };
 
 interface Cam { p?: number | null; zoom?: number; open?: boolean; cx?: number; cy?: number }
@@ -91,7 +95,7 @@ function start() {
 
   // Live: the variant shader draws every frame. Baked: it draws once into `tex`, DISPLAY draws every frame.
   let shadeProg: WebGLProgram | null = null, showProg: WebGLProgram | null = null;
-  let baked = false, speed = 1, tex: WebGLTexture | null = null, fbo: WebGLFramebuffer | null = null;
+  let baked = false, pointer: BgVariant['pointer'], speed = 1, tex: WebGLTexture | null = null, fbo: WebGLFramebuffer | null = null;
   let texW = 0, texH = 0;
   const locs = new Map<string, WebGLUniformLocation | null>();
   const loc = (p: WebGLProgram, n: string) => {
@@ -139,11 +143,38 @@ function start() {
     gl!.bindFramebuffer(gl!.FRAMEBUFFER, null);
   }
 
-  function draw() {
+  // Pointer state (CSS px, eased in step()): target t*, shown x/y, strength k (0..1), velocity v* (viewport heights/s).
+  const ptr = { tx: 0, ty: 0, x: 0, y: 0, k: 0, vx: 0, vy: 0, inside: false, last: 0, t: 0 };
+  // Advance the pointer easing to `now`; true while it is still moving (the caller then asks for another frame).
+  function step(now: number) {
+    const gap = now - ptr.t;
+    const dt = gap > 100 ? 1 / 60 : Math.max(gap, 1) / 1000; // first frame after a rest: one nominal frame
+    ptr.t = now;
+    const px = ptr.x, py = ptr.y;
+    const a = 1 - Math.exp(-dt / 0.07); // the shown pointer lags the real one by ~70 ms
+    ptr.x += (ptr.tx - ptr.x) * a;
+    ptr.y += (ptr.ty - ptr.y) * a;
+    const h = window.innerHeight || 1, b = 1 - Math.exp(-dt / 0.1);
+    let vx = (ptr.x - px) / dt / h, vy = -(ptr.y - py) / dt / h;
+    const m = Math.hypot(vx, vy);
+    if (m > 3) { vx *= 3 / m; vy *= 3 / m; }
+    ptr.vx += (vx - ptr.vx) * b;
+    ptr.vy += (vy - ptr.vy) * b;
+    // wake: on while the pointer moved in the last 120 ms; light: on while it is over the page.
+    const kt = ptr.inside && (pointer === 'light' || now - ptr.last < 120) ? 1 : 0;
+    ptr.k += (kt - ptr.k) * (1 - Math.exp(-dt / (kt > ptr.k ? 0.08 : 0.15)));
+    const busy = Math.abs(ptr.tx - ptr.x) + Math.abs(ptr.ty - ptr.y) > 0.3 || Math.abs(kt - ptr.k) > 0.01 ||
+      Math.abs(ptr.vx) + Math.abs(ptr.vy) > 0.01 || (pointer === 'wake' && ptr.k > 0.01);
+    if (!busy) { ptr.k = kt; ptr.vx = ptr.vy = 0; ptr.x = ptr.tx; ptr.y = ptr.ty; }
+    return busy;
+  }
+
+  function draw(now: number) {
     raf = 0;
     if (lost || !showProg || document.hidden || stacked.matches) return;
     if (cam.open && !dirty) return; // a section page covers the world
     dirty = false;
+    const more = !!pointer && step(now);
     size();
     if (baked) bake();
     const reduced = reducedMq.matches;
@@ -158,8 +189,16 @@ function start() {
     gl!.uniform1f(loc(showProg!, 'u_z'), z);
     gl!.uniform2f(loc(showProg!, 'u_pan'), px, py);
     if (!baked) { gl!.uniform1f(loc(showProg!, 'u_t'), speed * (p * 0.6 + drift * 0.25)); setPal(showProg!); }
+    if (pointer) {
+      // The canvas is fixed and full-viewport, so client coords map straight to canvas px (y flipped).
+      const sx = canvas.width / (window.innerWidth || 1), sy = canvas.height / (window.innerHeight || 1);
+      gl!.uniform2f(loc(showProg!, 'u_ptr'), ptr.x * sx, canvas.height - ptr.y * sy);
+      gl!.uniform1f(loc(showProg!, 'u_pk'), reduced ? 0 : ptr.k); // reduced motion: the static base look
+      gl!.uniform2f(loc(showProg!, 'u_pv'), ptr.vx, ptr.vy);
+    }
     gl!.drawArrays(gl!.TRIANGLES, 0, 3);
     window.__bgFrames!++;
+    if (more) request();
   }
   function request() { if (!raf) raf = requestAnimationFrame(draw); }
 
@@ -175,6 +214,19 @@ function start() {
     if (!cam.open) request();
   });
   on(window, 'resize', () => { dirty = true; request(); });
+  // Pointer variants: window-level, so it also reacts while the pointer is over the collage. Touch: no hover, the base look.
+  on(window, 'pointermove', (e) => {
+    const ev = e as PointerEvent;
+    if (!pointer || ev.pointerType === 'touch' || reducedMq.matches) return;
+    if (!ptr.inside && ptr.k < 0.01) { ptr.x = ev.clientX; ptr.y = ev.clientY; } // enter: start where it is
+    ptr.tx = ev.clientX; ptr.ty = ev.clientY;
+    ptr.inside = true;
+    ptr.last = performance.now();
+    if (!cam.open) request();
+  });
+  const leave = () => { if (pointer && ptr.inside) { ptr.inside = false; if (!cam.open) request(); } };
+  on(document.documentElement, 'pointerleave', leave);
+  on(window, 'blur', leave);
   // A theme switch: one redraw (a baked variant re-bakes its texture first).
   on(window, 'theme:change', (e) => { pal = (e as CustomEvent<{ colors: Theme }>).detail.colors; texW = texH = 0; dirty = true; request(); });
   on(document, 'visibilitychange', () => { if (!document.hidden) { dirty = true; request(); } });
@@ -203,6 +255,8 @@ function start() {
       if (lost) return false;
       release();
       baked = !!variant.baked;
+      pointer = baked ? undefined : variant.pointer;
+      ptr.k = 0; ptr.vx = ptr.vy = 0; ptr.inside = false;
       speed = variant.speed ?? 1;
       shadeProg = compile(gl, HEAD + variant.frag + main(baked ? EXT : 1, !baked));
       showProg = baked ? compile(gl, DISPLAY) : shadeProg;
