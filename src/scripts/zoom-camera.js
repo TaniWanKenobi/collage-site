@@ -34,8 +34,8 @@ export function initZoomCamera() {
   // Smoothed scroll: the camera follows sp, which eases toward the real scroll position once per animation
   // frame (exponential lerp, frame-rate independent), so wheel notches glide instead of jumping. trackTop is
   // cached in measure() so a frame reads only pageYOffset, never layout.
-  var sp = null, lastT = 0, trackTop = 0, SMOOTH_TAU = 0.065;
-  // ?smooth=<seconds> tunes the catch-up time for A/B (0 = old direct follow; ~0.065 = default).
+  var sp = null, lastT = 0, trackTop = 0, SMOOTH_TAU = 0.11;
+  // ?smooth=<seconds> tunes the catch-up time for A/B (0 = old direct follow; 0.11 = default, picked by feel).
   var smoothQ = /[?&]smooth=([\d.]+)/.exec(location.search);
   if (smoothQ) SMOOTH_TAU = Math.min(0.5, parseFloat(smoothQ[1]) || 0);
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
