@@ -31,6 +31,10 @@ export function initZoomCamera() {
 
   var cur0 = false; // the first camera placement is not motion
   var vw = 1440, stageH = 900, cur = null, hudI = -1, raf = 0, fl = null, bl = null;
+  // Smoothed scroll: the camera follows sp, which eases toward the real scroll position once per animation
+  // frame (exponential lerp, frame-rate independent), so wheel notches glide instead of jumping. trackTop is
+  // cached in measure() so a frame reads only pageYOffset, never layout.
+  var sp = null, lastT = 0, trackTop = 0, SMOOTH_TAU = /[?&]smooth=0(&|$)/.test(location.search) ? 0 : 0.11; // ?smooth=0 = old direct-follow, for A/B
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var ss = function (t) { return t * t * (3 - 2 * t); };
   var f = function (n) { return Number(n.toFixed(4)); };
@@ -92,8 +96,8 @@ export function initZoomCamera() {
     var ops = {}; ops[tp.key] = clamp((z - 0.7) / 0.25, 0, 1);
     return { i: i, s: s, cx: 720 + (tp.px - 720) * g, cy: 450 + (tp.py - 450) * g, r: tp.rot * g, ops: ops };
   }
-  function scrollP() { return clamp(-track.getBoundingClientRect().top / (stageH * 1.6), 0, 7); }
-  function topForP(P) { return window.pageYOffset + track.getBoundingClientRect().top + P * stageH * 1.6; }
+  function scrollP() { return clamp((window.pageYOffset - trackTop) / (stageH * 1.6), 0, 7); }
+  function topForP(P) { return trackTop + P * stageH * 1.6; }
 
   function setHud(i) {
     if (i === hudI) return;
@@ -196,17 +200,25 @@ export function initZoomCamera() {
 
   // One frame loop for all three modes: flight (click), blend (flight cancelled by scrolling), scroll.
   function kick() { if (!raf) raf = requestAnimationFrame(tick); }
-  function tick() {
+  function tick(ts) {
     raf = 0;
-    if (isPhone()) return;
+    if (isPhone()) { lastT = 0; return; }
+    var dt = lastT ? clamp((ts - lastT) / 1000, 0, 0.05) : 1 / 60;
+    lastT = ts;
     if (fl) { flightFrame(); return; }
+    var target = scrollP();
     if (bl) {
       var t = clamp((now() - bl.t0) / bl.dur, 0, 1);
-      applyCam(mix(bl.from, camAtP(scrollP()), easeOut(t)));
-      if (t < 1) kick(); else bl = null;
+      sp = target;
+      applyCam(mix(bl.from, camAtP(target), easeOut(t)));
+      if (t < 1) kick(); else { bl = null; lastT = 0; }
       return;
     }
-    applyCam(camAtP(scrollP()));
+    if (sp === null || !SMOOTH_TAU || reduce()) sp = target;
+    else sp += (target - sp) * (1 - Math.exp(-dt / SMOOTH_TAU));
+    if (Math.abs(target - sp) < 0.0004) sp = target;
+    applyCam(camAtP(sp));
+    if (sp !== target) kick(); else lastT = 0;
   }
 
   // Direct camera flight to scroll position P (k + 0.5 = holding on piece k, 0 = overview).
@@ -255,7 +267,8 @@ export function initZoomCamera() {
   function jumpScroll(P) {
     var top = Math.round(topForP(P));
     try { window.scrollTo({ top: top, left: 0, behavior: 'instant' }); } catch (err) { window.scrollTo(0, top); }
-    applyCam(camAtP(scrollP()));
+    sp = scrollP();
+    applyCam(camAtP(sp));
   }
 
   function afterLand(P, focusAfter, info) {
@@ -286,10 +299,11 @@ export function initZoomCamera() {
     track.style.height = f(stageH * (1 + 7 * 1.6)) + 'px';
     stage.style.height = stageH + 'px';
     if (phWorld) phWorld.style.transform = 'scale(' + f(vw / 1440) + ')';
+    trackTop = window.pageYOffset + track.getBoundingClientRect().top;
     if (isPhone()) return;
     extend();
     geom();
-    if (!fl) { bl = null; applyCam(camAtP(scrollP())); }
+    if (!fl) { bl = null; sp = scrollP(); applyCam(camAtP(sp)); }
   }
   window.addEventListener('resize', measure);
   window.addEventListener('load', measure);
