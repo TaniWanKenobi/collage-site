@@ -19,7 +19,7 @@
 
 body { margin: 0; background: var(--onyx); }
 a { color: var(--lime); } a:hover { color: var(--lime-tint); }
-.grain { background-image: repeating-linear-gradient(0deg, rgba(239,253,216,.016) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(4,8,3,.05) 0 1px, transparent 1px 4px); }
+.grain { } /* was a 1px scanline grid (rows every 3px, columns every 4px); removed: read as cyber bars over the shader backgrounds */
 .halftone { background-image: radial-gradient(rgba(239,253,216,.16) 1.2px, transparent 1.4px); background-size: 7px 7px; }
 .ruled { background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(143,134,192,.55) 27px 28px); }
 .mapgrid { background-image: linear-gradient(rgba(194,249,112,.13) 1px, transparent 1px), linear-gradient(90deg, rgba(194,249,112,.13) 1px, transparent 1px); background-size: 20px 20px; }
