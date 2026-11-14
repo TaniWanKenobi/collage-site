@@ -1,6 +1,6 @@
 // Music + UI sounds, opt-in by URL (A/B like ?nav= / ?bg=). Loaded by Base.astro only when one of these is set:
 //   ?music=explore|shop|voting|waves|off   looping track (public/sounds/music-*.mp3, credits in public/sounds/CREDITS.md)
-//   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks + a "landed" chime (synth = procedural, no file)
+//   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file)
 // Plain Web Audio: one AudioContext, created on the first user gesture (browsers block audio before that).
 // Music plays from a decoded buffer so the loop is gapless. Tab hidden or muted -> the context is suspended.
 // No idle cost: no timers/rAF; with sfx only, the context suspends itself 3 s after the last sound.
@@ -66,7 +66,6 @@ function init() {
       musicGain.connect(master);
       if (sfx && sfx !== 'synth') {
         load(FILES[sfx]).then((b) => { buffers.hover = buffers.press = b; }).catch(() => {});
-        load('success.mp3').then((b) => { buffers.land = b; }).catch(() => {});
       }
       if (sfx === 'synth') {
         noise = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.05), ctx.sampleRate);
@@ -202,18 +201,7 @@ function init() {
     const el = document.activeElement;
     if (el && el.matches(HIT) && !el.closest('.snd-toggle')) play('press');
   });
-  // Landed: a section page is open and the camera has stopped flying (during a fly-to the old page briefly reports
-  // open with the new key, so "open" alone fires twice). Fires on that rising edge, or if the landed section changes.
-  type Cam = { open: boolean; key: string; flying: boolean };
-  const landed = (c?: Cam) => !!c && c.open && !c.flying;
-  const cam0 = (window as unknown as { __zoomCam?: Cam }).__zoomCam;
-  let wasLanded = landed(cam0), landKey = cam0?.key ?? '';
-  window.addEventListener('zoomcam', (e) => {
-    const c = (e as CustomEvent).detail as Cam, now = landed(c);
-    if (now && (!wasLanded || c.key !== landKey)) play('land');
-    wasLanded = now;
-    if (now) landKey = c.key;
-  });
+  // (The "landed" chime that played when a section finished opening was removed: it rang on every nav click.)
 
   // ---- Tab hidden: pause everything (suspending the context pauses the music in place) ----
   document.addEventListener('visibilitychange', () => {

@@ -10,5 +10,4 @@ All files come from Hack Club's public GitHub repos. Click sounds were trimmed t
 | music-waves.mp3 | waves | Hack Club | [hackclub/summer-of-making](https://github.com/hackclub/summer-of-making) |
 | tap.mp3 | hackatimeTapped.wav | SerenityUX | [hackclub/neighborhood](https://github.com/hackclub/neighborhood) |
 | stopwatch.mp3 | stopwatchTapped.wav | SerenityUX | [hackclub/neighborhood](https://github.com/hackclub/neighborhood) |
-| success.mp3 | successPiano.mp3 | SerenityUX | [hackclub/neighborhood](https://github.com/hackclub/neighborhood) |
 | tick.mp3 | tick sound | Hack Club | [hackclub/juice](https://github.com/hackclub/juice) |
