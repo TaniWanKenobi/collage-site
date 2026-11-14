@@ -39,8 +39,11 @@ export function initZoomCamera() {
   // cached in measure() so a frame reads only pageYOffset, never layout.
   var sp = null, lastT = 0, trackTop = 0, SMOOTH_TAU = 0.11;
   // ?smooth=<seconds> tunes the catch-up time for A/B (0 = old direct follow; 0.11 = default, picked by feel).
+  // The Looks picker sets it live (window.__zoomSetSmooth / "looks:change"); '' or null = the default.
+  function setSmooth(v) { SMOOTH_TAU = v === '' || v == null ? 0.11 : Math.min(0.5, parseFloat(v) || 0); }
   var smoothQ = /[?&]smooth=([\d.]+)/.exec(location.search);
-  if (smoothQ) SMOOTH_TAU = Math.min(0.5, parseFloat(smoothQ[1]) || 0);
+  if (smoothQ) setSmooth(smoothQ[1]);
+  window.__zoomSetSmooth = setSmooth;
   var clamp = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
   var ss = function (t) { return t * t * (3 - 2 * t); };
   var f = function (n) { return Number(n.toFixed(4)); };
@@ -364,6 +367,19 @@ export function initZoomCamera() {
   urlKey = initial || '';
   TX = initTx({ root: root, stage: stage, pages: pages, covers: covers, order: ORDER, reduce: reduce() });
   measure();
+  // The Looks picker (scripts/looks.ts) switches the transition and the smoothing live. A new transition is
+  // redrawn at once for where the camera is (a flight in progress just carries on with it).
+  window.addEventListener('looks:change', function (e) {
+    var d = e.detail || {};
+    if (d.key === 'smooth') setSmooth(d.value);
+    if (d.key !== 'tx') return;
+    TX.set(d.value || '');
+    if (isPhone() || !cur) return;
+    if (fl) { kick(); return; }
+    bl = null;
+    if (sp === null) sp = scrollP();
+    applyCam(camAtP(sp));
+  });
   if (initial) {
     if (isPhone()) {
       var sec = document.getElementById('sec-' + initial);

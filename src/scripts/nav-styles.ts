@@ -15,6 +15,28 @@
 //  - odometer: a ruler of ticks whose long lime current tick travels, and a rolling counter (after Magic UI
 //    Number Ticker (MIT): its overdamped spring, approximated by a CSS transition).
 // Nothing here runs while idle: every loop stops once its springs settle, and the listeners only do work on change.
+// Switching live (the Looks picker, scripts/looks.ts, sends a "looks:change" event): setNav() tears the current
+// style down completely (everything a style makes registers its own undo with own()) and starts the new one.
+
+/* ---------------- teardown bookkeeping ---------------- */
+// Every element, listener, observer, loop and inline style a style adds registers its undo here; teardown runs
+// them newest first. gen changes on every switch, so async work (liquid-nav's refraction map) can tell it is stale.
+let bin: (() => void)[] = [];
+let gen = 0;
+export const navGen = () => gen;
+export function own(undo: () => void) { bin.push(undo); }
+export function listen(t: EventTarget, type: string, fn: EventListener, o?: AddEventListenerOptions) {
+  t.addEventListener(type, fn, o);
+  own(() => t.removeEventListener(type, fn, o));
+}
+function teardown(hud: HTMLElement) {
+  gen++;
+  const b = bin;
+  bin = [];
+  for (let i = b.length - 1; i >= 0; i--) { try { b[i](); } catch { /* keep tearing down */ } }
+  hud.classList.remove('nv', 'nv-glide', 'lg-refract', 'lq-on');
+  hud.style.removeProperty('--lg-filter');
+}
 
 const reduceMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
@@ -28,6 +50,7 @@ function loop(step: (dt: number) => boolean) {
     raf = step(dt) ? requestAnimationFrame(tick) : 0;
     if (!raf) last = 0;
   };
+  own(() => { if (raf) cancelAnimationFrame(raf); raf = 0; });
   return () => { if (!raf) raf = requestAnimationFrame(tick); };
 }
 // Damped spring, integrated in small fixed substeps (stiff springs are unstable at one step per frame).
@@ -75,7 +98,9 @@ function onCurrent(ul: HTMLElement, dots: HTMLElement[], fn: (i: number) => void
     if (i !== cur) { cur = i; fn(i); }
   };
   go();
-  new MutationObserver(go).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+  const mo = new MutationObserver(go);
+  mo.observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+  own(() => mo.disconnect());
 }
 
 const centresOf = (lis: HTMLElement[]) => lis.map((li) => li.offsetTop + li.offsetHeight / 2);
@@ -86,7 +111,8 @@ const centresOf = (lis: HTMLElement[]) => lis.map((li) => li.offsetTop + li.offs
 function traveller(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[], cls: string, given?: HTMLElement) {
   if (reduceMotion()) return; // the static current-dot look stays
   const el = given || document.createElement('span');
-  if (!given) { el.className = `nv-ind ${cls}`; el.setAttribute('aria-hidden', 'true'); ul.prepend(el); }
+  if (!given) { el.className = `nv-ind ${cls}`; el.setAttribute('aria-hidden', 'true'); ul.prepend(el); own(() => el.remove()); }
+  else own(() => { el.style.transform = ''; el.classList.remove('is-on'); });
   hud.classList.add('nv-glide');
   const centres = centresOf(lis);
   const g = glider((y, st) => { el.style.transform = `translateY(${y.toFixed(2)}px) scale(${(1 / Math.sqrt(st)).toFixed(3)}, ${st.toFixed(3)})`; });
@@ -117,6 +143,7 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
   ind.className = 'nv-ind nv-ind-dock';
   ind.setAttribute('aria-hidden', 'true');
   ul.prepend(ind);
+  own(() => { ind.remove(); lis.forEach((li) => { li.style.removeProperty('--ds'); li.style.removeProperty('--dy'); }); });
   hud.classList.add('nv-glide');
   let scaleNow = 1;
   const g = glider((y, s) => { ind.style.transform = `translateY(${y.toFixed(2)}px) scale(${(scaleNow / Math.sqrt(s)).toFixed(3)}, ${(scaleNow * s).toFixed(3)})`; });
@@ -154,30 +181,34 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
     if (!shown) { scaleNow = (st[i].x / BASE) * pr[i].x; g.jump(centres[i] + dy[i]); shown = true; }
     kick();
   });
-  ul.addEventListener('pointerenter', () => {
+  listen(ul, 'pointerenter', () => {
     // Rest-layout centres, read once per visit (the dots' own transforms don't move offsetTop).
     top = ul.getBoundingClientRect().top;
     centres = centresOf(lis);
   });
-  ul.addEventListener('pointermove', (e) => {
+  listen(ul, 'pointermove', (ev) => {
+    const e = ev as PointerEvent;
     if (e.pointerType === 'touch') return;
     py = e.clientY - top;
     // Only wake the loop when a dot changes detent (or is still settling): moving within a detent costs nothing.
     if (st.some((s, i) => s.x !== target(i) || s.v !== 0)) kick();
   });
-  ul.addEventListener('pointerleave', () => { py = Infinity; pressed = -1; kick(); });
+  listen(ul, 'pointerleave', () => { py = Infinity; pressed = -1; kick(); });
   // Press: squash on pointer down, spring back (with a little overshoot) on release. Keyboard clicks get a tap.
   const liOf = (t: EventTarget | null) => lis.indexOf((t as Element | null)?.closest?.('li') as HTMLElement);
-  ul.addEventListener('pointerdown', (e) => { const i = liOf(e.target); if (i >= 0) { pressed = i; kick(); } });
+  listen(ul, 'pointerdown', (e) => { const i = liOf(e.target); if (i >= 0) { pressed = i; kick(); } });
   const release = () => { if (pressed >= 0) { pressed = -1; kick(); } };
-  ul.addEventListener('pointerup', release);
-  ul.addEventListener('pointercancel', release);
-  ul.addEventListener('click', (e) => {
-    if (e.detail !== 0) return;
+  listen(ul, 'pointerup', release);
+  listen(ul, 'pointercancel', release);
+  let tap = 0;
+  own(() => clearTimeout(tap));
+  listen(ul, 'click', (e) => {
+    if ((e as MouseEvent).detail !== 0) return;
     const i = liOf(e.target);
     if (i < 0) return;
     pressed = i; kick();
-    setTimeout(() => { if (pressed === i) release(); }, 90);
+    clearTimeout(tap);
+    tap = window.setTimeout(() => { if (pressed === i) release(); }, 90);
   });
 }
 
@@ -185,12 +216,15 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
 function goo(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
   const PAD = 16;
   hud.insertAdjacentHTML('beforeend', `<svg width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><filter id="nv-goo-f"><feGaussianBlur in="SourceGraphic" stdDeviation="5" result="b"/><feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8" result="g"/><feComposite in="SourceGraphic" in2="g" operator="atop"/></filter></svg>`);
+  const svg = hud.lastElementChild as Element;
+  own(() => svg.remove());
   const layer = document.createElement('div');
   layer.className = 'nv-goo';
   layer.setAttribute('aria-hidden', 'true');
   const centres = centresOf(lis);
   layer.innerHTML = centres.map((c) => `<i style="top:${PAD + c - 6}px"></i>`).join('') + '<b></b>';
   ul.prepend(layer);
+  own(() => layer.remove());
   const blob = layer.querySelector('b') as HTMLElement;
   const g = glider((y, sy) => {
     blob.style.transform = `translateY(${(PAD + y - 6).toFixed(2)}px) scale(${(1.8 / Math.sqrt(sy)).toFixed(3)}, ${(1.8 * sy).toFixed(3)})`;
@@ -213,6 +247,7 @@ function thread(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTM
   line.setAttribute('aria-hidden', 'true');
   line.innerHTML = '<i></i>';
   ul.prepend(line);
+  own(() => { line.remove(); lis.forEach((li) => li.removeAttribute('data-past')); });
   const fill = line.firstElementChild as HTMLElement;
   let shown = -1, flying = false;
   const past = lis.map(() => false);
@@ -241,7 +276,7 @@ function thread(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTM
     if (typeof d.p === 'number') show(d.p / n);
   };
   onCam((window as Window & { __zoomCam?: { p?: number; flying?: boolean } }).__zoomCam);
-  window.addEventListener('zoomcam', (e) => onCam((e as CustomEvent).detail));
+  listen(window, 'zoomcam', (e) => onCam((e as CustomEvent).detail));
   // The bead slides along the line to the current knot.
   traveller(hud, ul, lis, dots, 'nv-ind-bead');
 }
@@ -254,6 +289,7 @@ function odometer(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: H
   odo.setAttribute('aria-hidden', 'true');
   odo.innerHTML = strip + strip + `<span class="nv-of">/${String(dots.length).padStart(2, '0')}</span>`;
   hud.insertBefore(odo, ul);
+  own(() => odo.remove());
   const strips = Array.from(odo.querySelectorAll<HTMLElement>('.nv-strip'));
   onCurrent(ul, dots, (i) => {
     const v = String(i + 1).padStart(2, '0');
@@ -279,3 +315,28 @@ export function initNavStyle(hud: HTMLElement) {
     // water: liquid-nav.ts (WebGL drop) uses glider's spring and stretch itself
   }
 }
+
+/* ---------------- switching ---------------- */
+const NAVS = /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer)$/;
+
+// Tear down whatever style is running and start v (dots for anything unknown). The current-section marker
+// appears where the camera already is: each style reads aria-current on start and jumps there.
+export function setNav(hud: HTMLElement, v: string) {
+  if (!NAVS.test(v)) v = 'dots';
+  teardown(hud);
+  hud.dataset.nav = v;
+  // .nv resets the glass rules that apply to every non-dots style for the four non-glass looks.
+  hud.classList.toggle('nv', /^(dock|goo|thread|odometer)$/.test(v));
+  const g = gen;
+  // lens / water: the 21st.dev liquid-glass ports (loaded only when picked)
+  if (v === 'lens' || v === 'water') import('./liquid-nav').then((m) => { if (g === gen) m.initLiquidNav(hud); });
+  if (v !== 'water') initNavStyle(hud);
+}
+
+// The Looks picker (scripts/looks.ts) switches the style live.
+window.addEventListener('looks:change', (e) => {
+  const d = (e as CustomEvent<{ key: string; value: string }>).detail;
+  if (d?.key !== 'nav') return;
+  const hud = document.getElementById('zm-hud');
+  if (hud) setNav(hud, d.value || 'dots');
+});

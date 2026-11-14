@@ -10,6 +10,8 @@
 // Everything but the stagger is a pure function of the page's progress (op, 0..1) that the camera computes from
 // scroll or flight time, so it scrubs and reverses with the camera and costs nothing while the camera rests.
 // The stagger is one-shot CSS keyed on .is-held, so it resets whenever the page is left.
+// The returned object is live: set(spec) (the Looks picker, via zoom-camera.js) undoes the current variant's
+// classes, elements and inline styles and sets up the new one; the camera reads z / fin / fout from it every frame.
 import '../styles/transitions.css';
 
 // z: the stretch of a scroll segment's zoom (0 = overview, 1 = landed) over which op goes 0 -> 1.
@@ -39,48 +41,77 @@ function staggerItems(zs) {
   return out;
 }
 
+// "morph+stagger" etc. (also "morph stagger": URLSearchParams decodes a literal + to a space).
+function parseTx(spec) {
+  var parts = String(spec || '').toLowerCase().split(/[+, ]+/);
+  return { name: parts.filter(function (p) { return VARIANTS[p]; })[0] || 'fade', stagger: parts.indexOf('stagger') >= 0 };
+}
+
 export function initTx(o) {
   var m = /[?&]tx=([\w+, -]+)/.exec(location.search);
-  var parts = m ? decodeURIComponent(m[1]).toLowerCase().split(/[+, ]+/) : [];
-  var name = parts.filter(function (p) { return VARIANTS[p]; })[0] || 'fade';
-  var stagger = parts.indexOf('stagger') >= 0;
-  // Reduced motion: a plain quick fade, no movement.
-  if (o.reduce) { name = 'fade'; stagger = false; }
-  var V = VARIANTS[name];
-  o.root.classList.add('tx-' + name);
-  if (stagger) o.root.classList.add('tx-stagger');
+  var name = 'fade', stagger = false, last = {}, extra = {}, veil = null;
+  var api = { name: name, stagger: stagger, z: VARIANTS.fade.z, fin: VARIANTS.fade.fin, fout: VARIANTS.fade.fout, page: page, frame: frame, set: set };
 
-  var last = {};
   function put(el, prop, val, id) {
     if (!el || last[id] === val) return;
     last[id] = val;
     el.style[prop] = val;
   }
 
-  var extra = {};
-  o.order.forEach(function (k) {
-    var pg = o.pages[k];
-    if (!pg) return;
-    var zs = pg.querySelector('.zs');
-    extra[k] = { zs: zs, ring: null };
-    if (stagger && zs) staggerItems(zs).forEach(function (el, i) { el.classList.add('tx-it'); el.style.setProperty('--tx-i', String(Math.min(i, 12))); });
-    if (name === 'iris') {
-      var ring = document.createElement('div');
-      ring.className = 'tx-ring';
-      ring.setAttribute('aria-hidden', 'true');
-      pg.insertBefore(ring, pg.firstChild);
-      extra[k].ring = ring;
+  function setup(spec) {
+    var t = parseTx(spec);
+    name = t.name; stagger = t.stagger;
+    // Reduced motion: a plain quick fade, no movement.
+    if (o.reduce) { name = 'fade'; stagger = false; }
+    var V = VARIANTS[name];
+    api.name = name; api.stagger = stagger; api.z = V.z; api.fin = V.fin; api.fout = V.fout;
+    o.root.classList.add('tx-' + name);
+    if (stagger) o.root.classList.add('tx-stagger');
+    o.order.forEach(function (k) {
+      var pg = o.pages[k];
+      if (!pg) return;
+      var zs = pg.querySelector('.zs');
+      extra[k] = { zs: zs, ring: null };
+      if (stagger && zs) staggerItems(zs).forEach(function (el, i) { el.classList.add('tx-it'); el.style.setProperty('--tx-i', String(Math.min(i, 12))); });
+      if (name === 'iris') {
+        var ring = document.createElement('div');
+        ring.className = 'tx-ring';
+        ring.setAttribute('aria-hidden', 'true');
+        pg.insertBefore(ring, pg.firstChild);
+        extra[k].ring = ring;
+      }
+    });
+    // morph: a veil over the stage with a hole the shape of the target panel (on-screen quad, even-odd polygon).
+    if (name === 'morph') {
+      veil = document.createElement('div');
+      veil.className = 'tx-veil';
+      veil.setAttribute('aria-hidden', 'true');
+      o.stage.appendChild(veil);
     }
-  });
-
-  // morph: a veil over the stage with a hole the shape of the target panel (on-screen quad, even-odd polygon).
-  var veil = null;
-  if (name === 'morph') {
-    veil = document.createElement('div');
-    veil.className = 'tx-veil';
-    veil.setAttribute('aria-hidden', 'true');
-    o.stage.appendChild(veil);
   }
+
+  // Undo everything setup() and page() / frame() put on the page; the next camera frame redraws from scratch.
+  function clear() {
+    o.root.classList.remove('tx-' + name, 'tx-stagger');
+    o.order.forEach(function (k) {
+      var pg = o.pages[k], x = extra[k];
+      if (!pg) return;
+      ['opacity', 'clipPath', 'maskImage', 'webkitMaskImage'].forEach(function (p) { pg.style[p] = ''; });
+      pg.classList.remove('tx-moving');
+      if (o.covers[k]) o.covers[k].style.opacity = '';
+      if (!x) return;
+      if (x.ring) x.ring.remove();
+      if (x.zs) {
+        x.zs.style.transform = ''; x.zs.style.opacity = '';
+        x.zs.querySelectorAll('.tx-it').forEach(function (el) { el.classList.remove('tx-it'); el.style.removeProperty('--tx-i'); });
+      }
+    });
+    if (veil) { veil.remove(); veil = null; }
+    extra = {};
+    last = {};
+  }
+
+  function set(spec) { clear(); setup(spec); }
 
   // One page, one camera frame. op: 0 = collage piece, 1 = page fully in. w x h: the page's layout size.
   function page(k, pg, cover, op, w, h) {
@@ -127,5 +158,6 @@ export function initTx(o) {
     put(veil, 'clipPath', 'polygon(evenodd, 0 0, ' + w + 'px 0, ' + w + 'px ' + h + 'px, 0 ' + h + 'px, 0 0, ' + q.map(P).join(', ') + ', ' + P(q[0]) + ')', 'vc');
   }
 
-  return { name: name, stagger: stagger, z: V.z, fin: V.fin, fout: V.fout, page: page, frame: frame };
+  setup(m ? decodeURIComponent(m[1]) : '');
+  return api;
 }

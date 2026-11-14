@@ -1,5 +1,7 @@
 // ?bg=<name>: a WebGL shader background behind the collage (variants in scripts/shaders/*.glsl.ts).
-// Loaded only when ?bg= is in the URL (see layouts/Base.astro); without it the site keeps its flat onyx.
+// Loaded only when ?bg= is in the URL (see layouts/Base.astro) or the Looks picker turns one on (scripts/looks.ts
+// sends "looks:change"; setBg() swaps the variant live, and "flat" releases the canvas and its WebGL context).
+// Without it the site keeps its flat onyx.
 //
 // Performance rules (scrolling must stay smooth):
 //  - No idle GPU: a frame is drawn only on a "zoomcam" event (the camera publishes one per frame while it
@@ -65,12 +67,9 @@ function compile(gl: WebGL2RenderingContext, frag: string): WebGLProgram | null 
   return prog;
 }
 
-async function init() {
-  const name = new URLSearchParams(location.search).get('bg') || '';
-  const load = LOADERS[name];
-  if (!load || !document.getElementById('zm-root')) return;
-  const variant = (await load()).default;
-
+// The canvas + WebGL2 context, made when a variant is first switched on and released (WEBGL_lose_context) when
+// switched off. use() swaps the variant on the same context; stop() removes everything start() added.
+function start() {
   const canvas = document.createElement('canvas');
   canvas.id = 'bg-gl';
   canvas.setAttribute('aria-hidden', 'true');
@@ -78,36 +77,30 @@ async function init() {
     alpha: false, antialias: false, depth: false, stencil: false, premultipliedAlpha: false,
     preserveDrawingBuffer: false, powerPreference: 'low-power',
   });
-  if (!gl) return;
-  const baked = !!variant.baked;
+  if (!gl) return null;
+
+  const style = document.createElement('style');
+  style.textContent =
+    '#bg-gl{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block}' +
+    // The root and stage paint their own onyx; let the canvas show through (the stage's .grain stays on top).
+    'html[data-bg] #zm-root,html[data-bg] #zm-stage{background-color:transparent!important}' +
+    `@media ${STACKED_MQ}{#bg-gl{display:none}}`;
+  document.head.appendChild(style);
+  document.body.prepend(canvas);
+
   // Live: the variant shader draws every frame. Baked: it draws once into `tex`, DISPLAY draws every frame.
-  const shadeProg = compile(gl, HEAD + variant.frag + main(baked ? EXT : 1, !baked));
-  const showProg = baked ? compile(gl, DISPLAY) : shadeProg;
-  if (!shadeProg || !showProg) return;
+  let shadeProg: WebGLProgram | null = null, showProg: WebGLProgram | null = null;
+  let baked = false, speed = 1, tex: WebGLTexture | null = null, fbo: WebGLFramebuffer | null = null;
+  let texW = 0, texH = 0;
   const locs = new Map<string, WebGLUniformLocation | null>();
   const loc = (p: WebGLProgram, n: string) => {
     const k = (p === shadeProg ? 's' : 'd') + n;
     if (!locs.has(k)) locs.set(k, gl.getUniformLocation(p, n));
     return locs.get(k)!;
   };
-  const tex = baked ? gl.createTexture() : null;
-  const fbo = baked ? gl.createFramebuffer() : null;
-  let texW = 0, texH = 0;
-
-  const style = document.createElement('style');
-  style.textContent =
-    '#bg-gl{position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:-1;pointer-events:none;display:block}' +
-    (variant.pixelated ? '#bg-gl{image-rendering:pixelated}' : '') +
-    // The root and stage paint their own onyx; let the canvas show through (the stage's .grain stays on top).
-    'html[data-bg] #zm-root,html[data-bg] #zm-stage{background-color:transparent!important}' +
-    `@media ${STACKED_MQ}{#bg-gl{display:none}}`;
-  document.head.appendChild(style);
-  document.body.prepend(canvas);
-  document.documentElement.setAttribute('data-bg', name);
 
   const stacked = window.matchMedia(STACKED_MQ);
   const reducedMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const speed = variant.speed ?? 1;
   let cam: Cam = window.__zoomCam || {};
   let drift = 0, lastEvt = 0, raf = 0, dirty = true, lost = false;
   window.__bgFrames = 0;
@@ -141,7 +134,7 @@ async function init() {
 
   function draw() {
     raf = 0;
-    if (lost || document.hidden || stacked.matches) return;
+    if (lost || !showProg || document.hidden || stacked.matches) return;
     if (cam.open && !dirty) return; // a section page covers the world
     dirty = false;
     size();
@@ -163,7 +156,9 @@ async function init() {
   }
   function request() { if (!raf) raf = requestAnimationFrame(draw); }
 
-  window.addEventListener('zoomcam', (e) => {
+  const offs: (() => void)[] = [];
+  const on = (t: EventTarget, type: string, fn: EventListener) => { t.addEventListener(type, fn); offs.push(() => t.removeEventListener(type, fn)); };
+  on(window, 'zoomcam', (e) => {
     cam = (e as CustomEvent<Cam>).detail || cam;
     if (reducedMq.matches) return; // one static frame
     const now = performance.now();
@@ -172,17 +167,79 @@ async function init() {
     lastEvt = now;
     if (!cam.open) request();
   });
-  window.addEventListener('resize', () => { dirty = true; request(); });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { dirty = true; request(); } });
-  stacked.addEventListener('change', () => { dirty = true; request(); });
-  reducedMq.addEventListener('change', () => { dirty = true; request(); });
-  canvas.addEventListener('webglcontextlost', (e) => {
+  on(window, 'resize', () => { dirty = true; request(); });
+  on(document, 'visibilitychange', () => { if (!document.hidden) { dirty = true; request(); } });
+  on(stacked, 'change', () => { dirty = true; request(); });
+  on(reducedMq, 'change', () => { dirty = true; request(); });
+  on(canvas, 'webglcontextlost', (e) => {
     e.preventDefault();
     lost = true;
     document.documentElement.removeAttribute('data-bg');
     canvas.style.display = 'none';
   });
-  request();
+
+  function release() {
+    if (shadeProg) gl!.deleteProgram(shadeProg);
+    if (showProg && showProg !== shadeProg) gl!.deleteProgram(showProg);
+    if (tex) gl!.deleteTexture(tex);
+    if (fbo) gl!.deleteFramebuffer(fbo);
+    shadeProg = showProg = tex = fbo = null;
+    texW = texH = 0;
+    locs.clear();
+  }
+
+  return {
+    // Swap to a variant on this context; false if it does not compile (the caller then falls back to CSS).
+    use(name: string, variant: BgVariant) {
+      if (lost) return false;
+      release();
+      baked = !!variant.baked;
+      speed = variant.speed ?? 1;
+      shadeProg = compile(gl, HEAD + variant.frag + main(baked ? EXT : 1, !baked));
+      showProg = baked ? compile(gl, DISPLAY) : shadeProg;
+      if (!shadeProg || !showProg) return false;
+      if (baked) { tex = gl.createTexture(); fbo = gl.createFramebuffer(); }
+      canvas.style.imageRendering = variant.pixelated ? 'pixelated' : '';
+      document.documentElement.setAttribute('data-bg', name);
+      dirty = true;
+      request();
+      return true;
+    },
+    stop() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      offs.forEach((f) => f()); // first, so losing the context on purpose is not handled as a loss
+      release();
+      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      canvas.remove();
+      style.remove();
+      document.documentElement.removeAttribute('data-bg');
+    },
+  };
 }
 
-init().catch(() => {});
+let bg: ReturnType<typeof start> = null;
+let want = '';
+let req = 0;
+
+function off() { if (bg) { bg.stop(); bg = null; } }
+
+// Switch the background to `name` ('' or unknown = the flat CSS background). Safe to call repeatedly.
+export async function setBg(name: string) {
+  if (!LOADERS[name]) name = '';
+  if (name === want) return;
+  want = name;
+  const r = ++req;
+  if (!name || !document.getElementById('zm-root')) { off(); return; }
+  const variant = (await LOADERS[name]()).default;
+  if (r !== req) return; // switched again while loading
+  if (!bg) bg = start();
+  if (bg && !bg.use(name, variant)) off();
+}
+
+// The Looks picker (scripts/looks.ts) switches it live.
+window.addEventListener('looks:change', (e) => {
+  const d = (e as CustomEvent<{ key: string; value: string }>).detail;
+  if (d?.key === 'bg') setBg(d.value || '').catch(() => {});
+});
+setBg(new URLSearchParams(location.search).get('bg') || '').catch(() => {});

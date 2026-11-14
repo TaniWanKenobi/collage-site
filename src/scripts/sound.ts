@@ -1,8 +1,10 @@
-// Music + UI sounds, opt-in by URL (A/B like ?nav= / ?bg=). Loaded by Base.astro only when one of these is set:
+// Music + UI sounds, opt-in by URL (A/B like ?nav= / ?bg=). Loaded by Base.astro only when one of these is set
+// (or when the Looks picker, scripts/looks.ts, turns one on; it then switches them live via "looks:change"):
 //   ?music=explore|shop|voting|waves|off   looping track (public/sounds/music-*.mp3, credits in public/sounds/CREDITS.md)
 //   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file)
 // Plain Web Audio: one AudioContext, created on the first user gesture (browsers block audio before that).
-// Music plays from a decoded buffer so the loop is gapless. Tab hidden or muted -> the context is suspended.
+// Music plays from a decoded buffer so the loop is gapless; a track switch fades the old one out as the new one
+// fades in. Tab hidden or muted -> the context is suspended. The mute pill shows only while music or sfx is on.
 // No idle cost: no timers/rAF; with sfx only, the context suspends itself 3 s after the last sound.
 // Debug: window.__sfx (counts per kind, context state, music state); window.__sfxCount = total sounds played.
 import '../styles/sound.css';
@@ -16,10 +18,11 @@ const MUTE_KEY = 'sound-muted';
 // What counts as interactive for hover/press ticks.
 const HIT = 'a[href], button, [role="button"], .hud-dot, .ihb, [data-fly], summary, select, input:not([type="hidden"])';
 
+const pickMusic = (v: string | null) => MUSIC[v || ''] || null;
+const pickSfx = (v: string | null) => (v === 'synth' || FILES[v || ''] ? (v as string) : null);
 const q = new URLSearchParams(location.search);
-const musicFile = MUSIC[q.get('music') || ''] || null;
-const sfxArg = q.get('sfx') || '';
-const sfx = sfxArg === 'synth' || FILES[sfxArg] ? sfxArg : null;
+let musicFile = pickMusic(q.get('music'));
+let sfx = pickSfx(q.get('sfx'));
 const BASE = (import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/') + 'sounds/';
 
 const dbg = { hover: 0, press: 0, land: 0, ctx: 'none' as string, music: 'off' as string, muted: false };
@@ -27,7 +30,18 @@ const w = window as unknown as { __sfx: typeof dbg; __sfxCount: number };
 w.__sfx = dbg;
 w.__sfxCount = 0;
 
-if (musicFile || sfx) init();
+let update: (() => void) | null = null;
+if (musicFile || sfx) update = init();
+
+// The Looks picker switches music / sfx live (the engine is set up the first time either is turned on).
+window.addEventListener('looks:change', (e) => {
+  const d = (e as CustomEvent<{ key: string; value: string }>).detail;
+  if (d?.key === 'music') { const f = pickMusic(d.value); if (f === musicFile) return; musicFile = f; }
+  else if (d?.key === 'sfx') { const s = pickSfx(d.value); if (s === sfx) return; sfx = s; }
+  else return;
+  if (!update) { if (!musicFile && !sfx) return; update = init(); }
+  update();
+});
 
 function init() {
   let muted = false;
@@ -36,19 +50,42 @@ function init() {
 
   let ctx: AudioContext | null = null;
   let master: GainNode;
-  let musicGain: GainNode;
+  // The playing track and its own gain (each track gets one, so a switch can fade one out while the next comes in).
   let musicSrc: AudioBufferSourceNode | null = null;
-  let musicLoading = false;
-  const buffers: Partial<Record<Kind, AudioBuffer>> = {};
+  let musicGain: GainNode | null = null;
+  let musicReq = 0;
+  const decoded = new Map<string, Promise<AudioBuffer>>();
   let noise: AudioBuffer | null = null;
   let idle = 0;
 
   const setCtxState = () => { dbg.ctx = ctx ? ctx.state : 'none'; };
 
-  async function load(name: string) {
-    const r = await fetch(BASE + name);
-    if (!r.ok) throw new Error('sound: ' + name + ' ' + r.status);
-    return ctx!.decodeAudioData(await r.arrayBuffer());
+  function load(name: string) {
+    let p = decoded.get(name);
+    if (!p) {
+      p = fetch(BASE + name).then((r) => {
+        if (!r.ok) throw new Error('sound: ' + name + ' ' + r.status);
+        return r.arrayBuffer();
+      }).then((b) => ctx!.decodeAudioData(b));
+      p.catch(() => decoded.delete(name));
+      decoded.set(name, p);
+    }
+    return p;
+  }
+
+  // The click sound for the current set: a decoded file, or the noise burst for synth (made once).
+  const sfxBufs: Record<string, AudioBuffer> = {};
+  function prepSfx() {
+    if (!ctx || !sfx) return;
+    if (sfx === 'synth') {
+      if (noise) return;
+      noise = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.05), ctx.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    } else {
+      const f = FILES[sfx];
+      if (!sfxBufs[f]) load(f).then((b) => { sfxBufs[f] = b; }).catch(() => {});
+    }
   }
 
   // First gesture: build the graph, decode the click file(s), start the music.
@@ -61,18 +98,8 @@ function init() {
       master = ctx.createGain();
       master.gain.value = muted ? 0 : 1;
       master.connect(ctx.destination);
-      musicGain = ctx.createGain();
-      musicGain.gain.value = 0;
-      musicGain.connect(master);
-      if (sfx && sfx !== 'synth') {
-        load(FILES[sfx]).then((b) => { buffers.hover = buffers.press = b; }).catch(() => {});
-      }
-      if (sfx === 'synth') {
-        noise = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.05), ctx.sampleRate);
-        const d = noise.getChannelData(0);
-        for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-      }
     }
+    prepSfx();
     if (muted || document.hidden) { if (ctx.state === 'running') ctx.suspend().catch(() => {}); }
     else if (ctx.state !== 'running') ctx.resume().catch(() => {});
     startMusic();
@@ -84,12 +111,16 @@ function init() {
   GESTURES.forEach((g) => document.addEventListener(g, unlock, { capture: true, passive: true }));
 
   async function startMusic() {
-    if (!musicFile || !ctx || musicSrc || musicLoading || muted) return;
-    musicLoading = true;
+    if (!musicFile || !ctx || musicSrc || muted) return;
+    const file = musicFile, req = ++musicReq;
     dbg.music = 'loading';
     try {
-      const buf = await load(musicFile);
-      if (musicSrc) return;
+      const buf = await load(file);
+      // Switched (or started by another call) while loading: that one wins.
+      if (req !== musicReq || musicSrc || file !== musicFile) return;
+      musicGain = ctx.createGain();
+      musicGain.gain.value = 0;
+      musicGain.connect(master);
       musicSrc = ctx.createBufferSource();
       musicSrc.buffer = buf;
       musicSrc.loop = true;
@@ -97,28 +128,43 @@ function init() {
       musicSrc.start();
       fadeMusicIn();
     } catch (e) {
-      dbg.music = 'error';
-    } finally {
-      musicLoading = false;
+      if (req === musicReq) dbg.music = 'error';
     }
   }
   function fadeMusicIn() {
-    if (!ctx || !musicSrc) return;
+    if (!ctx || !musicSrc || !musicGain) return;
     const t = ctx.currentTime;
     musicGain.gain.cancelScheduledValues(t);
-    musicGain.gain.setValueAtTime(0, t);
+    musicGain.gain.setValueAtTime(musicGain.gain.value, t);
     musicGain.gain.linearRampToValueAtTime(MUSIC_GAIN, t + 1.5);
     dbg.music = muted || document.hidden ? 'paused' : 'playing';
   }
+  // Fade the playing track out (0.4 s) and drop it; a pending load is cancelled.
+  function stopMusic() {
+    musicReq++;
+    const src = musicSrc, g = musicGain;
+    musicSrc = null; musicGain = null;
+    dbg.music = 'off';
+    if (!src || !g || !ctx) return;
+    src.onended = () => g.disconnect();
+    if (ctx.state !== 'running') { src.stop(); return; }
+    const t = ctx.currentTime;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.linearRampToValueAtTime(0, t + 0.4);
+    src.stop(t + 0.45);
+  }
 
-  // Wake the context for a sound; with no music, let it sleep again 3 s after the last one.
+  // With no music, let the context sleep 3 s after the last sound.
+  function sleepSoon() {
+    clearTimeout(idle);
+    idle = window.setTimeout(() => { if (ctx && !musicFile) ctx.suspend().catch(() => {}); }, 3000);
+  }
+  // Wake the context for a sound.
   function wake() {
     if (!ctx || muted || document.hidden) return false;
     if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-    if (!musicFile) {
-      clearTimeout(idle);
-      idle = window.setTimeout(() => { if (ctx && !musicFile) ctx.suspend().catch(() => {}); }, 3000);
-    }
+    if (!musicFile) sleepSoon();
     return true;
   }
 
@@ -128,7 +174,7 @@ function init() {
     const t = c.currentTime + 0.005;
     if (sfx === 'synth') synth(c, kind, t);
     else {
-      const b = buffers[kind];
+      const b = sfxBufs[FILES[sfx]];
       if (!b) return;
       const s = c.createBufferSource();
       s.buffer = b;
@@ -174,12 +220,12 @@ function init() {
     }
   }
 
-  // ---- Hooks: delegated at document level ----
+  // ---- Hooks: delegated at document level (they do nothing while sfx is off) ----
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
   let hovered: Element | null = null;
   let lastHover = 0;
   document.addEventListener('pointerover', (e) => {
-    if (e.pointerType !== 'mouse' || !finePointer.matches) return;
+    if (!sfx || e.pointerType !== 'mouse' || !finePointer.matches) return;
     const el = (e.target as Element).closest?.(HIT);
     if (!el || el === hovered || el.closest('.snd-toggle')) { if (!el) hovered = null; return; }
     hovered = el;
@@ -192,12 +238,12 @@ function init() {
     if (hovered && !(e.relatedTarget instanceof Node && hovered.contains(e.relatedTarget))) hovered = null;
   }, { passive: true });
   document.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0) return;
+    if (!sfx || e.button !== 0) return;
     const el = (e.target as Element).closest?.(HIT);
     if (el && !el.closest('.snd-toggle')) play('press');
   }, { passive: true });
   document.addEventListener('keydown', (e) => {
-    if ((e.key !== 'Enter' && e.key !== ' ') || e.repeat) return;
+    if (!sfx || (e.key !== 'Enter' && e.key !== ' ') || e.repeat) return;
     const el = document.activeElement;
     if (el && el.matches(HIT) && !el.closest('.snd-toggle')) play('press');
   });
@@ -252,4 +298,23 @@ function init() {
   document.body.appendChild(btn);
   place();
   window.addEventListener('resize', place, { passive: true });
+
+  // Apply the current musicFile / sfx (called again by the Looks picker after either changes).
+  let playing: string | null = musicFile;
+  function apply() {
+    const on = !!(musicFile || sfx);
+    btn.style.display = on ? '' : 'none';
+    if (musicFile !== playing) { playing = musicFile; stopMusic(); }
+    // The picker click was a gesture, so the context may start now; otherwise the first gesture starts it.
+    const active = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive;
+    if (on && (ctx || active)) {
+      unlock();
+      if (!musicFile) sleepSoon();
+    } else if (!on && ctx) {
+      clearTimeout(idle);
+      setTimeout(() => { if (ctx && !musicFile && !sfx) ctx.suspend().catch(() => {}); }, 500);
+    }
+  }
+  apply();
+  return apply;
 }

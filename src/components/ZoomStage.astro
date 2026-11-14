@@ -55,12 +55,11 @@ const { center = 'globe' } = Astro.props;
   // Only Chromium draws an SVG filter as a backdrop; elsewhere "lens" falls back to frosted glass.
   const uaBrands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
   if (hud && uaBrands?.some((b) => b.brand === 'Chromium')) hud.classList.add('lg-ok');
-  // lens / water: the 21st.dev liquid-glass ports (loaded only when picked)
-  if (hud && (hud.dataset.nav === 'lens' || hud.dataset.nav === 'water')) import('../scripts/liquid-nav.ts').then((m) => m.initLiquidNav(hud));
-  // The travelling current-section indicator for every style but water (scripts/nav-styles.ts); .nv resets the
-  // glass rules that apply to every non-dots style for the four non-glass looks.
+  // .nv (set before first paint) resets the glass rules that apply to every non-dots style for the four non-glass looks.
   if (hud && /^(dock|goo|thread|odometer)$/.test(hud.dataset.nav || '')) hud.classList.add('nv');
-  if (hud && hud.dataset.nav !== 'water') import('../scripts/nav-styles.ts').then((m) => m.initNavStyle(hud));
+  // The style's motion (scripts/nav-styles.ts; lens / water also load scripts/liquid-nav.ts). setNav also lets the
+  // Looks picker switch the style live.
+  if (hud) import('../scripts/nav-styles.ts').then((m) => m.setNav(hud, hud.dataset.nav || 'dots'));
   // ?edit on the home page: the drag-to-place layout editor (loaded only then).
   if (new URLSearchParams(location.search).has('edit')) import('../scripts/layout-editor.ts').then((m) => m.initLayoutEditor());
 </script>

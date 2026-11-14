@@ -8,8 +8,10 @@
 //    always-on ambient ripple is off: it only draws while the drop moves, so an idle page costs nothing.
 //    Its lead blob moves with goo's spring and stretch (nav-styles.ts glider: stiffness 300, damping 20, stretched
 //    along the capsule by speed), like every other nav style.
+// Everything made here registers its undo with nav-styles' own()/listen(), so setNav() can switch styles live
+// (the water drop's WebGL context is released with WEBGL_lose_context).
 
-import { spring, stretch, GOO_K, GOO_C, initNavStyle } from './nav-styles';
+import { spring, stretch, GOO_K, GOO_C, initNavStyle, own, listen, navGen } from './nav-styles';
 
 const isSafari = () => /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
 const urlBackdrop = () => typeof CSS !== 'undefined' && (CSS.supports('backdrop-filter', 'url(#x)') || CSS.supports('-webkit-backdrop-filter', 'url(#x)'));
@@ -70,12 +72,16 @@ function displacementMap(w: number, h: number, radius: number, bevelDepth: numbe
 }
 async function refract(hud: HTMLElement) {
   if (isSafari() || !urlBackdrop()) return;
+  const g = navGen(); // the map is made asynchronously: drop it if the style was switched meanwhile
   const w = hud.offsetWidth, h = hud.offsetHeight;
   if (!w || !h) return;
   const scale = 30, ab = 5, frost = 0.4;
   const url = await displacementMap(w, h, Math.min(w, h) / 2, Math.min(16, Math.min(w, h) / 2), Math.min(window.devicePixelRatio || 1, 2));
   if (!url) return;
+  if (g !== navGen()) { URL.revokeObjectURL(url); return; }
+  own(() => URL.revokeObjectURL(url));
   await new Promise<void>((r) => { const i = new Image(); i.onload = i.onerror = () => r(); i.src = url; });
+  if (g !== navGen()) return;
   const id = `lg-map-${w}x${h}`, pad = scale + ab + 4, px = (pad / w) * 100, py = (pad / h) * 100;
   const disp = (s: number, out: string) => `<feDisplacementMap in="SourceGraphic" in2="map" scale="${s}" xChannelSelector="R" yChannelSelector="G" result="${out}"/>`;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
@@ -87,6 +93,8 @@ ${disp(scale - ab, 'dB')}<feColorMatrix in="dB" type="matrix" values="0 0 0 0 0 
 <feBlend in="red" in2="green" mode="screen" result="rg"/><feBlend in="rg" in2="blue" mode="screen" result="rgb"/>
 <feGaussianBlur in="rgb" stdDeviation="${frost}"/></filter></svg>`;
   hud.insertAdjacentHTML('beforeend', svg);
+  const el = hud.lastElementChild as Element;
+  own(() => el.remove());
   hud.style.setProperty('--lg-filter', `url(#${id}) blur(0.5px) saturate(1.85) brightness(1.06)`);
   hud.classList.add('lg-refract');
 }
@@ -166,6 +174,8 @@ function water(hud: HTMLElement) {
   hud.prepend(cv);
   const glc = initGL(cv);
   if (!glc) { cv.remove(); return false; }
+  // Undo (runs after the listeners below are removed, so losing the context on purpose is not a fallback).
+  own(() => { if (s.raf) cancelAnimationFrame(s.raf); s.raf = 0; glc.gl.getExtension('WEBGL_lose_context')?.loseContext(); cv.remove(); });
   const reduce = reduceMotion();
   // Positions are along the capsule (top to bottom) in canvas px; cy is the capsule's middle across.
   const s = {
@@ -277,8 +287,10 @@ function water(hud: HTMLElement) {
   measure();
   draw();
   go(current());
-  new MutationObserver(() => go(current())).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
-  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); cv.remove(); hud.dataset.nav = 'drop'; initNavStyle(hud); });
+  const mo = new MutationObserver(() => go(current()));
+  mo.observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+  own(() => mo.disconnect());
+  listen(cv, 'webglcontextlost', (e) => { e.preventDefault(); cv.remove(); hud.dataset.nav = 'drop'; initNavStyle(hud); });
   hud.classList.add('lq-on');
   return true;
 }
