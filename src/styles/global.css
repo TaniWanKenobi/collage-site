@@ -151,6 +151,67 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%) scale(.69); transform-origin: right center; }
 #zm-hud[data-nav="bubble"] .hud-tip { background-color: rgba(18,28,16,.8); }
 @media (prefers-reduced-motion: reduce) { #zm-hud .hud-bead, #zm-hud[data-nav="bubble"] li { transition: none; } }
+/* Six non-glass looks (#zm-hud.nv, ?nav=dock|goo|thread|odometer|tabs|magnet; motion in scripts/nav-styles.ts).
+   .nv first takes back the glass dots and pills that the rules above give every non-"dots" style. */
+#zm-hud.nv li { border: 0; border-radius: 0; background: none; box-shadow: none; }
+#zm-hud.nv #hud-num { color: var(--lime-tint); text-shadow: 0 1px 2px rgba(13,22,11,.8); }
+#zm-hud.nv .hud-tip { border: 0; border-radius: 0; padding: 0 10px; line-height: 2; color: var(--onyx); background-color: var(--lime); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 3px 8px rgba(4,8,3,.4); }
+#zm-hud.nv .hud-tip::after { display: block; }
+#zm-hud.nv li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--onyx); }
+/* plain ring dots, drawn on li::before so the dot can scale/move without its label (dock, magnet) */
+#zm-hud:is([data-nav="dock"], [data-nav="magnet"]) li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
+#zm-hud:is([data-nav="dock"], [data-nav="magnet"]) li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
+/* dock: after Magic UI Dock (MIT), vertical. JS springs --ds (dot scale) and --dy (push from the dots above). */
+#zm-hud[data-nav="dock"] #hud-num { margin-bottom: 14px !important; } /* room for the top dot to grow */
+#zm-hud[data-nav="dock"] li { width: 12px; height: 12px; margin: 10px 0; transform: translateY(var(--dy, 0px)); }
+#zm-hud[data-nav="dock"] li::before { transform: scale(var(--ds, 1)); border-width: 1.5px; }
+#zm-hud[data-nav="dock"] .hud-tip { right: calc(100% + 14px + (var(--ds, 1) - 1) * 6px); }
+#zm-hud[data-nav="dock"] ul::after { content: ''; position: absolute; inset: -24px -22px; z-index: -1; } /* pointer zone */
+/* goo: after 21st.dev GooeyPagination by ruixen.ui. Only this small layer carries the filter; labels stay crisp. */
+#zm-hud[data-nav="goo"] .nv-goo { position: absolute; left: -16px; right: -16px; top: -16px; bottom: -16px; z-index: 0; pointer-events: none; filter: url(#nv-goo-f); }
+#zm-hud[data-nav="goo"] .nv-goo > * { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; }
+#zm-hud[data-nav="goo"] .nv-goo i { background: color-mix(in srgb, var(--lime-tint) 55%, var(--onyx)); }
+#zm-hud[data-nav="goo"] .nv-goo b { background: var(--lime); opacity: 0; transition: opacity .25s ease; will-change: transform; }
+#zm-hud[data-nav="goo"] .nv-goo.is-on b { opacity: 1; }
+/* thread: a line filled by the smoothed scroll (scaleY), a knot per section */
+#zm-hud[data-nav="thread"] .nv-thread { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(239,253,216,.32); box-shadow: 0 0 0 1px rgba(13,22,11,.35); pointer-events: none; }
+#zm-hud[data-nav="thread"] .nv-thread i { position: absolute; inset: 0; background: var(--lime); transform: scaleY(0); transform-origin: 50% 0; }
+#zm-hud[data-nav="thread"] .nv-thread i.nv-fly { transition: transform .8s cubic-bezier(.65,0,.35,1); }
+#zm-hud[data-nav="thread"] li::before { content: ''; position: absolute; left: 3px; top: 3px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid rgba(239,253,216,.85); border-radius: 50%; background: var(--onyx); pointer-events: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1), background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
+#zm-hud[data-nav="thread"] li[data-past]::before { border-color: var(--lime); background: var(--lime); }
+#zm-hud[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); border-color: var(--lime); background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
+@media (hover: hover) { #zm-hud[data-nav="thread"] li:hover::before { transform: scale(1.35); } #zm-hud[data-nav="thread"] li:hover:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); } }
+/* odometer: a ruler (minor ticks on ul::before, a longer tick per section) and a rolling counter (after Magic UI
+   Number Ticker (MIT); its overdamped spring is a soft ease-out with a little mechanical overshoot here) */
+#zm-hud[data-nav="odometer"] #hud-num { display: none; }
+#zm-hud[data-nav="odometer"] .nv-odo { display: flex; margin-bottom: 8px; font-size: 12px; line-height: 14px; color: var(--lime-tint); text-shadow: 0 1px 2px rgba(13,22,11,.8); font-variant-numeric: tabular-nums; }
+#zm-hud[data-nav="odometer"] .nv-roll { display: block; height: 14px; overflow: hidden; color: var(--lime); }
+#zm-hud[data-nav="odometer"] .nv-strip { display: block; transition: transform .75s cubic-bezier(.22,1.25,.36,1); }
+#zm-hud[data-nav="odometer"] .nv-strip > span { display: block; height: 14px; }
+#zm-hud[data-nav="odometer"] .nv-of { opacity: .6; }
+#zm-hud[data-nav="odometer"] ul::before { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 6px; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(239,253,216,.5) 0 1px, transparent 1px 8px); filter: drop-shadow(0 0 1px rgba(13,22,11,.9)); }
+#zm-hud[data-nav="odometer"] li { width: 22px; }
+#zm-hud[data-nav="odometer"] li::before { content: ''; position: absolute; right: 0; top: 6px; width: 20px; height: 2px; background: var(--lime-tint); box-shadow: 0 0 0 1px rgba(13,22,11,.45); transform: scaleX(.55); transform-origin: 100% 50%; pointer-events: none; transition: transform .35s cubic-bezier(.3,1.4,.5,1), background-color .2s ease; }
+#zm-hud[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(1); background: var(--lime); height: 3px; top: 5.5px; }
+@media (hover: hover) { #zm-hud[data-nav="odometer"] li:hover:not(:has(.hud-dot[aria-current="true"]))::before { transform: scaleX(.8); } }
+/* tabs: taped paper tabs tucked under the right edge; the current one slides out with its number and name */
+#zm-hud[data-nav="tabs"] { pointer-events: none; align-items: flex-end; }
+#zm-hud[data-nav="tabs"] #hud-num { display: none; }
+#zm-hud[data-nav="tabs"] li { pointer-events: auto; box-sizing: border-box; width: 150px; height: 26px; margin: 5px 0; padding-left: 9px; display: flex; align-items: center; border-radius: 2px 0 0 2px; background-color: var(--lime-tint); background-image: repeating-linear-gradient(90deg, rgba(13,22,11,.035) 0 1px, transparent 1px 3px), linear-gradient(180deg, rgba(255,255,255,.35), rgba(13,22,11,.06)); box-shadow: -2px 3px 6px rgba(4,8,3,.5), inset 1px 0 0 rgba(13,22,11,.12); translate: 138px 0; rotate: -2deg; transition: translate .4s cubic-bezier(.3,1.25,.5,1), background-color .25s ease; }
+#zm-hud[data-nav="tabs"] li:nth-of-type(even) { rotate: 2deg; }
+#zm-hud[data-nav="tabs"] li::before { content: ''; position: absolute; left: -11px; top: -5px; width: 21px; height: 11px; background: url('../assets/tape/cream.webp') center / 100% 100% no-repeat; rotate: -32deg; opacity: .9; filter: drop-shadow(0 1px 1px rgba(4,8,3,.4)); pointer-events: none; }
+#zm-hud[data-nav="tabs"] li:nth-of-type(even)::before { left: -10px; top: -3px; rotate: 24deg; }
+#zm-hud[data-nav="tabs"] li:has(.hud-dot[aria-current="true"]), #zm-hud[data-nav="tabs"] li:has(.hud-dot:focus-visible) { translate: 32px 0; }
+#zm-hud[data-nav="tabs"] li:has(.hud-dot[aria-current="true"]) { background-color: var(--lime); z-index: 2; }
+#zm-hud[data-nav="tabs"] .hud-dot { inset: 0; border-radius: 0; }
+#zm-hud[data-nav="tabs"] .hud-dot:focus-visible { outline: 2px solid var(--onyx); outline-offset: -4px; }
+#zm-hud[data-nav="tabs"] .hud-tip, #zm-hud[data-nav="tabs"] li .hud-tip { position: static; visibility: visible; opacity: 1; transform: none; padding: 0; background: none; box-shadow: none; color: var(--onyx); font-size: 11px; line-height: 1; transition: none; }
+#zm-hud[data-nav="tabs"] .hud-tip b { opacity: 1; margin-right: 6px; }
+#zm-hud[data-nav="tabs"] .hud-tip::after { display: none; }
+@media (hover: hover) { #zm-hud[data-nav="tabs"] li:hover:not(:has(.hud-dot[aria-current="true"])) { translate: 120px 0; } }
+/* magnet: JS springs --mx/--my, the dot leans toward the cursor */
+#zm-hud[data-nav="magnet"] li::before { transform: translate(var(--mx, 0px), var(--my, 0px)); }
+@media (prefers-reduced-motion: reduce) { #zm-hud.nv li, #zm-hud.nv li::before, #zm-hud.nv .nv-strip, #zm-hud.nv .nv-goo b { transition: none; } }
 
 
 /* Places map (sections/Map.astro + scripts/places-map.ts) */

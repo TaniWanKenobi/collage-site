@@ -181,7 +181,7 @@ export function initZoomCamera() {
     // key/prog: the piece the camera is heading for and how far into it, in log scale (0 = overview, 1 = landed).
     var tp = PIECES[c.i], a0 = s0(), b0 = Math.min(vw / tp.pw, stageH / tp.ph);
     var prog = b0 > a0 * 1.001 ? clamp(Math.log(c.s / a0) / Math.log(b0 / a0), 0, 1) : 0;
-    var cam = { s: c.s, open: open, zoom: zn, flying: !!fl, cx: c.cx, cy: c.cy, r: c.r, vw: vw, h: stageH, key: tp.key, prog: prog };
+    var cam = { s: c.s, open: open, zoom: zn, flying: !!fl, cx: c.cx, cy: c.cy, r: c.r, vw: vw, h: stageH, key: tp.key, prog: prog, p: sp };
     window.__zoomCam = cam;
     window.dispatchEvent(new CustomEvent('zoomcam', { detail: cam }));
     // URL follows the view: a section route while its page is open, the home route at the overview.
