@@ -51,3 +51,16 @@ html:not([data-ab-hover="b"]) .ab-hl { display: none; }
 .ab-opts button b { font-size: 13px; }
 .ab-opts button[aria-pressed="true"] { border-color: var(--lime); background-color: var(--lime); color: var(--onyx); }
 .ab-opts button:not([aria-pressed="true"]):hover { background-color: var(--onyx-3); }
+
+/* ---------- "Looks" picker (scripts/looks.ts): URL-driven variants, inside the A/B panel ---------- */
+.ab-panel:has(.looks) { max-height: calc(100vh - 60px); overflow-y: auto; max-width: min(340px, calc(100vw - 28px)); }
+.looks { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--lime); }
+.looks:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.looks-group + .looks-group { margin-top: 8px; }
+.looks-opts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.looks-opts button, .looks-reset { padding: 4px 9px; border: 1px solid var(--onyx-3); border-radius: 999px; background: transparent; color: var(--lime-tint); font: inherit; font-size: 11px; cursor: pointer; }
+.looks-opts button[aria-pressed="true"] { border-color: var(--lime); background-color: var(--lime); color: var(--onyx); }
+.looks-opts button:not([aria-pressed="true"]):hover, .looks-reset:hover { background-color: var(--onyx-3); }
+.looks-opts .looks-extra { border-style: dashed; }
+.looks-reset { margin-top: 10px; color: var(--muted); }
+.looks button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
