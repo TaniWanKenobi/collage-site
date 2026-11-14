@@ -2,6 +2,7 @@
 //  - publishes the camera to 3D slots (window "zoomcam" event + window.__zoomCam),
 //  - deep links: /<section> routes start zoomed in, and the URL follows what you are looking at.
 import { STACKED_MQ } from './slot-view.js';
+import { initTx } from './zoom-tx.js';
 
 export function initZoomCamera() {
   'use strict';
@@ -24,6 +25,8 @@ export function initZoomCamera() {
     live[k] = false;
   });
   var dots = Array.prototype.slice.call(document.querySelectorAll('[data-dot]'));
+  // How a page enters/leaves its piece (?tx=, scripts/zoom-tx.js): sets the op windows below and draws each frame.
+  var TX = null;
   // Camera targets: the 16:10 panel of each piece, measured from the markup so it never drifts.
   var PIECES = ORDER.map(function (k) {
     return { key: k, name: NAMES[k], rot: Number(els[k].getAttribute('data-rot')) || 0, cx: 720, cy: 450, px: 720, py: 450, pw: 1440, ph: 900 };
@@ -96,7 +99,7 @@ export function initZoomCamera() {
     var tp = PIECES[i], a = s0(), b = Math.min(vw / tp.pw, stageH / tp.ph);
     var s = Math.pow(a, 1 - z) * Math.pow(b, z);
     var den = 1 - a / b, g = Math.abs(den) < 1e-9 ? z : (1 - a / s) / den;
-    var ops = {}; ops[tp.key] = clamp((z - 0.7) / 0.25, 0, 1);
+    var ops = {}; ops[tp.key] = clamp((z - TX.z[0]) / (TX.z[1] - TX.z[0]), 0, 1);
     return { i: i, s: s, cx: 720 + (tp.px - 720) * g, cy: 450 + (tp.py - 450) * g, r: tp.rot * g, ops: ops };
   }
   function scrollP() { return clamp((window.pageYOffset - trackTop) / (stageH * 1.6), 0, 7); }
@@ -146,20 +149,21 @@ export function initZoomCamera() {
     cur0 = true;
     ORDER.forEach(function (k) {
       var op = c.ops[k] || 0, pg = pages[k], on = op >= 0.5;
-      put(pg, 'opacity', String(f(op)), 'p' + k);
+      // The page's look at this progress (opacity / clip / mask / sheet) and its cover: zoom-tx.js.
+      TX.page(k, pg, covers[k], op, vw, stageH);
       // A page at opacity 0 is skipped entirely (no paint, no layers: its sticky header and scroller used to be
       // composited layers on every frame of the collage). It keeps its layout, so fading in costs one paint.
       put(pg, 'contentVisibility', op > 0 ? 'visible' : 'hidden', 'v' + k);
       // Fully landed: the page scrolls on its own (and hands the wheel back to the camera at either end).
       var held = op >= 0.99;
       if (held !== pg.classList.contains('is-held')) { pg.classList.toggle('is-held', held); if (!held) pg.scrollTop = 0; }
-      put(covers[k], 'opacity', String(f(1 - op)), 'c' + k);
       if (on !== live[k]) {
         live[k] = on;
         pg.style.pointerEvents = on ? 'auto' : 'none';
         if (on) { pg.removeAttribute('aria-hidden'); pg.inert = false; } else { pg.setAttribute('aria-hidden', 'true'); pg.inert = true; }
       }
     });
+    TX.frame(c.ops, pageQuad, vw, stageH);
     var zn = zoomness(c);
     put(hint, 'opacity', String(f(1 - zn)), 'hint');
     // The fixed "Tanishq" pill only appears once the in-world header's "Tanishq" has left the screen.
@@ -193,6 +197,15 @@ export function initZoomCamera() {
       urlKey = want;
       try { history.replaceState(null, '', BASE + '/' + want + location.search); } catch (err) {}
     }
+  }
+
+  // The current page rect of piece k on screen (4 corners), for the morph veil's hole.
+  function pageQuad(k) {
+    var p = PIECES[ORDER.indexOf(k)], a = p.rot * Math.PI / 180, co = Math.cos(a), si = Math.sin(a);
+    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function (d) {
+      var dx = d[0] * p.pw / 2, dy = d[1] * p.ph / 2;
+      return toScreen(cur, p.px + dx * co - dy * si, p.py + dx * si + dy * co);
+    });
   }
 
   function mix(a, b, t) {
@@ -257,10 +270,13 @@ export function initZoomCamera() {
     var A = fl.from, B = fl.dest;
     var x = e * fl.N, k = Math.min(Math.floor(x), fl.N - 1);
     var u = fl.U[k] + (fl.U[k + 1] - fl.U[k]) * (x - k);
-    var fo = 1 - clamp(t / 0.22, 0, 1), fi = clamp((t - 0.78) / 0.22, 0, 1);
+    // Old page out over TX.fout, new page in over TX.fin (fractions of the flight; the default overlaps the end
+    // of the zoom instead of starting once the camera has stopped).
+    var fo = 1 - clamp((t - TX.fout[0]) / (TX.fout[1] - TX.fout[0]), 0, 1), fi = clamp((t - TX.fin[0]) / (TX.fin[1] - TX.fin[0]), 0, 1);
     var ops = {};
     ORDER.forEach(function (key) { ops[key] = Math.max((A.ops[key] || 0) * fo, (B.ops[key] || 0) * fi); });
-    applyCam({ i: B.i, s: Math.exp(fl.la + (fl.lb - fl.la) * e - fl.h * 4 * e * (1 - e)), cx: lerp(A.cx, B.cx, u), cy: lerp(A.cy, B.cy, u), r: lerp(A.r, B.r, e), ops: ops });
+    // Flying home, the HUD keeps the section being left (B.i would be 0, "Projects") until the zoom-out clears it.
+    applyCam({ i: fl.P < 0.5 ? A.i : B.i, s: Math.exp(fl.la + (fl.lb - fl.la) * e - fl.h * 4 * e * (1 - e)), cx: lerp(A.cx, B.cx, u), cy: lerp(A.cy, B.cy, u), r: lerp(A.r, B.r, e), ops: ops });
     if (t < 1) { kick(); return; }
     var done = fl; fl = null;
     jumpScroll(done.P);
@@ -346,6 +362,7 @@ export function initZoomCamera() {
   if (initial && ORDER.indexOf(initial) < 0) initial = null;
   // Set before measure(): its first applyCam is at scroll 0 and must not rewrite the URL to home.
   urlKey = initial || '';
+  TX = initTx({ root: root, stage: stage, pages: pages, covers: covers, order: ORDER, reduce: reduce() });
   measure();
   if (initial) {
     if (isPhone()) {
