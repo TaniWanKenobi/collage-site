@@ -19,8 +19,7 @@ const GROUPS: Group[] = [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
   { key: 'sfx', label: 'UI sounds', def: '', opts: [
     ['', 'off'], ['synth', 'synth'], ['tap', 'tap'], ['stopwatch', 'stopwatch'], ['tick', 'tick']] },
-  { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [
-    ['0', 'none'], ['0.065', 'snappy'], ['', 'default'], ['0.18', 'floaty']] },
+  { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
 ];
 
 // Modules that are only loaded when their param is on (same paths as Base.astro / ZoomStage.astro). Each one
@@ -77,6 +76,7 @@ function setTx(base: string, st: boolean) {
 let box: HTMLElement | null = null;
 function sync() {
   if (!box) return;
+  syncSmooth();
   const p = params(), t = txOf(p);
   box.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach((b) => {
     const key = b.dataset.key!;
@@ -97,6 +97,7 @@ function mount() {
     const lg = document.createElement('legend');
     lg.textContent = g.label;
     fs.append(lg);
+    if (g.key === 'smooth') { fs.append(smoothControl()); box.append(fs); continue; }
     const row = document.createElement('div');
     row.className = 'looks-opts';
     for (const [val, text] of g.opts) {
@@ -133,6 +134,74 @@ function mount() {
   box.append(reset);
   panel.append(box);
   sync();
+}
+
+// ---- Scroll smoothing: a draggable bar (0-500 ms catch-up time), a number box, and preset dots on the track ----
+const SMOOTH_MAX = 500, SMOOTH_DEF = 110; // ms; the camera's default tau is 0.11 s
+// The bar is a square-root scale (bar position u in 0..1000 -> ms = 500 * (u/1000)^2), so the useful low end
+// (0-200 ms) gets most of the room; the number box is plain ms.
+const U_MAX = 1000;
+const toMs = (u: number) => Math.round(SMOOTH_MAX * (u / U_MAX) ** 2);
+const toU = (ms: number) => Math.round(U_MAX * Math.sqrt(ms / SMOOTH_MAX));
+const PRESETS: [number, string][] = [[0, 'none'], [65, 'snappy'], [110, 'default'], [180, 'floaty'], [300, 'drifty']];
+let syncSmooth = () => {};
+
+function smoothMs(p: URLSearchParams) {
+  const v = p.get('smooth');
+  return v === null || v === '' ? SMOOTH_DEF : Math.round(Math.min(SMOOTH_MAX, Math.max(0, parseFloat(v) * 1000 || 0)));
+}
+
+function smoothControl() {
+  const wrap = document.createElement('div');
+  wrap.className = 'looks-smooth';
+  wrap.innerHTML = `
+    <div class="ls-names ls-names-top"></div>
+    <div class="ls-row">
+      <div class="ls-track">
+        <input type="range" min="0" max="${U_MAX}" step="1" aria-label="Scroll smoothing">
+        <div class="ls-dots"></div>
+      </div>
+      <label class="ls-num"><input type="number" min="0" max="${SMOOTH_MAX}" step="1" aria-label="Scroll smoothing in milliseconds"><span>ms</span></label>
+    </div>
+    <div class="ls-names ls-names-bot"></div>`;
+  const range = wrap.querySelector<HTMLInputElement>('input[type=range]')!;
+  const num = wrap.querySelector<HTMLInputElement>('input[type=number]')!;
+  const dots = wrap.querySelector<HTMLElement>('.ls-dots')!;
+  const names = wrap.querySelector<HTMLElement>('.ls-names-bot')!;
+  const namesTop = wrap.querySelector<HTMLElement>('.ls-names-top')!;
+  const pos = (ms: number) => `calc(7px + ${(toU(ms) / U_MAX).toFixed(4)} * (100% - 14px))`; // thumb is 14px wide
+  PRESETS.forEach(([ms, name], k) => {
+    const d = document.createElement('button');
+    d.type = 'button'; d.className = 'ls-dot'; d.dataset.ms = String(ms);
+    d.style.left = pos(ms);
+    d.setAttribute('aria-label', `${name} (${ms} ms)`); d.title = `${name} · ${ms} ms`;
+    d.addEventListener('click', () => set(ms));
+    dots.append(d);
+    const n = document.createElement('button');
+    n.type = 'button'; n.className = 'ls-name'; n.textContent = name; n.dataset.ms = String(ms);
+    n.style.left = pos(ms);
+    n.tabIndex = -1; // the dot is the keyboard target; the label is a bigger mouse target
+    n.addEventListener('click', () => set(ms));
+    (k % 2 ? namesTop : names).append(n); // alternate above/below the bar so close presets don't collide
+  });
+  // Write the URL (replaceState) and tell the camera; '' (no param) when it's the default.
+  function set(ms: number) {
+    ms = Math.round(Math.min(SMOOTH_MAX, Math.max(0, ms)));
+    go((p) => { if (ms === SMOOTH_DEF) p.delete('smooth'); else p.set('smooth', String(ms / 1000)); });
+  }
+  range.addEventListener('input', () => set(toMs(+range.value)));
+  num.addEventListener('change', () => set(+num.value));
+  num.addEventListener('keydown', (e) => { if (e.key === 'Enter') set(+num.value); });
+  syncSmooth = () => {
+    const ms = smoothMs(params());
+    range.value = String(toU(ms));
+    range.setAttribute("aria-valuetext", `${ms} ms`);
+    if (document.activeElement !== num) num.value = String(ms);
+    wrap.style.setProperty('--ls-fill', `${(toU(ms) / U_MAX) * 100}%`);
+    wrap.querySelectorAll<HTMLElement>('[data-ms]').forEach((el) => el.setAttribute('aria-pressed', String(+el.dataset.ms! === ms)));
+  };
+  syncSmooth();
+  return wrap;
 }
 
 mount();
