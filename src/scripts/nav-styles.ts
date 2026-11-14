@@ -1,22 +1,25 @@
-// Six non-glass looks for the section nav (#zm-hud), picked with ?nav= (see ZoomStage.astro; CSS in global.css):
-//  - dock: after Magic UI Dock (MIT), turned vertical. Each dot's size follows the pointer's distance along Y
-//    (interpolate [-140, 0, 140] -> [12, 26, 12]) through a spring (mass .1, stiffness 150, damping 12), and the
-//    dots push apart as they grow.
-//  - goo: after 21st.dev GooeyPagination by ruixen.ui. A lime blob springs (stiffness 300, damping 20) between the
-//    dots under an SVG goo filter (blur -> alpha threshold -> atop), stretching with its speed. The original's
-//    blur 8 / alpha 20 -10 erases dots this small (12px), so it is scaled down to blur 5 / alpha 20 -8.
+// Motion for the section nav (#zm-hud), picked with ?nav= (see ZoomStage.astro; CSS in global.css).
+// Every style shares goo's motion: when the current section changes (click or scroll), its indicator springs
+// (stiffness 300, damping 20) to the new dot and stretches along Y with its speed (glider() below).
+//  - dots / frost / lens: a lime disc travels between the dots (frost/lens keep their glow inside the glass).
+//  - bubble: the glass bubble itself travels.  drop: the glass bead travels.  (Glass keeps no goo filter.)
+//  - water: the WebGL drop in liquid-nav.ts uses the same spring and stretch.
+//  - dock: after Magic UI Dock (MIT), turned vertical. Dots magnify near the pointer in detents (4 sizes) through
+//    a stiff, slightly underdamped spring so it ticks rather than glides; a press squashes the dot and it springs
+//    back. The lime current marker travels with the goo spring and rides the magnification.
+//  - goo: after 21st.dev GooeyPagination by ruixen.ui. A lime blob springs between the dots under an SVG goo
+//    filter (blur -> alpha threshold -> atop), stretching with its speed. The original's blur 8 / alpha 20 -10
+//    erases dots this small (12px), so it is scaled down to blur 5 / alpha 20 -8.
 //  - thread: a line that fills with the camera's smoothed scroll (zoom-camera.js publishes p, 0..7), a knot per
-//    section; passed knots are filled, the current one tightens into a bead.
-//  - odometer: a ruler of ticks and a rolling counter (after Magic UI Number Ticker (MIT): its overdamped spring,
-//    approximated by a CSS transition).
-//  - tabs: taped paper tabs on the right edge (CSS only).
-//  - magnet: dots lean toward the cursor within 90px and spring back.
+//    section; passed knots are filled and the bead travels along the line.
+//  - odometer: a ruler of ticks whose long lime current tick travels, and a rolling counter (after Magic UI
+//    Number Ticker (MIT): its overdamped spring, approximated by a CSS transition).
 // Nothing here runs while idle: every loop stops once its springs settle, and the listeners only do work on change.
 
 const reduceMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
-// One rAF loop per style that runs only while step() reports motion. step gets dt in seconds.
+// One rAF loop that runs only while step() reports motion. step gets dt in seconds.
 function loop(step: (dt: number) => boolean) {
   let raf = 0, last = 0;
   const tick = (now: number) => {
@@ -27,8 +30,8 @@ function loop(step: (dt: number) => boolean) {
   };
   return () => { if (!raf) raf = requestAnimationFrame(tick); };
 }
-// Damped spring, integrated in small fixed substeps (the dock's mass .1 spring is too stiff for one step per frame).
-function spring(s: { x: number; v: number }, target: number, k: number, c: number, m: number, dt: number) {
+// Damped spring, integrated in small fixed substeps (stiff springs are unstable at one step per frame).
+export function spring(s: { x: number; v: number }, target: number, k: number, c: number, m: number, dt: number) {
   const h = 1 / 600;
   for (let t = 0; t < dt; t += h) {
     const step = Math.min(h, dt - t);
@@ -38,37 +41,144 @@ function spring(s: { x: number; v: number }, target: number, k: number, c: numbe
 }
 const setVar = (el: HTMLElement, name: string, val: string) => { if (el.style.getPropertyValue(name) !== val) el.style.setProperty(name, val); };
 
-/* ---------------- dock (Magic UI Dock, vertical) ---------------- */
-function dock(ul: HTMLElement, lis: HTMLElement[]) {
+/* ---------------- shared goo motion ---------------- */
+// goo's spring and its stretch along the travel axis (1 at rest, up to 1.7 at speed; across shrinks by 1/sqrt).
+export const GOO_K = 300, GOO_C = 20;
+export const stretch = (v: number) => 1 + Math.min(Math.abs(v) / 900, 0.7);
+
+// A position that springs to a target with goo's spring. draw(y, st) gets the position and the stretch.
+// step() is exposed so a style with its own loop (dock) can drive it; to() runs it on its own loop.
+export function glider(draw: (y: number, st: number) => void) {
+  const s = { x: 0, v: 0 };
+  let T = 0;
+  const step = (dt: number) => {
+    spring(s, T, GOO_K, GOO_C, 1, dt);
+    const done = Math.abs(s.x - T) < 0.05 && Math.abs(s.v) < 0.5;
+    if (done) { s.x = T; s.v = 0; }
+    draw(s.x, stretch(s.v));
+    return !done;
+  };
+  const kick = loop(step);
+  return {
+    step,
+    set(t: number) { T = t; },
+    jump(t: number) { T = s.x = t; s.v = 0; draw(t, 1); },
+    to(t: number) { T = t; kick(); },
+  };
+}
+
+// Calls fn(i) whenever the current section (aria-current) changes; i = -1 for the collage overview.
+function onCurrent(ul: HTMLElement, dots: HTMLElement[], fn: (i: number) => void) {
+  let cur = -2;
+  const go = () => {
+    const i = dots.findIndex((d) => d.getAttribute('aria-current') === 'true');
+    if (i !== cur) { cur = i; fn(i); }
+  };
+  go();
+  new MutationObserver(go).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+}
+
+const centresOf = (lis: HTMLElement[]) => lis.map((li) => li.offsetTop + li.offsetHeight / 2);
+
+// The travelling current-section indicator for a style: el (made here unless given) is positioned by CSS with its
+// centre at the ul's top, and moved here with translateY + a stretch. From hidden (the overview) it appears in
+// place; between sections it travels. .nv-glide on the nav lets the CSS drop the static current-dot fill.
+function traveller(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[], cls: string, given?: HTMLElement) {
+  if (reduceMotion()) return; // the static current-dot look stays
+  const el = given || document.createElement('span');
+  if (!given) { el.className = `nv-ind ${cls}`; el.setAttribute('aria-hidden', 'true'); ul.prepend(el); }
+  hud.classList.add('nv-glide');
+  const centres = centresOf(lis);
+  const g = glider((y, st) => { el.style.transform = `translateY(${y.toFixed(2)}px) scale(${(1 / Math.sqrt(st)).toFixed(3)}, ${st.toFixed(3)})`; });
+  let shown = false;
+  onCurrent(ul, dots, (i) => {
+    el.classList.toggle('is-on', i >= 0);
+    if (i < 0) { shown = false; return; }
+    if (shown) g.to(centres[i]); else { g.jump(centres[i]); shown = true; }
+  });
+}
+
+/* ---------------- dock (Magic UI Dock, vertical, clicky) ---------------- */
+function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
   if (reduceMotion()) return;
-  const BASE = 12, MAG = 26, DIST = 140;
+  // Sizes step through 4 detents (12, 16.7, 21.3, 26px) as the pointer nears, so the magnification ticks.
+  // The spring is stiff and a little underdamped (zeta ~.6, ~10% overshoot, settles in ~.2s): crisp, not floaty.
+  const BASE = 12, MAG = 26, DIST = 140, STEPS = 3, K = 1400, C = 44, PRESS = 0.74;
   const st = lis.map(() => ({ x: BASE, v: 0 }));
-  let py = Infinity, top = 0, centres: number[] = [];
-  const target = (i: number) => (py === Infinity ? BASE : MAG - (MAG - BASE) * clamp(Math.abs(py - centres[i]) / DIST, 0, 1));
+  const pr = lis.map(() => ({ x: 1, v: 0 })); // press squash
+  let py = Infinity, top = 0, centres = centresOf(lis), pressed = -1, cur = -1, shown = false;
+  const target = (i: number) => {
+    if (py === Infinity) return BASE;
+    const t = 1 - clamp(Math.abs(py - centres[i]) / DIST, 0, 1);
+    return BASE + ((MAG - BASE) * Math.round(t * STEPS)) / STEPS;
+  };
+  // The lime current marker: goo's spring and stretch, riding the dot's push and magnification.
+  const ind = document.createElement('span');
+  ind.className = 'nv-ind nv-ind-dock';
+  ind.setAttribute('aria-hidden', 'true');
+  ul.prepend(ind);
+  hud.classList.add('nv-glide');
+  let scaleNow = 1;
+  const g = glider((y, s) => { ind.style.transform = `translateY(${y.toFixed(2)}px) scale(${(scaleNow / Math.sqrt(s)).toFixed(3)}, ${(scaleNow * s).toFixed(3)})`; });
+  const dy: number[] = lis.map(() => 0);
   const kick = loop((dt) => {
     let moving = false;
     st.forEach((s, i) => {
       const T = target(i);
-      spring(s, T, 150, 12, 0.1, dt);
-      if (Math.abs(s.x - T) < 0.01 && Math.abs(s.v) < 0.05) { s.x = T; s.v = 0; } else moving = true;
+      spring(s, T, K, C, 1, dt);
+      if (Math.abs(s.x - T) < 0.02 && Math.abs(s.v) < 0.1) { s.x = T; s.v = 0; } else moving = true;
+      const P = i === pressed ? PRESS : 1, q = pr[i];
+      spring(q, P, K * 1.4, C, 1, dt);
+      if (Math.abs(q.x - P) < 0.002 && Math.abs(q.v) < 0.01) { q.x = P; q.v = 0; } else moving = true;
     });
     // Sizes grow "in flow": each dot is pushed by the growth of the ones above it, the column stays centred.
     const extra = st.map((s) => s.x - BASE), total = extra.reduce((a, b) => a + b, 0);
     let acc = 0;
     lis.forEach((li, i) => {
-      setVar(li, '--ds', (st[i].x / BASE).toFixed(3));
-      setVar(li, '--dy', `${(acc + extra[i] / 2 - total / 2).toFixed(2)}px`);
+      dy[i] = acc + extra[i] / 2 - total / 2;
+      setVar(li, '--ds', ((st[i].x / BASE) * pr[i].x).toFixed(3));
+      setVar(li, '--dy', `${dy[i].toFixed(2)}px`);
       acc += extra[i];
     });
+    if (cur >= 0) {
+      scaleNow = (st[cur].x / BASE) * pr[cur].x;
+      g.set(centres[cur] + dy[cur]);
+      if (g.step(dt)) moving = true;
+    }
     return moving;
+  });
+  onCurrent(ul, dots, (i) => {
+    cur = i;
+    ind.classList.toggle('is-on', i >= 0);
+    if (i < 0) { shown = false; return; }
+    if (!shown) { scaleNow = (st[i].x / BASE) * pr[i].x; g.jump(centres[i] + dy[i]); shown = true; }
+    kick();
   });
   ul.addEventListener('pointerenter', () => {
     // Rest-layout centres, read once per visit (the dots' own transforms don't move offsetTop).
     top = ul.getBoundingClientRect().top;
-    centres = lis.map((li) => li.offsetTop + li.offsetHeight / 2);
+    centres = centresOf(lis);
   });
-  ul.addEventListener('pointermove', (e) => { if (e.pointerType === 'touch') return; py = e.clientY - top; kick(); });
-  ul.addEventListener('pointerleave', () => { py = Infinity; kick(); });
+  ul.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    py = e.clientY - top;
+    // Only wake the loop when a dot changes detent (or is still settling): moving within a detent costs nothing.
+    if (st.some((s, i) => s.x !== target(i) || s.v !== 0)) kick();
+  });
+  ul.addEventListener('pointerleave', () => { py = Infinity; pressed = -1; kick(); });
+  // Press: squash on pointer down, spring back (with a little overshoot) on release. Keyboard clicks get a tap.
+  const liOf = (t: EventTarget | null) => lis.indexOf((t as Element | null)?.closest?.('li') as HTMLElement);
+  ul.addEventListener('pointerdown', (e) => { const i = liOf(e.target); if (i >= 0) { pressed = i; kick(); } });
+  const release = () => { if (pressed >= 0) { pressed = -1; kick(); } };
+  ul.addEventListener('pointerup', release);
+  ul.addEventListener('pointercancel', release);
+  ul.addEventListener('click', (e) => {
+    if (e.detail !== 0) return;
+    const i = liOf(e.target);
+    if (i < 0) return;
+    pressed = i; kick();
+    setTimeout(() => { if (pressed === i) release(); }, 90);
+  });
 }
 
 /* ---------------- goo (21st.dev GooeyPagination by ruixen.ui, vertical) ---------------- */
@@ -78,40 +188,25 @@ function goo(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLEl
   const layer = document.createElement('div');
   layer.className = 'nv-goo';
   layer.setAttribute('aria-hidden', 'true');
-  const centres = lis.map((li) => li.offsetTop + li.offsetHeight / 2);
+  const centres = centresOf(lis);
   layer.innerHTML = centres.map((c) => `<i style="top:${PAD + c - 6}px"></i>`).join('') + '<b></b>';
   ul.prepend(layer);
   const blob = layer.querySelector('b') as HTMLElement;
-  const s = { x: 0, v: 0 };
-  let T = 0, cur = -2, shown = false;
-  const draw = () => {
-    const sy = 1 + Math.min(Math.abs(s.v) / 900, 0.7);
-    blob.style.transform = `translateY(${(PAD + s.x - 6).toFixed(2)}px) scale(${(1.8 / Math.sqrt(sy)).toFixed(3)}, ${(1.8 * sy).toFixed(3)})`;
-  };
-  const kick = loop((dt) => {
-    spring(s, T, 300, 20, 1, dt);
-    const done = Math.abs(s.x - T) < 0.05 && Math.abs(s.v) < 0.5;
-    if (done) { s.x = T; s.v = 0; }
-    draw();
-    return !done;
+  const g = glider((y, sy) => {
+    blob.style.transform = `translateY(${(PAD + y - 6).toFixed(2)}px) scale(${(1.8 / Math.sqrt(sy)).toFixed(3)}, ${(1.8 * sy).toFixed(3)})`;
   });
-  const go = () => {
-    const i = dots.findIndex((d) => d.getAttribute('aria-current') === 'true');
-    if (i === cur) return;
-    cur = i;
+  let shown = false;
+  onCurrent(ul, dots, (i) => {
     layer.classList.toggle('is-on', i >= 0);
     if (i < 0) { shown = false; return; }
-    T = centres[i];
     // From hidden (the overview) the blob appears in place; between sections it travels.
-    if (!shown || reduceMotion()) { s.x = T; s.v = 0; shown = true; draw(); return; }
-    kick();
-  };
-  go();
-  new MutationObserver(go).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
+    if (!shown || reduceMotion()) { g.jump(centres[i]); shown = true; return; }
+    g.to(centres[i]);
+  });
 }
 
 /* ---------------- thread ---------------- */
-function thread(ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
+function thread(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
   const n = lis.length;
   const line = document.createElement('span');
   line.className = 'nv-thread';
@@ -147,10 +242,12 @@ function thread(ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
   };
   onCam((window as Window & { __zoomCam?: { p?: number; flying?: boolean } }).__zoomCam);
   window.addEventListener('zoomcam', (e) => onCam((e as CustomEvent).detail));
+  // The bead slides along the line to the current knot.
+  traveller(hud, ul, lis, dots, 'nv-ind-bead');
 }
 
 /* ---------------- odometer (Magic UI Number Ticker roll) ---------------- */
-function odometer(hud: HTMLElement, ul: HTMLElement, dots: HTMLElement[]) {
+function odometer(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
   const strip = '<span class="nv-roll"><span class="nv-strip">' + Array.from({ length: 10 }, (_, d) => `<span>${d}</span>`).join('') + '</span></span>';
   const odo = document.createElement('span');
   odo.className = 'nv-odo mono';
@@ -158,61 +255,12 @@ function odometer(hud: HTMLElement, ul: HTMLElement, dots: HTMLElement[]) {
   odo.innerHTML = strip + strip + `<span class="nv-of">/${String(dots.length).padStart(2, '0')}</span>`;
   hud.insertBefore(odo, ul);
   const strips = Array.from(odo.querySelectorAll<HTMLElement>('.nv-strip'));
-  let cur = -2;
-  const go = () => {
-    const i = dots.findIndex((d) => d.getAttribute('aria-current') === 'true');
-    if (i === cur) return;
-    cur = i;
+  onCurrent(ul, dots, (i) => {
     const v = String(i + 1).padStart(2, '0');
     strips.forEach((s, k) => { s.style.transform = `translateY(${-Number(v[k]) * 10}%)`; });
-  };
-  go();
-  new MutationObserver(go).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
-}
-
-/* ---------------- magnet ---------------- */
-function magnet(lis: HTMLElement[]) {
-  if (reduceMotion()) return;
-  const RANGE = 90, PULL = 6;
-  const st = lis.map(() => ({ x: { x: 0, v: 0 }, y: { x: 0, v: 0 } }));
-  let px = -1e4, py = -1e4, rects: { x: number; y: number }[] | null = null, box = { l: 0, t: 0, r: 0, b: 0 };
-  const measure = () => {
-    rects = lis.map((li) => { const r = li.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
-    box = { l: Math.min(...rects.map((c) => c.x)) - RANGE, r: Math.max(...rects.map((c) => c.x)) + RANGE, t: rects[0].y - RANGE, b: rects[rects.length - 1].y + RANGE };
-  };
-  const targets = (i: number) => {
-    if (!rects) return [0, 0];
-    const dx = px - rects[i].x, dy = py - rects[i].y, d = Math.hypot(dx, dy);
-    if (d >= RANGE || d < 0.01) return [0, 0];
-    const t = 1 - d / RANGE, m = Math.min(d, PULL * t * t * (3 - 2 * t));
-    return [(dx / d) * m, (dy / d) * m];
-  };
-  const kick = loop((dt) => {
-    let moving = false;
-    st.forEach((s, i) => {
-      const [tx, ty] = targets(i);
-      spring(s.x, tx, 220, 22, 1, dt);
-      spring(s.y, ty, 220, 22, 1, dt);
-      if (Math.abs(s.x.x - tx) < 0.02 && Math.abs(s.y.x - ty) < 0.02 && Math.abs(s.x.v) + Math.abs(s.y.v) < 0.1) { s.x.x = tx; s.y.x = ty; s.x.v = s.y.v = 0; } else moving = true;
-      setVar(lis[i], '--mx', `${s.x.x.toFixed(2)}px`);
-      setVar(lis[i], '--my', `${s.y.x.toFixed(2)}px`);
-    });
-    return moving;
   });
-  let near = false;
-  const dirty = () => { rects = null; };
-  window.addEventListener('scroll', dirty, { passive: true });
-  window.addEventListener('resize', dirty);
-  window.addEventListener('pointermove', (e) => {
-    if (e.pointerType === 'touch') return;
-    if (!rects) measure();
-    const inZone = e.clientX >= box.l && e.clientX <= box.r && e.clientY >= box.t && e.clientY <= box.b;
-    if (!inZone && !near) return;
-    near = inZone;
-    px = inZone ? e.clientX : -1e4; py = inZone ? e.clientY : -1e4;
-    kick();
-  }, { passive: true });
-  document.documentElement.addEventListener('pointerleave', () => { if (near) { near = false; px = py = -1e4; kick(); } });
+  // The long lime current tick travels down the ruler.
+  traveller(hud, ul, lis, dots, 'nv-ind-tick');
 }
 
 export function initNavStyle(hud: HTMLElement) {
@@ -221,11 +269,13 @@ export function initNavStyle(hud: HTMLElement) {
   const lis = Array.from(ul.querySelectorAll<HTMLElement>(':scope > li'));
   const dots = Array.from(ul.querySelectorAll<HTMLElement>('.hud-dot'));
   switch (hud.dataset.nav) {
-    case 'dock': dock(ul, lis); break;
+    case 'dots': case 'frost': case 'lens': traveller(hud, ul, lis, dots, 'nv-ind-disc'); break;
+    case 'bubble': traveller(hud, ul, lis, dots, 'nv-ind-bubble'); break;
+    case 'drop': { const bead = ul.querySelector<HTMLElement>('.hud-bead'); if (bead) traveller(hud, ul, lis, dots, '', bead); break; }
+    case 'dock': dock(hud, ul, lis, dots); break;
     case 'goo': goo(hud, ul, lis, dots); break;
-    case 'thread': thread(ul, lis, dots); break;
-    case 'odometer': odometer(hud, ul, dots); break;
-    case 'magnet': magnet(lis); break;
-    // tabs: CSS only
+    case 'thread': thread(hud, ul, lis, dots); break;
+    case 'odometer': odometer(hud, ul, lis, dots); break;
+    // water: liquid-nav.ts (WebGL drop) uses glider's spring and stretch itself
   }
 }

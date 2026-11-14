@@ -6,6 +6,10 @@
 //    guglielmogiannattasio.it). A tiny WebGL shader draws a drop that springs to the current section, stretches,
 //    splits into droplets on long jumps and merges back with a ripple. Turned vertical and lime here, and the
 //    always-on ambient ripple is off: it only draws while the drop moves, so an idle page costs nothing.
+//    Its lead blob moves with goo's spring and stretch (nav-styles.ts glider: stiffness 300, damping 20, stretched
+//    along the capsule by speed), like every other nav style.
+
+import { spring, stretch, GOO_K, GOO_C, initNavStyle } from './nav-styles';
 
 const isSafari = () => /Safari/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
 const urlBackdrop = () => typeof CSS !== 'undefined' && (CSS.supports('backdrop-filter', 'url(#x)') || CSS.supports('-webkit-backdrop-filter', 'url(#x)'));
@@ -165,7 +169,7 @@ function water(hud: HTMLElement) {
   const reduce = reduceMotion();
   // Positions are along the capsule (top to bottom) in canvas px; cy is the capsule's middle across.
   const s = {
-    a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, sy: { s: 1, v: 0 }, lead: 0, lagFrom: 0,
+    a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, sy: { s: 1 }, lead: 0, lagFrom: 0,
     sats: [] as { x: number; y: number; vx: number; vy: number; r: number; k: number }[],
     rips: [] as { x: number; y: number; age: number; amp: number }[],
     tx: 0, cy: 0, r: 11, on: 0, onT: 0, moving: false, split: false, ready: false,
@@ -193,8 +197,10 @@ function water(hud: HTMLElement) {
     gl.uniform4f(u.uPill, PAD, PAD, s.h, s.w);
     const blobs = new Float32Array(24), sy = new Float32Array(6).fill(1), r = s.r * s.on;
     const head = s.lead === 0 ? s.a : s.b, tail = s.lead === 0 ? s.b : s.a;
-    if (r > 0.6) blobs.set([head.x, s.cy, 0, r * (1 - 0.12 * thin), tail.x, s.cy, 0, r * (1 - 0.5 * thin)], 0);
-    sy[0] = sy[1] = s.sy.s;
+    // s.sy.s is goo's stretch: the head capsule lengthens along the nav by it and thins across by 1/sqrt of it
+    const st = s.sy.s, rh = r * (1 - 0.12 * thin);
+    if (r > 0.6) blobs.set([head.x, s.cy, rh * (st - 1), rh, tail.x, s.cy, 0, r * (1 - 0.5 * thin)], 0);
+    sy[0] = sy[1] = 1 / Math.sqrt(st);
     s.sats.slice(0, 4).forEach((d, i) => blobs.set([d.x, d.y, 0, d.r], 8 + i * 4));
     gl.uniform4fv(u.uBlob, blobs);
     gl.uniform1fv(u.uSy, sy);
@@ -212,17 +218,15 @@ function water(hud: HTMLElement) {
     if (reduce) { s.a.x = s.b.x = s.tx; s.a.v = s.b.v = 0; s.sy.s = 1; s.sats = []; }
     else {
       [s.a, s.b].forEach((B, i) => {
-        const lead = i === s.lead, k = lead ? 210 : 72, c = lead ? 25 : 13, f = !lead && now < s.lagFrom ? 0.08 : 1;
-        B.v += (k * (s.tx - B.x) - c * B.v) * dt * f;
-        B.x += B.v * dt;
+        const lead = i === s.lead;
+        if (lead) spring(B, s.tx, GOO_K, GOO_C, 1, dt);
+        else { const f = now < s.lagFrom ? 0.08 : 1; B.v += (72 * (s.tx - B.x) - 13 * B.v) * dt * f; B.x += B.v * dt; }
         const lo = PAD + 4 + s.r - 3, hi = PAD + s.h - 4 - s.r + 3;
-        if (B.x < lo || B.x > hi) { s.sy.v -= Math.min(Math.abs(B.v), 900) * 0.0016; B.x = Math.max(lo, Math.min(hi, B.x)); B.v *= -0.25; }
+        if (B.x < lo || B.x > hi) { B.x = Math.max(lo, Math.min(hi, B.x)); B.v *= -0.25; }
         if (Math.abs(s.tx - B.x) > 0.3 || Math.abs(B.v) > 3) still = false;
       });
-      const L = s.lead === 0 ? s.a : s.b, syT = 1 - 0.2 * Math.min(Math.abs(L.v) / 1500, 1);
-      s.sy.v += (280 * (syT - s.sy.s) - 9 * s.sy.v) * dt;
-      s.sy.s += s.sy.v * dt;
-      if (Math.abs(s.sy.s - 1) > 0.002 || Math.abs(s.sy.v) > 0.02) still = false;
+      // goo's stretch: longer along the capsule, thinner across, by the lead blob's speed
+      s.sy.s = stretch((s.lead === 0 ? s.a : s.b).v);
       const sep = Math.abs(s.a.x - s.b.x), r = s.r * (1 - 0.3 * Math.min(sep / (2 * s.r || 1), 1));
       if (!s.split && s.moving && sep - 2 * r > -6) {
         s.split = true;
@@ -274,13 +278,13 @@ function water(hud: HTMLElement) {
   draw();
   go(current());
   new MutationObserver(() => go(current())).observe(ul, { subtree: true, attributes: true, attributeFilter: ['aria-current'] });
-  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); cv.remove(); hud.dataset.nav = 'drop'; });
+  cv.addEventListener('webglcontextlost', (e) => { e.preventDefault(); cv.remove(); hud.dataset.nav = 'drop'; initNavStyle(hud); });
   hud.classList.add('lq-on');
   return true;
 }
 
 export function initLiquidNav(hud: HTMLElement) {
   const mode = hud.dataset.nav;
-  if (mode === 'water' && !water(hud)) hud.dataset.nav = 'drop'; // no WebGL: the CSS glass bead
+  if (mode === 'water' && !water(hud)) { hud.dataset.nav = 'drop'; initNavStyle(hud); } // no WebGL: the CSS glass bead
   if (mode === 'lens' || mode === 'water') refract(hud);
 }

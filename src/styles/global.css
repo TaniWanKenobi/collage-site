@@ -139,28 +139,28 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 /* drop: a glass bead slides to the current dot, overshooting a little like a drop of liquid */
 #zm-hud[data-nav="drop"] .hud-bead { display: block; position: absolute; left: 50%; top: 3px; z-index: 2; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.75) 0 2px, rgba(255,255,255,.22) 5px, rgba(194,249,112,.1) 55%, rgba(194,249,112,.38) 100%); border: 1px solid rgba(255,255,255,.45); box-shadow: inset 0 -4px 7px rgba(194,249,112,.45), inset 0 2px 3px rgba(255,255,255,.35), 0 4px 10px rgba(0,0,0,.4); -webkit-backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); backdrop-filter: blur(1.5px) brightness(1.35) saturate(1.8); transition: top .55s cubic-bezier(.45,1.75,.4,1), opacity .25s; }
 #zm-hud[data-nav="drop"] ul:has(.hud-dot[aria-current="true"]) .hud-bead { opacity: 1; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(2) .hud-dot[aria-current="true"]) .hud-bead { top: 35px; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(3) .hud-dot[aria-current="true"]) .hud-bead { top: 67px; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(4) .hud-dot[aria-current="true"]) .hud-bead { top: 99px; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(5) .hud-dot[aria-current="true"]) .hud-bead { top: 131px; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(6) .hud-dot[aria-current="true"]) .hud-bead { top: 163px; }
-#zm-hud[data-nav="drop"] ul:has(li:nth-of-type(7) .hud-dot[aria-current="true"]) .hud-bead { top: 195px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(2) .hud-dot[aria-current="true"]) .hud-bead { top: 35px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(3) .hud-dot[aria-current="true"]) .hud-bead { top: 67px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(4) .hud-dot[aria-current="true"]) .hud-bead { top: 99px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(5) .hud-dot[aria-current="true"]) .hud-bead { top: 131px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(6) .hud-dot[aria-current="true"]) .hud-bead { top: 163px; }
+#zm-hud[data-nav="drop"]:not(.nv-glide) ul:has(li:nth-of-type(7) .hud-dot[aria-current="true"]) .hud-bead { top: 195px; }
 /* bubble: no capsule, every dot its own glass bubble */
 #zm-hud[data-nav="bubble"] li { width: 16px; height: 16px; margin: 9px 0; border: 1px solid rgba(255,255,255,.42); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.8) 0 1.5px, rgba(255,255,255,.18) 3.5px, rgba(255,255,255,.04) 70%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); transition: transform .35s cubic-bezier(.4,1.8,.5,1), background .3s, box-shadow .3s; }
 #zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: scale(1.45); border-color: rgba(194,249,112,.8); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 1.5px, rgba(194,249,112,.45) 4px, rgba(194,249,112,.18) 75%); box-shadow: 0 0 12px rgba(194,249,112,.55), 0 3px 8px rgba(0,0,0,.4); }
 #zm-hud[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%) scale(.69); transform-origin: right center; }
 #zm-hud[data-nav="bubble"] .hud-tip { background-color: rgba(18,28,16,.8); }
 @media (prefers-reduced-motion: reduce) { #zm-hud .hud-bead, #zm-hud[data-nav="bubble"] li { transition: none; } }
-/* Six non-glass looks (#zm-hud.nv, ?nav=dock|goo|thread|odometer|tabs|magnet; motion in scripts/nav-styles.ts).
+/* Four non-glass looks (#zm-hud.nv, ?nav=dock|goo|thread|odometer; motion in scripts/nav-styles.ts).
    .nv first takes back the glass dots and pills that the rules above give every non-"dots" style. */
 #zm-hud.nv li { border: 0; border-radius: 0; background: none; box-shadow: none; }
 #zm-hud.nv #hud-num { color: var(--lime-tint); text-shadow: 0 1px 2px rgba(13,22,11,.8); }
 #zm-hud.nv .hud-tip { border: 0; border-radius: 0; padding: 0 10px; line-height: 2; color: var(--onyx); background-color: var(--lime); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 3px 8px rgba(4,8,3,.4); }
 #zm-hud.nv .hud-tip::after { display: block; }
 #zm-hud.nv li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--onyx); }
-/* plain ring dots, drawn on li::before so the dot can scale/move without its label (dock, magnet) */
-#zm-hud:is([data-nav="dock"], [data-nav="magnet"]) li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
-#zm-hud:is([data-nav="dock"], [data-nav="magnet"]) li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
+/* dock: plain ring dots, drawn on li::before so the dot can scale without its label */
+#zm-hud[data-nav="dock"] li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
+#zm-hud[data-nav="dock"] li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
 /* dock: after Magic UI Dock (MIT), vertical. JS springs --ds (dot scale) and --dy (push from the dots above). */
 #zm-hud[data-nav="dock"] #hud-num { margin-bottom: 14px !important; } /* room for the top dot to grow */
 #zm-hud[data-nav="dock"] li { width: 12px; height: 12px; margin: 10px 0; transform: translateY(var(--dy, 0px)); }
@@ -194,24 +194,32 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud[data-nav="odometer"] li::before { content: ''; position: absolute; right: 0; top: 6px; width: 20px; height: 2px; background: var(--lime-tint); box-shadow: 0 0 0 1px rgba(13,22,11,.45); transform: scaleX(.55); transform-origin: 100% 50%; pointer-events: none; transition: transform .35s cubic-bezier(.3,1.4,.5,1), background-color .2s ease; }
 #zm-hud[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(1); background: var(--lime); height: 3px; top: 5.5px; }
 @media (hover: hover) { #zm-hud[data-nav="odometer"] li:hover:not(:has(.hud-dot[aria-current="true"]))::before { transform: scaleX(.8); } }
-/* tabs: taped paper tabs tucked under the right edge; the current one slides out with its number and name */
-#zm-hud[data-nav="tabs"] { pointer-events: none; align-items: flex-end; }
-#zm-hud[data-nav="tabs"] #hud-num { display: none; }
-#zm-hud[data-nav="tabs"] li { pointer-events: auto; box-sizing: border-box; width: 150px; height: 26px; margin: 5px 0; padding-left: 9px; display: flex; align-items: center; border-radius: 2px 0 0 2px; background-color: var(--lime-tint); background-image: repeating-linear-gradient(90deg, rgba(13,22,11,.035) 0 1px, transparent 1px 3px), linear-gradient(180deg, rgba(255,255,255,.35), rgba(13,22,11,.06)); box-shadow: -2px 3px 6px rgba(4,8,3,.5), inset 1px 0 0 rgba(13,22,11,.12); translate: 138px 0; rotate: -2deg; transition: translate .4s cubic-bezier(.3,1.25,.5,1), background-color .25s ease; }
-#zm-hud[data-nav="tabs"] li:nth-of-type(even) { rotate: 2deg; }
-#zm-hud[data-nav="tabs"] li::before { content: ''; position: absolute; left: -11px; top: -5px; width: 21px; height: 11px; background: url('../assets/tape/cream.webp') center / 100% 100% no-repeat; rotate: -32deg; opacity: .9; filter: drop-shadow(0 1px 1px rgba(4,8,3,.4)); pointer-events: none; }
-#zm-hud[data-nav="tabs"] li:nth-of-type(even)::before { left: -10px; top: -3px; rotate: 24deg; }
-#zm-hud[data-nav="tabs"] li:has(.hud-dot[aria-current="true"]), #zm-hud[data-nav="tabs"] li:has(.hud-dot:focus-visible) { translate: 32px 0; }
-#zm-hud[data-nav="tabs"] li:has(.hud-dot[aria-current="true"]) { background-color: var(--lime); z-index: 2; }
-#zm-hud[data-nav="tabs"] .hud-dot { inset: 0; border-radius: 0; }
-#zm-hud[data-nav="tabs"] .hud-dot:focus-visible { outline: 2px solid var(--onyx); outline-offset: -4px; }
-#zm-hud[data-nav="tabs"] .hud-tip, #zm-hud[data-nav="tabs"] li .hud-tip { position: static; visibility: visible; opacity: 1; transform: none; padding: 0; background: none; box-shadow: none; color: var(--onyx); font-size: 11px; line-height: 1; transition: none; }
-#zm-hud[data-nav="tabs"] .hud-tip b { opacity: 1; margin-right: 6px; }
-#zm-hud[data-nav="tabs"] .hud-tip::after { display: none; }
-@media (hover: hover) { #zm-hud[data-nav="tabs"] li:hover:not(:has(.hud-dot[aria-current="true"])) { translate: 120px 0; } }
-/* magnet: JS springs --mx/--my, the dot leans toward the cursor */
-#zm-hud[data-nav="magnet"] li::before { transform: translate(var(--mx, 0px), var(--my, 0px)); }
 @media (prefers-reduced-motion: reduce) { #zm-hud.nv li, #zm-hud.nv li::before, #zm-hud.nv .nv-strip, #zm-hud.nv .nv-goo b { transition: none; } }
+/* The travelling current-section indicator (every style; nav-styles.ts springs it with goo's spring and stretches
+   it along Y by speed). Its centre sits at the list's top; JS moves it with translateY. With .nv-glide on, each
+   style drops its static current-dot fill so only the traveller marks the section. Not made under reduced motion. */
+#zm-hud .nv-ind { position: absolute; left: 50%; top: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity .2s ease; will-change: transform; }
+#zm-hud .nv-ind.is-on { opacity: 1; }
+#zm-hud .nv-ind-disc { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.55); }
+#zm-hud:is([data-nav="frost"], [data-nav="lens"]) .nv-ind-disc { box-shadow: 0 0 10px rgba(194,249,112,.65); }
+#zm-hud.nv-glide[data-nav="dots"] li:has(.hud-dot[aria-current="true"]) { background-color: transparent; }
+#zm-hud.nv-glide:is([data-nav="frost"], [data-nav="lens"]) li:has(.hud-dot[aria-current="true"]) { background-color: rgba(13,22,11,.18); box-shadow: 0 0 0 1px rgba(13,22,11,.5), inset 0 0 0 1px rgba(13,22,11,.35); }
+/* bubble: the lime glass bubble itself travels (backdrop blur kept; no goo filter, it would flatten the glass) */
+#zm-hud .nv-ind-bubble { width: 23px; height: 23px; margin: -11.5px 0 0 -11.5px; box-sizing: border-box; border-radius: 50%; border: 1px solid rgba(194,249,112,.8); background: radial-gradient(circle at 32% 28%, rgba(255,255,255,.85) 0 2px, rgba(194,249,112,.45) 6px, rgba(194,249,112,.18) 75%); -webkit-backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); backdrop-filter: blur(6px) saturate(1.8) brightness(1.15); box-shadow: 0 0 12px rgba(194,249,112,.55), inset 0 -2px 4px rgba(255,255,255,.12), 0 3px 8px rgba(0,0,0,.4); }
+#zm-hud.nv-glide[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) { transform: none; border-color: rgba(194,249,112,.6); }
+#zm-hud.nv-glide[data-nav="bubble"] li:has(.hud-dot[aria-current="true"]) .hud-tip { transform: translateX(0) translateY(-50%); }
+/* drop: the glass bead travels by transform instead of the per-dot top positions */
+#zm-hud.nv-glide[data-nav="drop"] .hud-bead { top: 0; margin-top: -13px; transition: opacity .25s; will-change: transform; }
+/* dock: the lime marker rides the magnified dot */
+#zm-hud .nv-ind-dock { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.55); }
+#zm-hud.nv-glide[data-nav="dock"] li:has(.hud-dot[aria-current="true"])::before { background-color: transparent; }
+/* thread: the bead slides along the line */
+#zm-hud .nv-ind-bead { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
+#zm-hud.nv-glide[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: none; box-shadow: none; }
+/* odometer: the long lime tick slides down the ruler */
+#zm-hud .nv-ind-tick { left: auto; right: 0; width: 20px; height: 3px; margin-top: -1.5px; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.45); transform-origin: 100% 50%; }
+#zm-hud.nv-glide[data-nav="odometer"] li:has(.hud-dot[aria-current="true"])::before { transform: scaleX(.55); background: var(--lime-tint); height: 2px; top: 6px; }
+@media (prefers-reduced-motion: reduce) { #zm-hud .nv-ind { transition: none; } }
 
 
 /* Places map (sections/Map.astro + scripts/places-map.ts) */
@@ -260,7 +268,7 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .ihb { position: relative; overflow: hidden; isolation: isolate; --ihb-flood: var(--onyx); --ihb-fg: var(--lime); --ihb-dot: 8px; --ihb-dot-x: 9px; --ihb-scale: 52; --ihb-from: 48px; }
 .ihb--outline { --ihb-flood: var(--lime); --ihb-fg: var(--onyx); --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 70; --ihb-from: -48px; }
 .ihb--sm { --ihb-dot: 6px; --ihb-dot-x: 6px; --ihb-scale: 60; }
-.ihb-dot { position: absolute; left: var(--ihb-dot-x); top: 50%; z-index: -1; width: var(--ihb-dot); height: var(--ihb-dot); margin-top: calc(var(--ihb-dot) / -2); border-radius: 50%; background: var(--ihb-flood); pointer-events: none; }
+.ihb-dot { position: absolute; left: var(--ihb-dot-x); top: 50%; z-index: -1; width: var(--ihb-dot); height: var(--ihb-dot); margin-top: calc(var(--ihb-dot) / -2); border-radius: 50%; background: var(--ihb-flood); pointer-events: none; transform: scale(0); } /* hidden at rest; only the hover flood shows */
 .ihb-label { display: inline-block; }
 .ihb-alt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: .3em; color: var(--ihb-fg); white-space: nowrap; opacity: 0; transform: translateX(var(--ihb-from)); pointer-events: none; }
 .ihb:is(:hover, :focus-visible) .ihb-dot { transform: scale(var(--ihb-scale)); }

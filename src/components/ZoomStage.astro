@@ -48,17 +48,19 @@ const { center = 'globe' } = Astro.props;
 <script>
   import { initZoomCamera } from '../scripts/zoom-camera.js';
   initZoomCamera();
-  // Section-nav look, chosen with ?nav=dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer|tabs|magnet while we pick one.
+  // Section-nav look, chosen with ?nav=dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer while we pick one.
   const hud = document.getElementById('zm-hud');
   const navPick = new URLSearchParams(location.search).get('nav');
-  if (hud && navPick && /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer|tabs|magnet)$/.test(navPick)) hud.dataset.nav = navPick;
+  if (hud && navPick && /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer)$/.test(navPick)) hud.dataset.nav = navPick;
   // Only Chromium draws an SVG filter as a backdrop; elsewhere "lens" falls back to frosted glass.
   const uaBrands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
   if (hud && uaBrands?.some((b) => b.brand === 'Chromium')) hud.classList.add('lg-ok');
   // lens / water: the 21st.dev liquid-glass ports (loaded only when picked)
   if (hud && (hud.dataset.nav === 'lens' || hud.dataset.nav === 'water')) import('../scripts/liquid-nav.ts').then((m) => m.initLiquidNav(hud));
-  // The six non-glass looks (scripts/nav-styles.ts); .nv resets the glass rules that apply to every non-dots style.
-  if (hud && /^(dock|goo|thread|odometer|tabs|magnet)$/.test(hud.dataset.nav || '')) { hud.classList.add('nv'); import('../scripts/nav-styles.ts').then((m) => m.initNavStyle(hud)); }
+  // The travelling current-section indicator for every style but water (scripts/nav-styles.ts); .nv resets the
+  // glass rules that apply to every non-dots style for the four non-glass looks.
+  if (hud && /^(dock|goo|thread|odometer)$/.test(hud.dataset.nav || '')) hud.classList.add('nv');
+  if (hud && hud.dataset.nav !== 'water') import('../scripts/nav-styles.ts').then((m) => m.initNavStyle(hud));
   // ?edit on the home page: the drag-to-place layout editor (loaded only then).
   if (new URLSearchParams(location.search).has('edit')) import('../scripts/layout-editor.ts').then((m) => m.initLayoutEditor());
 </script>
