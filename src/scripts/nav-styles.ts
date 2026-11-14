@@ -4,8 +4,8 @@
 //  - dots / frost / lens: a lime disc travels between the dots (frost/lens keep their glow inside the glass).
 //  - bubble: the glass bubble itself travels.  drop: the glass bead travels.  (Glass keeps no goo filter.)
 //  - water: the WebGL drop in liquid-nav.ts uses the same spring and stretch.
-//  - dock: after Magic UI Dock (MIT), turned vertical. Dots magnify near the pointer in detents (4 sizes) through
-//    a stiff, slightly underdamped spring so it ticks rather than glides; a press squashes the dot and it springs
+//  - dock: after Magic UI Dock (MIT), turned vertical. Only the hovered dot magnifies (12 -> 26px),
+//    on a stiff, slightly underdamped spring so it snaps rather than glides; a press squashes the dot and it springs
 //    back. The lime current marker travels with the goo spring and rides the magnification.
 //  - goo: after 21st.dev GooeyPagination by ruixen.ui. A lime blob springs between the dots under an SVG goo
 //    filter (blur -> alpha threshold -> atop), stretching with its speed. The original's blur 8 / alpha 20 -10
@@ -129,15 +129,19 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
   if (reduceMotion()) return;
   // Sizes step through 4 detents (12, 16.7, 21.3, 26px) as the pointer nears, so the magnification ticks.
   // The spring is stiff and a little underdamped (zeta ~.6, ~10% overshoot, settles in ~.2s): crisp, not floaty.
-  const BASE = 12, MAG = 26, DIST = 140, STEPS = 3, K = 1400, C = 44, PRESS = 0.74;
+  // Only the dot under the pointer grows (neighbours stay put in size; they just make room for it).
+  const BASE = 12, MAG = 26, K = 1400, C = 44, PRESS = 0.74;
   const st = lis.map(() => ({ x: BASE, v: 0 }));
   const pr = lis.map(() => ({ x: 1, v: 0 })); // press squash
   let py = Infinity, top = 0, centres = centresOf(lis), pressed = -1, cur = -1, shown = false;
-  const target = (i: number) => {
-    if (py === Infinity) return BASE;
-    const t = 1 - clamp(Math.abs(py - centres[i]) / DIST, 0, 1);
-    return BASE + ((MAG - BASE) * Math.round(t * STEPS)) / STEPS;
+  const hovered = () => {
+    if (py === Infinity) return -1;
+    let best = -1, bd = Infinity;
+    centres.forEach((c, i) => { const d = Math.abs(py - c); if (d < bd) { bd = d; best = i; } });
+    const gap = centres.length > 1 ? Math.abs(centres[1] - centres[0]) : 36;
+    return bd <= gap / 2 ? best : -1;
   };
+  const target = (i: number) => (i === hovered() ? MAG : BASE);
   // The lime current marker: goo's spring and stretch, riding the dot's push and magnification.
   const ind = document.createElement('span');
   ind.className = 'nv-ind nv-ind-dock';
