@@ -170,7 +170,7 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 /* goo: after 21st.dev GooeyPagination by ruixen.ui. Only this small layer carries the filter; labels stay crisp. */
 #zm-hud[data-nav="goo"] .nv-goo { position: absolute; left: -16px; right: -16px; top: -16px; bottom: -16px; z-index: 0; pointer-events: none; filter: url(#nv-goo-f); }
 #zm-hud[data-nav="goo"] .nv-goo > * { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; }
-#zm-hud[data-nav="goo"] .nv-goo i { background: color-mix(in srgb, var(--lime-tint) 55%, var(--onyx)); }
+#zm-hud[data-nav="goo"] .nv-goo i { background: color-mix(in srgb, var(--lime-tint) 55%, var(--onyx)); scale: var(--hv, 1); }
 #zm-hud[data-nav="goo"] .nv-goo b { background: var(--lime); opacity: 0; transition: opacity .25s ease; will-change: transform; }
 #zm-hud[data-nav="goo"] .nv-goo.is-on b { opacity: 1; }
 /* thread: a line filled by the smoothed scroll (scaleY), a knot per section */
@@ -304,3 +304,8 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .ripple { position: absolute; border-radius: 50%; background: currentColor; pointer-events: none; opacity: 0; animation: rippling .6s ease-out; }
 @keyframes rippling { from { transform: scale(0); opacity: .3; } to { transform: scale(2); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .ripple { display: none; } }
+
+/* Hover magnify for every nav style but dock (scripts/nav-styles.ts hoverMagnify springs --hv on the hovered li).
+   `scale` is its own property, so it multiplies with each style's transform; the tooltip is scaled back. */
+#zm-hud:not([data-nav="dock"]) li { scale: var(--hv, 1); }
+#zm-hud:not([data-nav="dock"]) li .hud-tip { scale: calc(1 / var(--hv, 1)); transform-origin: right center; }

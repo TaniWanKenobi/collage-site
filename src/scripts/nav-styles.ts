@@ -303,11 +303,46 @@ function odometer(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: H
   traveller(hud, ul, lis, dots, 'nv-ind-tick');
 }
 
+/* ---------------- hover magnify (the dock's hover, for every other style) ---------------- */
+// Only the dot under the pointer grows (to 1.6x) on the dock's stiff, slightly underdamped spring; a press squashes
+// it and it springs back. Written as --hv on the li; CSS applies it with the `scale` property (so it composes with
+// each style's own transforms) and scales the tooltip back so its text stays the same size.
+export function hoverMagnify(ul: HTMLElement, lis: HTMLElement[]) {
+  if (reduceMotion()) return;
+  const MAG = 1.6, PRESS = 0.8, K = 1400, C = 44;
+  const st = lis.map(() => ({ x: 1, v: 0 }));
+  let hov = -1, pressed = -1;
+  const target = (i: number) => (i === hov ? (i === pressed ? MAG * PRESS : MAG) : 1);
+  // goo draws its dots as <i> in its filter layer (made after this runs), so mirror the scale onto those too.
+  const mirror = () => ul.querySelectorAll<HTMLElement>('.nv-goo i');
+  const kick = loop((dt) => {
+    let moving = false;
+    const m = mirror();
+    st.forEach((s, i) => {
+      const T = target(i);
+      spring(s, T, K, C, 1, dt);
+      if (Math.abs(s.x - T) < 0.002 && Math.abs(s.v) < 0.01) { s.x = T; s.v = 0; } else moving = true;
+      setVar(lis[i], '--hv', s.x.toFixed(3));
+      if (m[i]) setVar(m[i], '--hv', s.x.toFixed(3));
+    });
+    return moving;
+  });
+  own(() => lis.forEach((li) => li.style.removeProperty('--hv')));
+  const liOf = (t: EventTarget | null) => lis.indexOf((t as Element | null)?.closest?.('li') as HTMLElement);
+  listen(ul, 'pointerover', (e) => { if ((e as PointerEvent).pointerType === 'touch') return; const i = liOf(e.target); if (i !== hov) { hov = i; kick(); } });
+  listen(ul, 'pointerleave', () => { hov = -1; pressed = -1; kick(); });
+  listen(ul, 'pointerdown', (e) => { const i = liOf(e.target); if (i >= 0) { pressed = i; kick(); } });
+  const release = () => { if (pressed >= 0) { pressed = -1; kick(); } };
+  listen(ul, 'pointerup', release);
+  listen(ul, 'pointercancel', release);
+}
+
 export function initNavStyle(hud: HTMLElement) {
   const ul = hud.querySelector('ul') as HTMLElement | null;
   if (!ul) return;
   const lis = Array.from(ul.querySelectorAll<HTMLElement>(':scope > li'));
   const dots = Array.from(ul.querySelectorAll<HTMLElement>('.hud-dot'));
+  if (hud.dataset.nav !== 'dock') hoverMagnify(ul, lis); // the dock has its own (with push-apart)
   switch (hud.dataset.nav) {
     case 'dots': case 'frost': case 'lens': traveller(hud, ul, lis, dots, 'nv-ind-disc'); break;
     case 'bubble': traveller(hud, ul, lis, dots, 'nv-ind-bubble'); break;
@@ -335,6 +370,7 @@ export function setNav(hud: HTMLElement, v: string) {
   // lens / water: the 21st.dev liquid-glass ports (loaded only when picked)
   if (v === 'lens' || v === 'water') import('./liquid-nav').then((m) => { if (g === gen) m.initLiquidNav(hud); });
   if (v !== 'water') initNavStyle(hud);
+  else { const ul = hud.querySelector<HTMLElement>('ul'); if (ul) hoverMagnify(ul, Array.from(ul.querySelectorAll<HTMLElement>(':scope > li'))); }
 }
 
 // The Looks picker (scripts/looks.ts) switches the style live.
