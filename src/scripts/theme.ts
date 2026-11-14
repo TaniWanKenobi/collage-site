@@ -6,6 +6,7 @@
 // water, Tamagotchi screen) update in place. Default / off removes the overrides: the :root look in global.css.
 // The resolved vars are kept in localStorage so the head script in Base.astro can paint them before first paint.
 import { themeFor } from './theme-core';
+import './me-photo'; // recolours the home-page photo of me on every switch
 import { ROLES, CSS_VAR, DEFAULT_THEME, type ThemeChange } from './theme-vars';
 
 export const STORE = 'theme-vars';
