@@ -145,7 +145,7 @@ export const DEFAULT_STYLE = 'cel+ink';
 const U = {
   uKey: { value: new Vector3(-0.42, 0.72, 0.55).normalize() }, // view space: upper left, towards the camera
   uSteps: { value: new Vector3() }, uCuts: { value: [0, 0] }, uSoft: { value: 0 },
-  uSky: { value: col('#8F86C0') }, uGround: { value: col('#263424') }, uFill: { value: 0 },
+  uSky: { value: col('#8E968A') }, uGround: { value: col('#263424') }, uFill: { value: 0 }, // sky: neutral grey-green (was lavender #8F86C0, read as a purple glow)
   uRimCol: { value: col('#EFFDD8') }, uRim: { value: 0 }, uRimEdge: { value: [0, 0] },
   uSpec: { value: 0 }, uSpecCut: { value: 0 }, uSpecSoft: { value: 0 },
   uAOMin: { value: 0 }, uPalK: { value: 1 }, uPastel: { value: 0 }, uSil: { value: 0 },
@@ -378,7 +378,7 @@ function originalMaterial(o) {
 // ---------- contact blob ----------
 let blobMat = null;
 /** A soft grape "glow pad" under the model (a baked radial gradient on a quad: no per-frame cost). */
-export function contactBlob(box, { color = 'rgba(86,77,128,0.55)', size = 1.25 } = {}) {
+export function contactBlob(box, { color = 'rgba(4,8,3,0.55)', size = 1.25 } = {}) {
   if (!blobMat) {
     const c = document.createElement('canvas'); c.width = c.height = 128;
     const g = c.getContext('2d'), grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
