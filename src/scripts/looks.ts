@@ -10,7 +10,7 @@ type Group = { key: string; label: string; opts: [string, string][]; def: string
 const GROUPS: Group[] = [
   { key: 'nav', label: 'Section nav', def: 'dots', opts: [
     ['dots', 'dots'], ['frost', 'frost'], ['lens', 'lens'], ['drop', 'drop'], ['bubble', 'bubble'], ['water', 'water'],
-    ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['odometer', 'odometer']] },
+    ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
   { key: 'tx', label: 'Transition', def: '', opts: [
     ['', 'fade'], ['morph', 'morph'], ['iris', 'iris'], ['paper', 'paper'], ['dither', 'dither']] },
   { key: 'bg', label: 'Background', def: '', opts: [

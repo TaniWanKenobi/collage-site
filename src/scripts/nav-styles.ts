@@ -7,6 +7,8 @@
 //  - dock: after Magic UI Dock (MIT), turned vertical. Only the hovered dot magnifies (12 -> 26px),
 //    on a stiff, slightly underdamped spring so it snaps rather than glides; a press squashes the dot and it springs
 //    back. The lime current marker travels with the goo spring and rides the magnification.
+//  - dockline: dock + thread. The dock's magnifying, clicky dots strung on the thread's scroll-filled line;
+//    passed knots fill lime, and the line's fill tracks the knots as they push apart.
 //  - goo: after 21st.dev GooeyPagination by ruixen.ui. A lime blob springs between the dots under an SVG goo
 //    filter (blur -> alpha threshold -> atop), stretching with its speed. The original's blur 8 / alpha 20 -10
 //    erases dots this small (12px), so it is scaled down to blur 5 / alpha 20 -8.
@@ -125,7 +127,9 @@ function traveller(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: 
 }
 
 /* ---------------- dock (Magic UI Dock, vertical, clicky) ---------------- */
-function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
+function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[], strung = false) {
+  // dockline: the same dots strung on the thread's scroll-filled line (drawn below, re-drawn as the dots push apart).
+  const line = strung ? dockLine(ul, lis, dots) : null;
   if (reduceMotion()) return;
   // Sizes step through 4 detents (12, 16.7, 21.3, 26px) as the pointer nears, so the magnification ticks.
   // The spring is stiff and a little underdamped (zeta ~.6, ~10% overshoot, settles in ~.2s): crisp, not floaty.
@@ -171,6 +175,7 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
       setVar(li, '--dy', `${dy[i].toFixed(2)}px`);
       acc += extra[i];
     });
+    line?.draw(dy);
     if (cur >= 0) {
       scaleNow = (st[cur].x / BASE) * pr[cur].x;
       g.set(centres[cur] + dy[cur]);
@@ -214,6 +219,57 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
     clearTimeout(tap);
     tap = window.setTimeout(() => { if (pressed === i) release(); }, 90);
   });
+}
+
+/* ---------------- dockline: the thread's line for the dock ---------------- */
+// Like thread(), the fill follows the camera's smoothed scroll (p, 0..n; section i sits at i + .5), and a knot is
+// "passed" once the fill reaches it. Here the knots move (the dock pushes them apart around the hovered dot), so the
+// fill's end is placed between the knots' current centres rather than at a fixed fraction of the line.
+const LINE_EXT = 8; // the line runs this far past the end dots (room for the push-apart, which is at most 7px each way)
+function dockLine(ul: HTMLElement, lis: HTMLElement[], dots: HTMLElement[]) {
+  const n = lis.length;
+  const line = document.createElement('span');
+  line.className = 'nv-thread';
+  line.setAttribute('aria-hidden', 'true');
+  line.innerHTML = '<i></i>';
+  ul.prepend(line);
+  own(() => { line.remove(); lis.forEach((li) => li.removeAttribute('data-past')); });
+  const fill = line.firstElementChild as HTMLElement;
+  const centres = centresOf(lis);
+  const top = -LINE_EXT, len = ul.offsetHeight + 2 * LINE_EXT;
+  let p = 0, flying = false, dy: number[] = lis.map(() => 0), shown = -1;
+  const past = lis.map(() => false);
+  const at = (i: number) => centres[i] + dy[i];
+  const draw = (d?: number[]) => {
+    if (d) dy = d;
+    const q = clamp(p, 0, n);
+    let y: number;
+    if (q <= 0.5) y = top + (at(0) - top) * (q / 0.5);
+    else if (q >= n - 0.5) y = at(n - 1) + (top + len - at(n - 1)) * ((q - (n - 0.5)) / 0.5);
+    else { const k = Math.floor(q - 0.5), t = q - 0.5 - k; y = at(k) + (at(k + 1) - at(k)) * t; }
+    const f = Math.round(clamp((y - top) / len, 0, 1) * 4000) / 4000;
+    if (f !== shown) { shown = f; fill.style.transform = `scaleY(${f})`; }
+    lis.forEach((li, i) => {
+      const on = q >= i + 0.5 - 0.01;
+      if (on !== past[i]) { past[i] = on; li.toggleAttribute('data-past', on); }
+    });
+  };
+  // During a click flight the scroll isn't moving, so the fill eases to the destination knot (CSS transition).
+  const onCam = (d: { p?: number; flying?: boolean } | undefined) => {
+    if (!d) return;
+    if (d.flying) {
+      if (!flying) { flying = true; if (!reduceMotion()) fill.classList.add('nv-fly'); }
+      const i = dots.findIndex((b) => b.getAttribute('aria-current') === 'true');
+      p = i < 0 ? 0 : i + 0.5;
+    } else {
+      if (flying) { flying = false; fill.classList.remove('nv-fly'); }
+      if (typeof d.p === 'number') p = d.p;
+    }
+    draw();
+  };
+  onCam((window as Window & { __zoomCam?: { p?: number; flying?: boolean } }).__zoomCam);
+  listen(window, 'zoomcam', (e) => onCam((e as CustomEvent).detail));
+  return { draw };
 }
 
 /* ---------------- goo (21st.dev GooeyPagination by ruixen.ui, vertical) ---------------- */
@@ -342,12 +398,13 @@ export function initNavStyle(hud: HTMLElement) {
   if (!ul) return;
   const lis = Array.from(ul.querySelectorAll<HTMLElement>(':scope > li'));
   const dots = Array.from(ul.querySelectorAll<HTMLElement>('.hud-dot'));
-  if (hud.dataset.nav !== 'dock') hoverMagnify(ul, lis); // the dock has its own (with push-apart)
+  if (!/^dock(line)?$/.test(hud.dataset.nav || '')) hoverMagnify(ul, lis); // the dock has its own (with push-apart)
   switch (hud.dataset.nav) {
     case 'dots': case 'frost': case 'lens': traveller(hud, ul, lis, dots, 'nv-ind-disc'); break;
     case 'bubble': traveller(hud, ul, lis, dots, 'nv-ind-bubble'); break;
     case 'drop': { const bead = ul.querySelector<HTMLElement>('.hud-bead'); if (bead) traveller(hud, ul, lis, dots, '', bead); break; }
     case 'dock': dock(hud, ul, lis, dots); break;
+    case 'dockline': dock(hud, ul, lis, dots, true); break;
     case 'goo': goo(hud, ul, lis, dots); break;
     case 'thread': thread(hud, ul, lis, dots); break;
     case 'odometer': odometer(hud, ul, lis, dots); break;
@@ -356,7 +413,7 @@ export function initNavStyle(hud: HTMLElement) {
 }
 
 /* ---------------- switching ---------------- */
-const NAVS = /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|odometer)$/;
+const NAVS = /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|dockline|odometer)$/;
 
 // Tear down whatever style is running and start v (dots for anything unknown). The current-section marker
 // appears where the camera already is: each style reads aria-current on start and jumps there.
@@ -365,7 +422,7 @@ export function setNav(hud: HTMLElement, v: string) {
   teardown(hud);
   hud.dataset.nav = v;
   // .nv resets the glass rules that apply to every non-dots style for the four non-glass looks.
-  hud.classList.toggle('nv', /^(dock|goo|thread|odometer)$/.test(v));
+  hud.classList.toggle('nv', /^(dock|dockline|goo|thread|odometer)$/.test(v));
   const g = gen;
   // lens / water: the 21st.dev liquid-glass ports (loaded only when picked)
   if (v === 'lens' || v === 'water') import('./liquid-nav').then((m) => { if (g === gen) m.initLiquidNav(hud); });

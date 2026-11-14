@@ -159,14 +159,19 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud.nv .hud-tip::after { display: block; }
 #zm-hud.nv li:has(.hud-dot[aria-current="true"]) .hud-tip { color: var(--onyx); }
 /* dock: plain ring dots, drawn on li::before so the dot can scale without its label */
-#zm-hud[data-nav="dock"] li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
-#zm-hud[data-nav="dock"] li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li::before { content: ''; position: absolute; inset: 0; box-sizing: border-box; border: 2px solid var(--lime-tint); border-radius: 50%; box-shadow: 0 0 0 1px rgba(13,22,11,.55), inset 0 0 0 1px rgba(13,22,11,.55); pointer-events: none; transition: border-color .3s ease, background-color .3s ease; }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li:has(.hud-dot[aria-current="true"])::before { border-color: var(--lime); background-color: var(--lime); }
 /* dock: after Magic UI Dock (MIT), vertical. JS springs --ds (dot scale) and --dy (push from the dots above). */
-#zm-hud[data-nav="dock"] #hud-num { margin-bottom: 14px !important; } /* room for the top dot to grow */
-#zm-hud[data-nav="dock"] li { width: 12px; height: 12px; margin: 10px 0; transform: translateY(var(--dy, 0px)); }
-#zm-hud[data-nav="dock"] li::before { transform: scale(var(--ds, 1)); border-width: 1.5px; }
-#zm-hud[data-nav="dock"] .hud-tip { right: calc(100% + 14px + (var(--ds, 1) - 1) * 6px); }
-#zm-hud[data-nav="dock"] ul::after { content: ''; position: absolute; inset: -24px -22px; z-index: -1; } /* pointer zone */
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) #hud-num { margin-bottom: 14px !important; } /* room for the top dot to grow */
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li { width: 12px; height: 12px; margin: 10px 0; transform: translateY(var(--dy, 0px)); }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) li::before { transform: scale(var(--ds, 1)); border-width: 1.5px; }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) .hud-tip { right: calc(100% + 14px + (var(--ds, 1) - 1) * 6px); }
+#zm-hud:is([data-nav="dock"], [data-nav="dockline"]) ul::after { content: ''; position: absolute; inset: -24px -22px; z-index: -1; } /* pointer zone */
+/* dockline: dock + thread. The line runs a little past the end dots (room for the push-apart); the rings are
+   solid so the line doesn't show through, and passed knots fill lime. */
+#zm-hud[data-nav="dockline"] .nv-thread { top: -8px; bottom: -8px; }
+#zm-hud[data-nav="dockline"] li::before { background-color: var(--onyx); }
+#zm-hud[data-nav="dockline"] li[data-past]::before { border-color: var(--lime); background-color: var(--lime); }
 /* goo: after 21st.dev GooeyPagination by ruixen.ui. Only this small layer carries the filter; labels stay crisp. */
 #zm-hud[data-nav="goo"] .nv-goo { position: absolute; left: -16px; right: -16px; top: -16px; bottom: -16px; z-index: 0; pointer-events: none; filter: url(#nv-goo-f); }
 #zm-hud[data-nav="goo"] .nv-goo > * { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; }
@@ -174,9 +179,9 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud[data-nav="goo"] .nv-goo b { background: var(--lime); opacity: 0; transition: opacity .25s ease; will-change: transform; }
 #zm-hud[data-nav="goo"] .nv-goo.is-on b { opacity: 1; }
 /* thread: a line filled by the smoothed scroll (scaleY), a knot per section */
-#zm-hud[data-nav="thread"] .nv-thread { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(239,253,216,.32); box-shadow: 0 0 0 1px rgba(13,22,11,.35); pointer-events: none; }
-#zm-hud[data-nav="thread"] .nv-thread i { position: absolute; inset: 0; background: var(--lime); transform: scaleY(0); transform-origin: 50% 0; }
-#zm-hud[data-nav="thread"] .nv-thread i.nv-fly { transition: transform .8s cubic-bezier(.65,0,.35,1); }
+#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread { position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(239,253,216,.32); box-shadow: 0 0 0 1px rgba(13,22,11,.35); pointer-events: none; }
+#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread i { position: absolute; inset: 0; background: var(--lime); transform: scaleY(0); transform-origin: 50% 0; }
+#zm-hud:is([data-nav="thread"], [data-nav="dockline"]) .nv-thread i.nv-fly { transition: transform .8s cubic-bezier(.65,0,.35,1); }
 #zm-hud[data-nav="thread"] li::before { content: ''; position: absolute; left: 3px; top: 3px; width: 8px; height: 8px; box-sizing: border-box; border: 2px solid rgba(239,253,216,.85); border-radius: 50%; background: var(--onyx); pointer-events: none; transition: transform .35s cubic-bezier(.3,1.6,.5,1), background-color .2s ease, border-color .2s ease, box-shadow .2s ease; }
 #zm-hud[data-nav="thread"] li[data-past]::before { border-color: var(--lime); background: var(--lime); }
 #zm-hud[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: scale(1.75); border-color: var(--lime); background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
@@ -212,7 +217,7 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-hud.nv-glide[data-nav="drop"] .hud-bead { top: 0; margin-top: -13px; transition: opacity .25s; will-change: transform; }
 /* dock: the lime marker rides the magnified dot */
 #zm-hud .nv-ind-dock { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1px rgba(13,22,11,.55); }
-#zm-hud.nv-glide[data-nav="dock"] li:has(.hud-dot[aria-current="true"])::before { background-color: transparent; }
+#zm-hud.nv-glide:is([data-nav="dock"], [data-nav="dockline"]) li:has(.hud-dot[aria-current="true"])::before { background-color: transparent; }
 /* thread: the bead slides along the line */
 #zm-hud .nv-ind-bead { width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 1.5px var(--onyx); }
 #zm-hud.nv-glide[data-nav="thread"] li:has(.hud-dot[aria-current="true"])::before { transform: none; box-shadow: none; }
@@ -307,5 +312,5 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 
 /* Hover magnify for every nav style but dock (scripts/nav-styles.ts hoverMagnify springs --hv on the hovered li).
    `scale` is its own property, so it multiplies with each style's transform; the tooltip is scaled back. */
-#zm-hud:not([data-nav="dock"]) li { scale: var(--hv, 1); }
-#zm-hud:not([data-nav="dock"]) li .hud-tip { scale: calc(1 / var(--hv, 1)); transform-origin: right center; }
+#zm-hud:not([data-nav="dock"], [data-nav="dockline"]) li { scale: var(--hv, 1); }
+#zm-hud:not([data-nav="dock"], [data-nav="dockline"]) li .hud-tip { scale: calc(1 / var(--hv, 1)); transform-origin: right center; }
