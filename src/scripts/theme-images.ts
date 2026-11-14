@@ -214,19 +214,53 @@ async function applyMap(t: Theme, spec: string, light: boolean) {
 const stickerCache = new Map<string, Promise<string>>();
 let stickerWant = '';
 
+// The book is a full-colour print (cream pages, black halftone) with one teal accent (cover edges, the wrist): only
+// that teal is recoloured, to the theme accent; everything else stays as printed. Pixels are weighted by how teal
+// they are (OKLab hue near the teal's, chroma above the paper's), so the halftone edges blend.
+const TEAL = toLab([24, 148, 170]); // measured
+const TEAL_HUE = Math.atan2(TEAL[2], TEAL[1]);
+const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+function recolourTeal(px: Uint8ClampedArray, accent: string) {
+  const A = toLab(rgbOf(accent));
+  const cache = new Map<number, number[] | null>();
+  for (let i = 0; i < px.length; i += 4) {
+    if (!px[i + 3]) continue;
+    const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+    let out = cache.get(key);
+    if (out === undefined) {
+      const [L, a, b] = toLab([px[i], px[i + 1], px[i + 2]]);
+      const C = Math.hypot(a, b);
+      let dh = Math.abs(Math.atan2(b, a) - TEAL_HUE); if (dh > Math.PI) dh = 2 * Math.PI - dh;
+      const w = smooth(0.03, 0.07, C) * (1 - smooth(0.35, 0.7, dh));
+      if (w < 0.01) out = null;
+      else {
+        const k = C / Math.hypot(TEAL[1], TEAL[2]); // keep the pixel's share of the teal's strength
+        const tgt = [L + (A[0] - TEAL[0]) * 0.6, A[1] * k, A[2] * k];
+        out = toRgb([L + (tgt[0] - L) * w, a + (tgt[1] - a) * w, b + (tgt[2] - b) * w]);
+      }
+      cache.set(key, out);
+    }
+    if (out) { px[i] = out[0]; px[i + 1] = out[1]; px[i + 2] = out[2]; }
+  }
+}
+
 async function bakeSticker(t: Theme, light: boolean, src: string, tune: Tune): Promise<string> {
   const im = await loadImg(src);
   const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
   const cc = c.getContext('2d', { willReadFrequently: true })!;
   cc.drawImage(im, 0, 0);
-  const d = cc.getImageData(0, 0, c.width, c.height), px = d.data, lut = ramp(t, light, tune);
-  const lc = new Map<number, number>();
-  for (let i = 0; i < px.length; i += 4) {
-    if (!px[i + 3]) continue;
-    const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
-    let k = lc.get(key);
-    if (k === undefined) { k = Math.round(Math.max(0, Math.min(1, toLab([px[i], px[i + 1], px[i + 2]])[0])) * 255); lc.set(key, k); }
-    px[i] = lut[k * 3]; px[i + 1] = lut[k * 3 + 1]; px[i + 2] = lut[k * 3 + 2];
+  const d = cc.getImageData(0, 0, c.width, c.height), px = d.data;
+  if (/book/.test(src)) recolourTeal(px, t.accent);
+  else {
+    const lut = ramp(t, light, tune), lc = new Map<number, number>();
+    for (let i = 0; i < px.length; i += 4) {
+      if (!px[i + 3]) continue;
+      const key = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2];
+      let k = lc.get(key);
+      if (k === undefined) { k = Math.round(Math.max(0, Math.min(1, toLab([px[i], px[i + 1], px[i + 2]])[0])) * 255); lc.set(key, k); }
+      px[i] = lut[k * 3]; px[i + 1] = lut[k * 3 + 1]; px[i + 2] = lut[k * 3 + 2];
+    }
   }
   cc.putImageData(d, 0, 0);
   const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/webp', 0.9));
