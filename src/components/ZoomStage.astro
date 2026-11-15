@@ -15,7 +15,11 @@ const { center = 'globe' } = Astro.props;
 
       <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: color-mix(in srgb, var(--bg) 85%, transparent); color: var(--text); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
 
-      <nav id="zm-hud" class="dotstyle dotstyle-tooltip" data-nav="dots" aria-label="Sections" style="position: absolute; right: calc(22px * var(--hud-k, 1)); top: 50%; transform: translateY(-50%) scale(var(--hud-k, 1)); transform-origin: right center; z-index: 30; display: flex; flex-direction: column; align-items: center">
+      <!-- Bouncing "scroll" arrow at the overview (CSS bounce; zoom-camera.js fades it as the camera zooms in, next to
+           the #zm-hint fade). Clicking it flies to the first section, like the in-world nav links (data-fly). -->
+      <a href={url('projects')} id="zm-arrow" data-fly="projects" aria-label="Zoom in to the first section"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+
+      <nav id="zm-hud" class="dotstyle dotstyle-tooltip nv" data-nav="dockline" aria-label="Sections" style="position: absolute; right: calc(22px * var(--hud-k, 1)); top: 50%; transform: translateY(-50%) scale(var(--hud-k, 1)); transform-origin: right center; z-index: 30; display: flex; flex-direction: column; align-items: center">
         <span class="mono" id="hud-num" aria-hidden="true" style="font-size: 11px; color: var(--text); margin-bottom: 4px; text-shadow: 0 1px 2px color-mix(in srgb, var(--bg) 80%, transparent)">00</span>
         <ul>
           <span class="hud-bead" aria-hidden="true"></span>
@@ -48,7 +52,8 @@ const { center = 'globe' } = Astro.props;
 <script>
   import { initZoomCamera } from '../scripts/zoom-camera.js';
   initZoomCamera();
-  // Section-nav look, chosen with ?nav=dots|frost|lens|drop|bubble|water|dock|dockline|goo|thread|odometer while we pick one.
+  // Section-nav look, chosen with ?nav=dots|frost|lens|drop|bubble|water|dock|dockline|goo|thread|odometer while we pick one
+  // (no ?nav= = dockline, "dock + thread", the default; the markup above already carries it for first paint).
   const hud = document.getElementById('zm-hud');
   // Bigger screens get a bigger nav: it scales with the collage (the camera's overview scale, min(w/1440, h/900)),
   // never below 1 and at most 2. A transform, so the nav styles' own layout maths (offsetTop) is untouched.
@@ -63,10 +68,10 @@ const { center = 'globe' } = Astro.props;
   const uaBrands = (navigator as Navigator & { userAgentData?: { brands: { brand: string }[] } }).userAgentData?.brands;
   if (hud && uaBrands?.some((b) => b.brand === 'Chromium')) hud.classList.add('lg-ok');
   // .nv (set before first paint) resets the glass rules that apply to every non-dots style for the four non-glass looks.
-  if (hud && /^(dock|goo|thread|dockline|odometer)$/.test(hud.dataset.nav || '')) hud.classList.add('nv');
+  if (hud) hud.classList.toggle('nv', /^(dock|goo|thread|dockline|odometer)$/.test(hud.dataset.nav || ''));
   // The style's motion (scripts/nav-styles.ts; lens / water also load scripts/liquid-nav.ts). setNav also lets the
   // Looks picker switch the style live.
-  if (hud) import('../scripts/nav-styles.ts').then((m) => m.setNav(hud, hud.dataset.nav || 'dots'));
+  if (hud) import('../scripts/nav-styles.ts').then((m) => m.setNav(hud, hud.dataset.nav || 'dockline'));
   // ?edit on the home page: the drag-to-place layout editor (loaded only then).
   if (new URLSearchParams(location.search).has('edit')) import('../scripts/layout-editor.ts').then((m) => m.initLayoutEditor());
 </script>

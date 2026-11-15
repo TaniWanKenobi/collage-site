@@ -417,10 +417,10 @@ export function initNavStyle(hud: HTMLElement) {
 /* ---------------- switching ---------------- */
 const NAVS = /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|dockline|odometer)$/;
 
-// Tear down whatever style is running and start v (dots for anything unknown). The current-section marker
+// Tear down whatever style is running and start v (dockline, the default, for anything unknown). The current-section marker
 // appears where the camera already is: each style reads aria-current on start and jumps there.
 export function setNav(hud: HTMLElement, v: string) {
-  if (!NAVS.test(v)) v = 'dots';
+  if (!NAVS.test(v)) v = 'dockline';
   teardown(hud);
   hud.dataset.nav = v;
   // .nv resets the glass rules that apply to every non-dots style for the four non-glass looks.
@@ -437,5 +437,5 @@ window.addEventListener('looks:change', (e) => {
   const d = (e as CustomEvent<{ key: string; value: string }>).detail;
   if (d?.key !== 'nav') return;
   const hud = document.getElementById('zm-hud');
-  if (hud) setNav(hud, d.value || 'dots');
+  if (hud) setNav(hud, d.value || 'dockline');
 });

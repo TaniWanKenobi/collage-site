@@ -13,7 +13,7 @@ type Group = { key: string; label: string; opts: [string, string][]; def: string
 
 const GROUPS: Group[] = [
   { key: 'theme', label: 'Theme', def: THEME_DEF, opts: [] }, // preset chips with swatches + a paste box (themeControl)
-  { key: 'nav', label: 'Section nav', def: 'dots', opts: [
+  { key: 'nav', label: 'Section nav', def: 'dockline', opts: [
     ['dots', 'dots'], ['frost', 'frost'], ['lens', 'lens'], ['drop', 'drop'], ['bubble', 'bubble'], ['water', 'water'],
     ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
   { key: 'tx', label: 'Transition', def: '', opts: [

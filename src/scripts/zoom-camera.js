@@ -12,7 +12,7 @@ export function initZoomCamera() {
 
   var $ = function (id) { return document.getElementById(id); };
   var root = $('zm-root'), track = $('zm-track'), world = $('zm-world');
-  var phWorld = $('ph-world'), hint = $('zm-hint'), home = $('zm-home'), whead = $('zm-whead');
+  var phWorld = $('ph-world'), hint = $('zm-hint'), arrow = $('zm-arrow'), home = $('zm-home'), whead = $('zm-whead');
   var hudNum = $('hud-num'), hudName = $('hud-name');
   var stage = $('zm-stage');
   var BASE = (root.getAttribute('data-base') || '/').replace(/\/$/, '');
@@ -169,6 +169,9 @@ export function initZoomCamera() {
     TX.frame(c.ops, pageQuad, vw, stageH);
     var zn = zoomness(c);
     put(hint, 'opacity', String(f(1 - zn)), 'hint');
+    // The scroll arrow fades three times as fast (it only invites the first scroll), then hides (its bounce stops).
+    var ao = f(clamp(1 - zn * 3, 0, 1));
+    if (put(arrow, 'opacity', String(ao), 'arrow') && arrow.classList.contains('is-off') !== (ao === 0)) arrow.classList.toggle('is-off', ao === 0);
     // The fixed "Tanishq" pill only appears once the in-world header's "Tanishq" has left the screen.
     // Hidden while a section page is open: the page has its own "back to collage" button.
     var anyOpen = false;
