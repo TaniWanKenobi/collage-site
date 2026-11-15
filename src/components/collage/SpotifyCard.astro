@@ -146,17 +146,17 @@ const LOGO = 'M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .
 </style>
 
 <script>
-  // Skin from ?spot= and the Looks picker (embed is the default and sets no attribute).
+  // Skin: the embed on dark themes, the disc on light ones (data-theme-mode, set by theme.ts; it sends
+  // "theme:change" when the theme switches). ?spot=embed|green|disc|cassette still forces one, for checking.
   const SKINS = /^(green|disc|cassette)$/;
-  const skin = (v: string | null) => {
+  const forced = new URLSearchParams(location.search).get('spot');
+  const skin = (mode?: string) => {
     const root = document.documentElement;
-    if (v && SKINS.test(v)) root.dataset.spot = v; else delete root.dataset.spot;
+    const v = forced ?? ((mode ?? root.getAttribute('data-theme-mode')) === 'light' ? 'disc' : '');
+    if (SKINS.test(v)) root.dataset.spot = v; else delete root.dataset.spot;
   };
-  skin(new URLSearchParams(location.search).get('spot'));
-  window.addEventListener('looks:change', (e) => {
-    const d = (e as CustomEvent<{ key: string; value: string }>).detail;
-    if (d?.key === 'spot') skin(d.value);
-  });
+  skin();
+  window.addEventListener('theme:change', (e) => skin((e as CustomEvent<{ mode?: string }>).detail?.mode));
   // One click = the music starts. A click swaps the facade for Spotify's player through Spotify's iFrame API
   // (https://developer.spotify.com/documentation/embeds/references/iframe-api), loaded only then, and tells it to
   // play as soon as it is ready, so there is no second click on the player's own play button. If the API cannot

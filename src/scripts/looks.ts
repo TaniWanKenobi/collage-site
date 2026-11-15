@@ -13,24 +13,12 @@ type Group = { key: string; label: string; opts: [string, string][]; def: string
 
 const GROUPS: Group[] = [
   { key: 'theme', label: 'Theme', def: THEME_DEF, opts: [] }, // preset chips with swatches + a paste box (themeControl)
-  { key: 'nav', label: 'Section nav', def: 'dockline', opts: [
-    ['dots', 'dots'], ['frost', 'frost'], ['lens', 'lens'], ['drop', 'drop'], ['bubble', 'bubble'], ['water', 'water'],
-    ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
   { key: 'tx', label: 'Transition', def: '', opts: [
     ['', 'fade'], ['morph', 'morph'], ['iris', 'iris'], ['paper', 'paper'], ['dither', 'dither']] },
-  { key: 'bg', label: 'Background', def: 'ripple', opts: [
-    ['flat', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours'],
-    ['ripple', 'ripple'], ['reveal', 'reveal']] },
-  { key: 'spot', label: 'Spotify card', def: '', opts: [
-    ['', 'embed'], ['green', 'green'], ['disc', 'disc'], ['cassette', 'cassette']] },
   { key: 'music', label: 'Music', def: '', opts: [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
-  // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.
-  { key: 'whoosh', label: 'Whoosh (click a piece)', def: '', opts: [
-    ['', 'swoop'], ['swish', 'swish'], ['air', 'air'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
-  { key: 'whoosh-at', label: 'Whoosh timing', def: '200', opts: [],
-    slider: { min: 0, max: 250, step: 5, unit: 'ms', hint: '0 = the moment you press; the camera starts on release (~100 ms)' } },
-  { key: 'whoosh-vol', label: 'Whoosh volume', def: '100', opts: [], slider: { min: 0, max: 200, step: 5, unit: '%' } },
+  // Settled and no longer picked here (their URL params still work): nav = dock + thread, bg = ripple,
+  // Spotify card = embed (disc on light themes), whoosh = swoop at 200 ms / 100 %, UI sound = tick.
   { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
 ];
 
