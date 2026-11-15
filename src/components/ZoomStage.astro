@@ -15,7 +15,7 @@ const { center = 'globe' } = Astro.props;
 
       <a href={url()} id="zm-home" style="position: absolute; left: 24px; top: 18px; z-index: 30; padding: 6px 14px; border-radius: 999px; background-color: color-mix(in srgb, var(--bg) 85%, transparent); color: var(--text); font-weight: 800; font-size: 18px; line-height: 1.4; text-decoration: none">Tanishq</a>
 
-      <nav id="zm-hud" class="dotstyle dotstyle-tooltip" data-nav="dots" aria-label="Sections" style="position: absolute; right: 22px; top: 50%; transform: translateY(-50%); z-index: 30; display: flex; flex-direction: column; align-items: center">
+      <nav id="zm-hud" class="dotstyle dotstyle-tooltip" data-nav="dots" aria-label="Sections" style="position: absolute; right: calc(22px * var(--hud-k, 1)); top: 50%; transform: translateY(-50%) scale(var(--hud-k, 1)); transform-origin: right center; z-index: 30; display: flex; flex-direction: column; align-items: center">
         <span class="mono" id="hud-num" aria-hidden="true" style="font-size: 11px; color: var(--text); margin-bottom: 4px; text-shadow: 0 1px 2px color-mix(in srgb, var(--bg) 80%, transparent)">00</span>
         <ul>
           <span class="hud-bead" aria-hidden="true"></span>
@@ -50,6 +50,13 @@ const { center = 'globe' } = Astro.props;
   initZoomCamera();
   // Section-nav look, chosen with ?nav=dots|frost|lens|drop|bubble|water|dock|dockline|goo|thread|odometer while we pick one.
   const hud = document.getElementById('zm-hud');
+  // Bigger screens get a bigger nav: it scales with the collage (the camera's overview scale, min(w/1440, h/900)),
+  // never below 1 and at most 2. A transform, so the nav styles' own layout maths (offsetTop) is untouched.
+  if (hud) {
+    const fit = () => document.documentElement.style.setProperty('--hud-k', String(Math.min(2, Math.max(1, Math.min(innerWidth / 1440, innerHeight / 900))).toFixed(3)));
+    fit();
+    addEventListener('resize', fit, { passive: true });
+  }
   const navPick = new URLSearchParams(location.search).get('nav');
   if (hud && navPick && /^(dots|frost|lens|drop|bubble|water|dock|goo|thread|dockline|odometer)$/.test(navPick)) hud.dataset.nav = navPick;
   // Only Chromium draws an SVG filter as a backdrop; elsewhere "lens" falls back to frosted glass.

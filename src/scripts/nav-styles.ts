@@ -137,7 +137,7 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
   const BASE = 12, MAG = 26, K = 1400, C = 44, PRESS = 0.74;
   const st = lis.map(() => ({ x: BASE, v: 0 }));
   const pr = lis.map(() => ({ x: 1, v: 0 })); // press squash
-  let py = Infinity, top = 0, centres = centresOf(lis), pressed = -1, cur = -1, shown = false;
+  let k = 1, py = Infinity, top = 0, centres = centresOf(lis), pressed = -1, cur = -1, shown = false;
   const hovered = () => {
     if (py === Infinity) return -1;
     let best = -1, bd = Infinity;
@@ -192,13 +192,15 @@ function dock(hud: HTMLElement, ul: HTMLElement, lis: HTMLElement[], dots: HTMLE
   });
   listen(ul, 'pointerenter', () => {
     // Rest-layout centres, read once per visit (the dots' own transforms don't move offsetTop).
-    top = ul.getBoundingClientRect().top;
+    const r = ul.getBoundingClientRect();
+    top = r.top;
+    k = ul.offsetHeight ? r.height / ul.offsetHeight : 1; // the nav is scaled up on big screens (ZoomStage --hud-k)
     centres = centresOf(lis);
   });
   listen(ul, 'pointermove', (ev) => {
     const e = ev as PointerEvent;
     if (e.pointerType === 'touch') return;
-    py = e.clientY - top;
+    py = (e.clientY - top) / k;
     // Only wake the loop when a dot changes detent (or is still settling): moving within a detent costs nothing.
     if (st.some((s, i) => s.x !== target(i) || s.v !== 0)) kick();
   });
