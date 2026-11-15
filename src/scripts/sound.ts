@@ -245,14 +245,15 @@ function init() {
     }
     // [filter, from Hz, to Hz, Q, duration s, peak at (0..1 of duration), gain, pan from, pan to, back-to Hz]
     const P: Record<Whoosh, [BiquadFilterType, number, number, number, number, number, number, number, number, number?]> = {
-      air:   ['bandpass', 500, 2600, 0.9, 0.62, 0.45, 0.5, -0.5, 0.5],
-      swish: ['bandpass', 1400, 6000, 1.3, 0.32, 0.35, 0.42, -0.7, 0.7],
-      swoop: ['lowpass', 260, 1900, 1.6, 0.85, 0.5, 0.7, -0.6, 0.6, 500],
-      gust:  ['bandpass', 300, 1200, 0.6, 1.1, 0.4, 0.6, -0.3, 0.3, 700],
-      zip:   ['bandpass', 700, 7000, 5, 0.28, 0.6, 0.35, -0.8, 0.8],
+      // peaks come early (60-150 ms) so the whoosh lands with the click instead of swelling in after it
+      air:   ['bandpass', 500, 2600, 0.9, 0.55, 0.2, 0.5, -0.5, 0.5],
+      swish: ['bandpass', 1400, 6000, 1.3, 0.3, 0.2, 0.42, -0.7, 0.7],
+      swoop: ['lowpass', 260, 1900, 1.6, 0.75, 0.2, 0.7, -0.6, 0.6, 500],
+      gust:  ['bandpass', 300, 1200, 0.6, 0.95, 0.16, 0.6, -0.3, 0.3, 700],
+      zip:   ['bandpass', 700, 7000, 5, 0.26, 0.25, 0.35, -0.8, 0.8],
     };
     const [type, f0, f1, Qv, dur, pk, peak, p0, p1, fBack] = P[kind];
-    const t = c.currentTime + 0.005, tp = t + dur * pk, te = t + dur;
+    const t = c.currentTime, tp = t + dur * pk, te = t + dur;
     const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
     src.buffer = wnoise;
     src.playbackRate.value = 1 + (Math.random() * 2 - 1) * 0.05;
@@ -260,8 +261,9 @@ function init() {
     f.frequency.setValueAtTime(f0, t);
     f.frequency.exponentialRampToValueAtTime(f1, tp);
     f.frequency.exponentialRampToValueAtTime(fBack ?? f1 * 1.15, te);
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(peak, tp);
+    // a quick linear attack from an audible start (an exponential ramp from ~0 stays silent for most of its length)
+    g.gain.setValueAtTime(peak * 0.25, t);
+    g.gain.linearRampToValueAtTime(peak, tp);
     g.gain.exponentialRampToValueAtTime(0.0001, te);
     let node: AudioNode = src.connect(f).connect(g);
     if (c.createStereoPanner) {
@@ -293,6 +295,12 @@ function init() {
   }, { passive: true });
   document.addEventListener('pointerout', (e) => {
     if (hovered && !(e.relatedTarget instanceof Node && hovered.contains(e.relatedTarget))) hovered = null;
+  }, { passive: true });
+  // Wake the (sleeping) audio context as soon as the pointer is on a collage piece, so the whoosh isn't delayed by
+  // the resume on click.
+  document.addEventListener('pointerover', (e) => {
+    if (!whoosh || !ctx || ctx.state !== 'suspended' || muted || document.hidden) return;
+    if ((e.target as Element).closest?.('[data-jump]')) { ctx.resume().catch(() => {}); if (!musicFile) sleepSoon(); }
   }, { passive: true });
   // Whoosh on a click on a collage piece the camera flies into ([data-jump]).
   document.addEventListener('click', (e) => {
