@@ -157,21 +157,50 @@ const LOGO = 'M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .
     const d = (e as CustomEvent<{ key: string; value: string }>).detail;
     if (d?.key === 'spot') skin(d.value);
   });
-  // Swap the facade for the real player on click (once). stopPropagation keeps the click away from the camera.
+  // One click = the music starts. A click swaps the facade for Spotify's player through Spotify's iFrame API
+  // (https://developer.spotify.com/documentation/embeds/references/iframe-api), loaded only then, and tells it to
+  // play as soon as it is ready, so there is no second click on the player's own play button. If the API cannot
+  // load (blocked, offline), it falls back to the plain embed iframe (then the player's play button starts it).
+  // stopPropagation keeps the clicks away from the collage camera.
+  type Ctl = { play(): void; addListener(ev: string, cb: (e: unknown) => void): void };
+  type Api = { createController(el: HTMLElement, o: { uri: string; width: string; height: string }, cb: (c: Ctl) => void): void };
+  let api: Promise<Api> | null = null;
+  const loadApi = () => api ??= new Promise<Api>((res, rej) => {
+    const w = window as unknown as { onSpotifyIframeApiReady?: (a: Api) => void };
+    w.onSpotifyIframeApiReady = res;
+    const s = document.createElement('script');
+    s.src = 'https://open.spotify.com/embed/iframe-api/v1';
+    s.async = true;
+    s.onerror = rej;
+    document.head.append(s);
+    setTimeout(() => rej(new Error('timeout')), 6000);
+  });
+  const plainIframe = (card: HTMLElement, at: Element) => {
+    const f = document.createElement('iframe');
+    f.src = card.dataset.spotify!;
+    f.title = 'Spotify player';
+    f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+    f.setAttribute('allowfullscreen', '');
+    at.replaceWith(f);
+  };
   document.querySelectorAll<HTMLElement>('.spot[data-spotify]').forEach((card) => {
     const btn = card.querySelector<HTMLButtonElement>('.spot-facade');
     card.addEventListener('click', (e) => e.stopPropagation());
     card.addEventListener('pointerdown', (e) => e.stopPropagation());
     btn?.addEventListener('click', () => {
-      const f = document.createElement('iframe');
-      f.src = card.dataset.spotify!;
-      f.title = 'Spotify player';
-      f.loading = 'lazy';
-      f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-      f.setAttribute('allowfullscreen', '');
       card.classList.add('is-on');
-      btn.replaceWith(f);
-      f.focus();
+      btn.disabled = true;
+      // spotify:<kind>:<id> from the embed URL (https://open.spotify.com/embed/<kind>/<id>?...)
+      const [, kind, id] = new URL(card.dataset.spotify!).pathname.match(/\/embed\/([a-z]+)\/([^/]+)/) ?? [];
+      loadApi().then((a) => {
+        const slot = document.createElement('div');
+        btn.replaceWith(slot);
+        a.createController(slot, { uri: `spotify:${kind}:${id}`, width: '100%', height: '152' }, (c) => {
+          c.addListener('ready', () => c.play());
+          // data-playing on the card mirrors the player (handy for styling, and lets a test see playback start).
+          c.addListener('playback_update', (e) => { card.dataset.playing = String(!(e as { data?: { isPaused?: boolean } }).data?.isPaused); });
+        });
+      }).catch(() => { if (btn.isConnected) plainIframe(card, btn); });
     }, { once: true });
   });
 </script>
