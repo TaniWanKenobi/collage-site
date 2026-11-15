@@ -75,6 +75,8 @@ let lastInput = performance.now();
 // The camera counts as moving until this long after its last frame. Longer than the world's own settle delay in
 // zoom-camera.js (180 ms), so the sharp redraw at rest does not land on the same frame as the world's repaint.
 const REST_MS = 320;
+// Largest canvas width (device px) a model zooms at in flight, before its sharp redraw at rest.
+const FLY_MAX = 512;
 const cam = (): Cam | null => (window as unknown as { __zoomCam?: Cam }).__zoomCam ?? null;
 
 let renderer: WebGLRenderer | null = null;
@@ -86,20 +88,11 @@ let io: IntersectionObserver;
 const now = () => performance.now();
 const camMoving = () => now() - camAt < REST_MS;
 // Every camera frame: note the time, and schedule one tick just after the camera comes to rest.
-// The scroll smoothing eases out with a long, nearly invisible tail (a fraction of a pixel per frame). A frame
-// that moves less than CREEP counts as rest, so the sharp redraw lands as the motion visibly stops, not 320 ms
-// after the tail ends. Any later frame that moves more than CREEP makes the camera "moving" again.
-// Once at rest, a frame must move HYST times more than that to count as moving again, so the tail's last
-// uneven frames cannot flip a model from sharp back to half resolution.
-const CREEP_ZOOM = 0.0015, CREEP_PX = 0.75, HYST = 4;
-let lastCam: Cam | null = null;
+// The camera marks the frame where it stops for good (still: the end of a flight, or the scroll smoothing's final
+// snap). Then the sharp redraw runs at once instead of REST_MS later. Nothing heavy is drawn while the camera still
+// moves, and the world's own repaint (180 ms after its last frame) lands on a different frame.
 function onCam() {
-  const c = cam(), p = lastCam;
-  lastCam = c ? { ...c } : null;
-  const m = camMoving() ? 1 : HYST;
-  const crept = !!c?.still || !!c && !!p && Math.abs(Math.log(c.s / p.s)) < CREEP_ZOOM * m && Math.hypot(c.cx - p.cx, c.cy - p.cy) * c.s < CREEP_PX * m;
-  if (crept) {
-    // Motion has visibly stopped: end the "moving" state now (once) and draw sharp on the next frame.
+  if (cam()?.still) {
     if (camMoving()) { camAt = now() - REST_MS; clearTimeout(restTimer); kick(); }
     return;
   }
@@ -306,8 +299,9 @@ function tick() {
     // stretching its take-off pixels up to full screen, and never resizes it every frame.
     const fly = moving && s.drawn > 0;
     if (fly) {
-      const fw = Math.max(64, Math.round(cw * k / 2));
-      if (!s.flyW || fw > s.flyW * 1.4 || fw < s.flyW / 2) { s.flyW = fw; s.flyH = Math.max(64, Math.round(ch * k / 2)); }
+      const fw = Math.min(FLY_MAX, Math.max(64, Math.round(cw * k / 2)));
+      // Capped at FLY_MAX px wide, so the pixels drawn per frame in flight stay bounded on any machine.
+      if (!s.flyW || (fw > s.flyW * 1.4 && s.flyW < FLY_MAX) || fw < s.flyW / 2) { s.flyW = fw; s.flyH = Math.max(1, Math.round(fw * ch / cw)); }
     } else s.flyW = s.flyH = 0;
     const w = fly ? s.flyW! : Math.round(cw * k);
     const h = fly ? s.flyH! : Math.round(ch * k);
