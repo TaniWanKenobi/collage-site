@@ -96,6 +96,25 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 @keyframes zm-arrow-bounce { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(4px); } }
 @media (prefers-reduced-motion: no-preference) { #zm-arrow svg { animation: zm-arrow-bounce 1.6s cubic-bezier(.45, 0, .55, 1) infinite; } }
 
+/* Bio line (bottom-left of the overview) and its "who I am" card. The card is a paper note like .places-card; it opens
+   upward on hover / focus / tap (.is-open; .is-shut = closed by Escape or a second tap). Opacity + a small lift; with
+   reduced motion only the opacity changes. The ::after bridges the gap so moving onto the card keeps it open. */
+.bio { z-index: 4; }
+.bio:hover, .bio:focus-within, .bio.is-open { z-index: 24; }
+.bio-line { display: inline; margin: 0; font-size: inherit; font-weight: 400; line-height: inherit; }
+.bio-tail { white-space: nowrap; }
+.bio-more { display: inline-grid; place-items: center; width: 28px; height: 28px; margin: -4px 0 0 4px; padding: 0; vertical-align: middle; border: 0; border-radius: 50%; background: none; color: var(--accent); cursor: help; transition: color .2s, background-color .2s; }
+.bio-more:hover, .bio-more:focus-visible, .bio.is-open .bio-more { color: var(--on-accent); background-color: var(--accent); }
+.bio-card { position: absolute; left: -6px; bottom: calc(100% + 18px); box-sizing: border-box; width: 400px; padding: 22px 22px 6px; background: var(--paper); color: var(--ink); font-family: var(--font-display); font-size: 16px; line-height: 1.5; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); transform: rotate(-1.2deg); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s; }
+.bio-card::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 22px; }
+.bio-card p { margin: 0 0 14px; }
+.bio-label { left: 18px; top: -12px; font-size: 11px; transform: rotate(-2deg); }
+.bio:is(:hover, :focus-within, .is-open):not(.is-shut) .bio-card { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .2s ease, transform .2s ease; }
+@media (prefers-reduced-motion: no-preference) {
+  .bio-card { transform: translateY(8px) rotate(-1.2deg); }
+  .bio:is(:hover, :focus-within, .is-open):not(.is-shut) .bio-card { transform: translateY(0) rotate(-1.2deg); }
+}
+
 /* Section pages */
 .zs { box-sizing: border-box; width: 100%; min-height: 100%; padding: clamp(24px, 4.4vw, 64px); background-color: var(--bg-2); color: var(--text); font-family: var(--font-display); font-size: 16px; line-height: 1.5; display: flex; flex-direction: column; gap: 28px; }
 .zs a { color: var(--accent-ink); } .zs a:hover { color: var(--text); }

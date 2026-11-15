@@ -1,5 +1,9 @@
 {
   "launch": false,
+  "bioLong": [
+    "I'm Tanishq, a junior at Bayonne High School in Bayonne, NJ. I build small apps, automation scripts, and the occasional piece of hardware.",
+    "Most of my time right now goes into Holos, a personal health app that pulls in data from wearables. Before that I mostly built tools for myself, like a screen-time tracker, a Slack reminder bot, and a script that summarizes the morning announcements. A lot of it started with Hack Club."
+  ],
   "spotify": "https://open.spotify.com/playlist/31aVRI8BFshgiTKiSqaA4p?si=6068ca137f9f4154",
   "_comment": "Set launch to true when the site is finished. From then on, `npm run build` (and the GitHub deploy) fails if any placeholder is left. Run `npm run check:placeholders` to see the list."
 }

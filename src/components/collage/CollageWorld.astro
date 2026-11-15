@@ -16,6 +16,7 @@ import Stamp from './Stamp.astro';
 import SpotifyCard from './SpotifyCard.astro';
 import Model3D from '../Model3D.astro';
 import { url } from '../../lib/sections';
+import site from '../../data/site.json';
 interface Props { mode: 'desk' | 'phone'; center?: 'globe' | 'printer' }
 const { mode, center = 'globe' } = Astro.props;
 const printer = center === 'printer';
@@ -38,7 +39,15 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <Tagline mode={mode} />
 {desk && (
   <>
-    <h1 style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); z-index: 4; margin: 0; max-width: 30ch; font-size: 19px; font-weight: 400; line-height: 1.4; color: var(--text)">11th grade in Bayonne, NJ. I build apps, tools, and small hardware projects.</h1>
+    <!-- The bio line, with a "more" icon (lucide "info", drawn inline like the repo's other icons): hover, focus or tap
+         opens a paper card with the longer bio (text in src/data/site.json "bioLong"). The card opens upward. -->
+    <div id="zm-bio" class="bio" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(36px - var(--ey, 0px)); max-width: 31ch; font-size: 19px; line-height: 1.4; color: var(--text)">
+      <h1 class="bio-line">11th grade in Bayonne, NJ. I build apps, tools, and small hardware&nbsp;<span class="bio-tail">projects.<button type="button" class="bio-more" aria-expanded="false" aria-controls="zm-bio-card" aria-label="More about me"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg></button></span></h1>
+      <div id="zm-bio-card" class="bio-card">
+        <span class="label-tape mono bio-label" aria-hidden="true">WHO I AM</span>
+        {site.bioLong.map((p) => <p>{p}</p>)}
+      </div>
+    </div>
     <p id="zm-hint" class="mono" style="position: absolute; left: calc(43px - var(--ex, 0px)); bottom: calc(114px - var(--ey, 0px)); z-index: 4; margin: 0; font-size: 14px; color: var(--accent-ink)">scroll to zoom in ↓</p>
   </>
 )}
@@ -53,3 +62,28 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 {!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 286px; top: 270px; width: 240px; height: 280px; z-index: 6" />}
 <Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" morph="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1090px + var(--ex, 0px) * 0.6); top: 492px; width: 284px; height: 272px; z-index: 6" />
 <TamaScreen mode={mode} />
+
+<script>
+  // Bio card: CSS opens it on hover / focus; this adds tap-to-toggle (touch), Escape to close, aria-expanded, and keeps
+  // clicks on it from reaching the zoom camera. Event-driven only (no rAF).
+  const bio = document.getElementById('zm-bio');
+  const more = bio?.querySelector<HTMLButtonElement>('.bio-more');
+  if (bio && more) {
+    const sync = () => more.setAttribute('aria-expanded', String(!bio.classList.contains('is-shut') && (bio.classList.contains('is-open') || bio.matches(':hover, :focus-within'))));
+    bio.addEventListener('click', (e) => e.stopPropagation());
+    more.addEventListener('click', () => {
+      const open = !(bio.classList.contains('is-open') && !bio.classList.contains('is-shut'));
+      bio.classList.toggle('is-open', open);
+      bio.classList.remove('is-shut');
+      if (!open) { bio.classList.add('is-shut'); more.blur(); }
+      sync();
+    });
+    // Leaving (mouse or focus; not a touch, whose :hover sticks) clears a previous Escape / tap-close, so the next hover opens it again.
+    bio.addEventListener('pointerenter', sync);
+    bio.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch' && !bio.matches(':focus-within')) bio.classList.remove('is-shut'); sync(); });
+    bio.addEventListener('focusin', sync);
+    bio.addEventListener('focusout', () => setTimeout(() => { if (!bio.matches(':focus-within')) { bio.classList.remove('is-shut'); bio.classList.remove('is-open'); } sync(); }));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && more.getAttribute('aria-expanded') === 'true') { bio.classList.remove('is-open'); bio.classList.add('is-shut'); sync(); } });
+    document.addEventListener('click', () => { if (bio.classList.contains('is-open')) { bio.classList.remove('is-open'); sync(); } });
+  }
+</script>
