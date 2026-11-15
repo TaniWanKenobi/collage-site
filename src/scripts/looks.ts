@@ -21,6 +21,8 @@ const GROUPS: Group[] = [
   { key: 'bg', label: 'Background', def: 'ripple', opts: [
     ['flat', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours'],
     ['ripple', 'ripple'], ['reveal', 'reveal']] },
+  { key: 'spot', label: 'Spotify card', def: '', opts: [
+    ['', 'embed'], ['green', 'green'], ['disc', 'disc'], ['cassette', 'cassette']] },
   { key: 'music', label: 'Music', def: '', opts: [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
   // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.

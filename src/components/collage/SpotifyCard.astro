@@ -2,8 +2,13 @@
 // Decoration with a job: a taped-on Spotify card. Spotify's embed iframe is heavy (~1 MB of script), so this is a
 // click-to-load facade: the card is a button, and only a click swaps in the real player (compact, 152px tall).
 // It is not a zoom target (no data-jump), and its clicks never reach the collage camera (stopPropagation below).
+// Skins (Looks picker "Spotify card", ?spot=): embed (Spotify's own compact embed, the default), green (after the
+// 21st.dev "Spotify Card"), disc (after the 21st.dev "Music Player Widget"), cassette (the collage's own cassette
+// sticker becomes the player: the card moves to the cassette's spot and the plain sticker hides). One markup; the
+// CSS per skin picks which parts show.
 // Desktop collage only: on the phone collage (scaled to ~27%) a player would be too small to use.
 import site from '../../data/site.json';
+import cassette from '../../assets/collage/cassette.webp';
 
 // TODO(owner): put your Spotify share link in src/data/site.json "spotify" (a playlist, album, track, artist,
 // episode or show link from Share > Copy link). Empty = no card. The placeholder below marks the card data-ph,
@@ -24,24 +29,33 @@ if (m && !placeholder) {
   } catch { /* build offline: generic card */ }
 }
 const sub = { playlist: 'Playlist', album: 'Album', track: 'Song', artist: 'Artist', episode: 'Episode', show: 'Podcast' }[kind] ?? 'Spotify';
+const LOGO = 'M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .25c-2.86-1.75-6.46-2.14-10.7-1.17a.75.75 0 1 1-.33-1.46c4.64-1.06 8.62-.6 11.8 1.35.36.22.47.68.25 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.27-2.01-8.26-2.6-12.13-1.42a.94.94 0 1 1-.55-1.8c4.42-1.34 9.92-.69 13.66 1.62.44.27.58.85.31 1.29zm.13-3.4C15.18 8.3 8.75 8.08 5.03 9.21a1.13 1.13 0 1 1-.65-2.16c4.27-1.3 11.37-1.05 15.85 1.61a1.13 1.13 0 0 1-1.15 1.95z';
 ---
 {embed && (
   <div class="spot" data-edit-name="spotify" data-spotify={embed} data-ph={placeholder ? '' : undefined}>
-    <span aria-hidden="true" class="tape t-clear" style="top: -13px; left: 50%; width: 84px; margin-left: -42px; transform: rotate(-4deg)"></span>
-    <!-- Facade drawn like Spotify's own compact embed (cover, title, logo, green play button), so the swap to the
-         real player on click looks like the same widget waking up. -->
+    <span aria-hidden="true" class="tape t-clear spot-tape" style="top: -13px; left: 50%; width: 84px; margin-left: -42px; transform: rotate(-4deg)"></span>
     <button type="button" class="spot-facade" aria-label={`Play ${title} on Spotify`}>
+      <img class="spot-tapeart" src={cassette.src} alt="" width="240" height="169" draggable="false" aria-hidden="true" />
+      <span class="spot-head" aria-hidden="true">
+        <span class="spot-app"><svg viewBox="0 0 24 24" width="18" height="18" focusable="false"><path fill="currentColor" d={LOGO} /></svg></span>
+        <span class="spot-appname">Spotify</span>
+        <span class="spot-chev"><svg viewBox="0 0 24 24" width="12" height="12" focusable="false"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg></span>
+      </span>
       <span class="spot-cover" aria-hidden="true">
-        {cover ? <img src={cover} alt="" width="92" height="92" loading="lazy" decoding="async" /> :
+        {cover ? <img src={cover} alt="" width="120" height="120" loading="lazy" decoding="async" /> :
           <svg viewBox="0 0 24 24" width="40" height="40" focusable="false"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="6.5" cy="18" r="2.5" fill="currentColor" /><circle cx="17.5" cy="16" r="2.5" fill="currentColor" /></svg>}
       </span>
       <span class="spot-body">
-        <svg class="spot-logo" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .25c-2.86-1.75-6.46-2.14-10.7-1.17a.75.75 0 1 1-.33-1.46c4.64-1.06 8.62-.6 11.8 1.35.36.22.47.68.25 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.27-2.01-8.26-2.6-12.13-1.42a.94.94 0 1 1-.55-1.8c4.42-1.34 9.92-.69 13.66 1.62.44.27.58.85.31 1.29zm.13-3.4C15.18 8.3 8.75 8.08 5.03 9.21a1.13 1.13 0 1 1-.65-2.16c4.27-1.3 11.37-1.05 15.85 1.61a1.13 1.13 0 0 1-1.15 1.95z" /></svg>
+        <svg class="spot-logo" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d={LOGO} /></svg>
+        <span class="spot-kick">{sub}</span>
         <span class="spot-title">{title}</span>
         <span class="spot-sub">{sub}</span>
-        <span class="spot-row">
+        <span class="spot-bar" aria-hidden="true"></span>
+        <span class="spot-row" aria-hidden="true">
           <span class="spot-badge">Preview</span>
-          <span class="spot-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" focusable="false"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></svg></span>
+          <span class="spot-prev"><svg viewBox="0 0 24 24" width="14" height="14" focusable="false"><path d="M7 6v12M18 6l-8 6 8 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></svg></span>
+          <span class="spot-play"><svg viewBox="0 0 24 24" width="16" height="16" focusable="false"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></svg></span>
+          <span class="spot-next"><svg viewBox="0 0 24 24" width="14" height="14" focusable="false"><path d="M17 6v12M6 6l8 6-8 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" /></svg></span>
         </span>
       </span>
     </button>
@@ -49,31 +63,98 @@ const sub = { playlist: 'Playlist', album: 'Album', track: 'Song', artist: 'Arti
 )}
 
 <style>
+  /* Base box (all skins). The skin rules below decide which parts show and how they sit. */
   .spot { position: absolute; left: calc(814px + var(--ex, 0px) * 0.3); top: 94px; z-index: 7; width: 226px; height: 152px; transform: rotate(-3deg); }
-  /* Spotify's compact embed: 12px radius, dark tinted panel, square cover with a small radius, white bold title,
-     muted subtitle, logo top right, white/green round play button bottom right. Fixed colours (not the theme): it
-     should read as the Spotify widget it turns into. */
-  .spot-facade { all: unset; box-sizing: border-box; display: flex; gap: 10px; width: 100%; height: 100%; padding: 14px; border-radius: 12px; cursor: pointer; background: #282828; color: #fff; font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); }
+  .spot-facade { all: unset; box-sizing: border-box; position: relative; display: flex; width: 100%; height: 100%; cursor: pointer; font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif; }
   .spot-facade:focus-visible { outline: 3px solid #1ed760; outline-offset: 4px; }
-  .spot-cover { flex: none; display: grid; place-items: center; align-self: center; width: 92px; height: 92px; border-radius: 6px; overflow: hidden; background: #3e3e3e; color: #b3b3b3; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+  .spot-tapeart, .spot-head, .spot-kick, .spot-bar, .spot-prev, .spot-next { display: none; }
+  .spot-cover { flex: none; display: grid; place-items: center; overflow: hidden; background: #3e3e3e; color: #b3b3b3; }
   .spot-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .spot-body { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; padding-top: 2px; }
-  .spot-logo { position: absolute; top: 0; right: 0; color: #fff; }
-  .spot-title { padding-right: 22px; font-weight: 700; font-size: 14px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-  .spot-sub { margin-top: 4px; font-size: 12px; color: #b3b3b3; }
-  .spot-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
-  .spot-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,.45); color: #fff; }
-  .spot-play { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #000; }
+  .spot-body { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .spot-title { font-weight: 700; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; }
+  .spot-play { display: grid; place-items: center; border-radius: 50%; }
   .spot-play svg { margin-left: 2px; }
-  .spot-facade:hover .spot-play { background: #1ed760; scale: 1.06; }
   .spot :global(iframe) { display: block; width: 100%; height: 152px; border: 0; border-radius: 12px; }
+
+  /* embed (default): Spotify's own compact embed. 12px radius, dark panel, cover left, logo top right, play bottom right. */
+  :global(html:not([data-spot])) .spot-facade { gap: 10px; padding: 14px; border-radius: 12px; background: #282828; color: #fff; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); }
+  :global(html:not([data-spot])) .spot-cover { align-self: center; width: 92px; height: 92px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+  :global(html:not([data-spot])) .spot-logo { position: absolute; top: 0; right: 0; color: #fff; }
+  :global(html:not([data-spot])) .spot-title { padding: 2px 22px 0 0; font-size: 14px; line-height: 1.2; -webkit-line-clamp: 3; }
+  :global(html:not([data-spot])) .spot-sub { margin-top: 4px; font-size: 12px; color: #b3b3b3; }
+  :global(html:not([data-spot])) .spot-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  :global(html:not([data-spot])) .spot-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,.45); }
+  :global(html:not([data-spot])) .spot-play { width: 32px; height: 32px; background: #fff; color: #000; }
+
+  /* green: after the 21st.dev "Spotify Card" (jatin-yadav05). Deep green panel, app-icon header, black control strip. */
+  :global(html[data-spot="green"]) .spot { height: 186px; }
+  :global(html[data-spot="green"]) .spot-facade { flex-wrap: wrap; align-content: flex-start; column-gap: 10px; padding: 12px; border-radius: 14px; color: #fff; overflow: hidden; background: linear-gradient(180deg, #0b4a22, #06331a 66%, #000 66%); border: 1px solid rgba(30,215,96,.25); box-shadow: 0 14px 34px rgba(0,0,0,.45), 0 0 24px rgba(30,215,96,.18); }
+  :global(html[data-spot="green"]) .spot-head { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 10px; }
+  :global(html[data-spot="green"]) .spot-app { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: #000; color: #1ed760; }
+  :global(html[data-spot="green"]) .spot-appname { font-weight: 700; font-size: 14px; }
+  :global(html[data-spot="green"]) .spot-chev { margin-left: auto; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(0,0,0,.3); color: #ccc; }
+  :global(html[data-spot="green"]) .spot-cover { width: 64px; height: 64px; border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+  :global(html[data-spot="green"]) .spot-body { position: static; justify-content: center; min-height: 64px; }
+  :global(html[data-spot="green"]) .spot-logo, :global(html[data-spot="green"]) .spot-badge { display: none; }
+  :global(html[data-spot="green"]) .spot-title { font-size: 13px; line-height: 1.2; -webkit-line-clamp: 2; }
+  :global(html[data-spot="green"]) .spot-sub { margin-top: 2px; font-size: 11px; color: #a7a7a7; }
+  :global(html[data-spot="green"]) .spot-bar { display: block; position: absolute; left: 12px; right: 12px; top: 136px; height: 3px; border-radius: 2px; background: #2a2a2a; }
+  :global(html[data-spot="green"]) .spot-row { position: absolute; left: 12px; right: 12px; bottom: 9px; display: flex; align-items: center; gap: 14px; color: #ddd; }
+  :global(html[data-spot="green"]) .spot-prev, :global(html[data-spot="green"]) .spot-next { display: grid; }
+  :global(html[data-spot="green"]) .spot-prev { order: -1; }
+  :global(html[data-spot="green"]) .spot-play { width: 28px; height: 28px; background: #fff; color: #000; }
+
+  /* disc: after the 21st.dev "Music Player Widget" (smammar). Light card, cover as a half disc, centred type, black play. */
+  :global(html[data-spot="disc"]) .spot { height: 200px; }
+  :global(html[data-spot="disc"]) .spot-facade { flex-direction: column; align-items: center; padding: 0 14px 12px; border-radius: 18px; background: #fbfbf9; color: #111; border: 1px solid #e6e6e2; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 45%, transparent); overflow: hidden; }
+  :global(html[data-spot="disc"]) .spot-cover { position: relative; width: 150px; height: 150px; margin-top: -75px; border-radius: 50%; }
+  :global(html[data-spot="disc"]) .spot-cover::after { content: ''; position: absolute; left: 50%; top: 50%; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; background: rgba(255,255,255,.55); box-shadow: 0 0 0 1px rgba(0,0,0,.08); }
+  :global(html[data-spot="disc"]) .spot-body { flex: 1; width: 100%; align-items: center; text-align: center; padding-top: 8px; }
+  :global(html[data-spot="disc"]) .spot-logo, :global(html[data-spot="disc"]) .spot-sub, :global(html[data-spot="disc"]) .spot-badge { display: none; }
+  :global(html[data-spot="disc"]) .spot-kick { display: block; font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: #777; }
+  :global(html[data-spot="disc"]) .spot-title { margin-top: 3px; max-width: 100%; font-size: 15px; font-weight: 600; line-height: 1.15; -webkit-line-clamp: 1; }
+  :global(html[data-spot="disc"]) .spot-bar { display: block; width: 100%; height: 2px; margin-top: 8px; background: #e4e4e0; }
+  :global(html[data-spot="disc"]) .spot-row { margin-top: auto; display: flex; align-items: center; gap: 22px; color: #666; }
+  :global(html[data-spot="disc"]) .spot-prev, :global(html[data-spot="disc"]) .spot-next { display: grid; }
+  :global(html[data-spot="disc"]) .spot-prev { order: -1; }
+  :global(html[data-spot="disc"]) .spot-play { width: 38px; height: 38px; background: #000; color: #fff; }
+
+  /* cassette: the collage's own cassette sticker plays the playlist. The card takes the cassette's place (the plain
+     sticker hides), a paper label on the tape shows the title, and a small green play disc sits on the label. */
+  :global(html[data-spot="cassette"] [data-edit-name="cassette"]) { display: none; }
+  :global(html[data-spot="cassette"]) .spot { left: calc(64px - var(--ex, 0px) * 0.6); top: 590px; width: 210px; height: 148px; transform: rotate(11deg); }
+  :global(html[data-spot="cassette"]) .spot.is-on { width: 226px; height: 152px; transform: rotate(4deg); }
+  :global(html[data-spot="cassette"]) .spot-tape { display: none; }
+  :global(html[data-spot="cassette"]) .spot-tapeart { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--shadow) 60%, transparent)); }
+  :global(html[data-spot="cassette"]) .spot-cover, :global(html[data-spot="cassette"]) .spot-logo, :global(html[data-spot="cassette"]) .spot-sub, :global(html[data-spot="cassette"]) .spot-badge { display: none; }
+  :global(html[data-spot="cassette"]) .spot-body { position: absolute; left: 13%; right: 13%; top: 14%; height: 22%; padding: 0 8px; justify-content: center; border-radius: 3px; background: #f4ecd8; color: #1b1b1b; box-shadow: 0 1px 0 rgba(0,0,0,.25); transform: rotate(-1deg); }
+  :global(html[data-spot="cassette"]) .spot-title { padding-right: 26px; font-family: 'Caveat', 'Segoe Print', 'Comic Sans MS', cursive; font-size: 12.5px; line-height: 1; -webkit-line-clamp: 2; }
+  :global(html[data-spot="cassette"]) .spot-row { position: absolute; right: 4px; top: 50%; translate: 0 -50%; }
+  :global(html[data-spot="cassette"]) .spot-play { width: 22px; height: 22px; background: #1ed760; color: #000; }
+  :global(html[data-spot="cassette"]) .spot-play svg { width: 11px; height: 11px; }
+  .spot.is-on { height: 152px; }
+
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .spot-facade { transition: translate .25s ease; } .spot-play { transition: background .15s ease, scale .15s ease; }
+    .spot-facade { transition: translate .25s ease; }
+    .spot-play { transition: background .15s ease, scale .15s ease; }
     .spot-facade:hover { translate: 0 -3px; }
+    .spot-facade:hover .spot-play { scale: 1.08; }
+    :global(html:not([data-spot])) .spot-facade:hover .spot-play { background: #1ed760; }
   }
 </style>
 
 <script>
+  // Skin from ?spot= and the Looks picker (embed is the default and sets no attribute).
+  const SKINS = /^(green|disc|cassette)$/;
+  const skin = (v: string | null) => {
+    const root = document.documentElement;
+    if (v && SKINS.test(v)) root.dataset.spot = v; else delete root.dataset.spot;
+  };
+  skin(new URLSearchParams(location.search).get('spot'));
+  window.addEventListener('looks:change', (e) => {
+    const d = (e as CustomEvent<{ key: string; value: string }>).detail;
+    if (d?.key === 'spot') skin(d.value);
+  });
   // Swap the facade for the real player on click (once). stopPropagation keeps the click away from the camera.
   document.querySelectorAll<HTMLElement>('.spot[data-spotify]').forEach((card) => {
     const btn = card.querySelector<HTMLButtonElement>('.spot-facade');
@@ -86,6 +167,7 @@ const sub = { playlist: 'Playlist', album: 'Album', track: 'Song', artist: 'Arti
       f.loading = 'lazy';
       f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
       f.setAttribute('allowfullscreen', '');
+      card.classList.add('is-on');
       btn.replaceWith(f);
       f.focus();
     }, { once: true });
