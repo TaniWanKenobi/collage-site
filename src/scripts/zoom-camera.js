@@ -169,10 +169,9 @@ export function initZoomCamera() {
     TX.frame(c.ops, pageQuad, vw, stageH);
     var zn = zoomness(c);
     put(hint, 'opacity', String(f(1 - zn)), 'hint');
-    // The scroll arrow fades three times as fast (it only invites the first scroll), then hides (its bounce stops).
-    var ao = f(clamp(1 - zn * 3, 0, 1));
-    if (put(arrow, 'opacity', String(ao), 'arrow') && arrow.classList.contains('is-off') !== (ao === 0)) arrow.classList.toggle('is-off', ao === 0);
-    if (auto && auto.state === 'play') atOverview(c);
+    // The tour button never hides: ▼ at the start overview, otherwise ❚❚ (touring) or ▶ (paused, or scrolled in by
+    // hand: ▶ starts the tour from here). atOverview swaps between ▼ and ▶ as the camera leaves / returns.
+    if (auto) atOverview(c);
     // The fixed "Tanishq" pill only appears once the in-world header's "Tanishq" has left the screen.
     // Hidden while a section page is open: the page has its own "back to collage" button.
     var anyOpen = false;
@@ -442,7 +441,10 @@ export function initZoomCamera() {
   // Called from applyCam: paused and back at the start overview (zoom ~0, first segment) = the idle ▼. Not at the
   // end of the page, which is also zoomed out: there it stays ▶, and ▶ restarts the tour from the overview.
   function atOverview(c) {
-    if (auto.state === 'play' && !auto.on && c.i === 0 && zoomness(c) < 0.02) autoUi('down');
+    if (auto.on) return;
+    var home = c.i === 0 && zoomness(c) < 0.1;
+    if (auto.state === 'play' && home) autoUi('down');
+    else if (auto.state === 'down' && !(c.i === 0 && zoomness(c) < 0.15)) autoUi('play'); // a little hysteresis: no flicker at the edge
   }
   if (arrow) arrow.addEventListener('click', function (e) { e.stopPropagation(); if (auto.on) autoStop(); else autoStart(); });
 
