@@ -350,11 +350,14 @@ export function initZoomCamera() {
     var y = window.pageYOffset, max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     if (auto.y === null) auto.y = y;
     else if (Math.abs(y - auto.y) > 3) { autoStop(); return; }
-    var span = stageH * 1.6, p0 = (auto.y - trackTop) / span;
-    auto.y = Math.min(max, auto.y + (span / AUTO_SECS) * dt);
-    // Crossing a section's hold point (P = k + 0.5, its page fully open): stop exactly there and hold (autoHold).
-    var k = Math.floor(p0 - 0.5 + 1e-4) + 1;
-    var holdY = topForP(k + 0.5), hold = k >= 0 && k < ORDER.length && holdY <= auto.y;
+    var prevY = auto.y;
+    auto.y = Math.min(max, auto.y + (stageH * 1.6 / AUTO_SECS) * dt);
+    // Crossing a section's hold point (P = k + 0.5, its page fully open) this frame: stop exactly there and hold.
+    var k = -1, hold = false, holdY = 0;
+    for (var j = 0; j < ORDER.length && !hold; j++) {
+      holdY = topForP(j + 0.5);
+      if (prevY < holdY - 0.5 && holdY <= auto.y + 0.5) { hold = true; k = j; }
+    }
     if (hold) auto.y = holdY;
     try { window.scrollTo({ top: auto.y, left: 0, behavior: 'instant' }); } catch (err) { window.scrollTo(0, auto.y); }
     if (hold) { auto.y = window.pageYOffset; autoHold(ORDER[k]); return; }
@@ -363,27 +366,33 @@ export function initZoomCamera() {
     if (auto.y >= max - 0.5) { autoStop(); return; }
     auto.raf = requestAnimationFrame(autoFrame);
   }
-  // Hold on a section's page: let the camera settle (HOLD_IN), scroll the page itself down a little over HOLD_SCROLL
-  // (a peek at its content; a rAF loop only during that), wait HOLD_MS, then carry on to the next section. Timers
-  // only, no loop while waiting. autoStop clears all of it.
-  var HOLD_IN = 600, HOLD_SCROLL = 1400, HOLD_MS = 3000;
+  // Hold on a section's page: wait until the page is really open (.is-held: its own scroll only works then; polled
+  // with timers, up to HOLD_WAIT), pause HOLD_IN, scroll the page through ALL its content at READ_PX per second
+  // (eased; a rAF loop only during that), pause HOLD_END at the bottom, then carry on to the next section.
+  // A page with nothing to scroll just shows for HOLD_MS. No loop while waiting. autoStop clears all of it.
+  var HOLD_IN = 700, HOLD_END = 1500, HOLD_MS = 3000, HOLD_WAIT = 2500, READ_PX = 260;
   function autoHold(key) {
-    var pg = pages[key];
-    auto.timer = setTimeout(function () {
-      var from = pg ? pg.scrollTop : 0, room = pg ? pg.scrollHeight - pg.clientHeight : 0;
-      var by = Math.min(room, Math.round(stageH * 0.4)), t0 = 0;
-      var done = function () { auto.timer = setTimeout(autoResume, HOLD_MS); };
-      if (by < 24 || reduce()) { if (by >= 24) pg.scrollTop = from + by; done(); return; }
+    var pg = pages[key], waited = 0;
+    var ready = function () {
+      if (!auto.on) return;
+      if (pg && !pg.classList.contains('is-held') && waited < HOLD_WAIT) { waited += 100; auto.timer = setTimeout(ready, 100); return; }
+      auto.timer = setTimeout(scroll, HOLD_IN);
+    };
+    var scroll = function () {
+      var from = pg ? pg.scrollTop : 0, by = pg ? pg.scrollHeight - pg.clientHeight - from : 0, t0 = 0;
+      if (by < 24) { auto.timer = setTimeout(autoResume, HOLD_MS); return; }
+      var dur = Math.max(1200, by / READ_PX * 1000);
       var step = function (ts) {
         auto.raf = 0;
         if (!auto.on) return;
         if (!t0) t0 = ts;
-        var t = clamp((ts - t0) / HOLD_SCROLL, 0, 1);
+        var t = clamp((ts - t0) / dur, 0, 1);
         pg.scrollTop = from + by * (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
-        if (t < 1) auto.raf = requestAnimationFrame(step); else done();
+        if (t < 1) auto.raf = requestAnimationFrame(step); else auto.timer = setTimeout(autoResume, HOLD_END);
       };
       auto.raf = requestAnimationFrame(step);
-    }, HOLD_IN);
+    };
+    ready();
   }
   function autoResume() {
     auto.timer = 0;
