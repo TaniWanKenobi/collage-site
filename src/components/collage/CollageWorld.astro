@@ -13,6 +13,7 @@ import Cassette from './Cassette.astro';
 import MapScrap from './MapScrap.astro';
 import StickyNote from './StickyNote.astro';
 import Stamp from './Stamp.astro';
+import SpotifyCard from './SpotifyCard.astro';
 import Model3D from '../Model3D.astro';
 import { url } from '../../lib/sections';
 interface Props { mode: 'desk' | 'phone'; center?: 'globe' | 'printer' }
@@ -48,6 +49,7 @@ const NAV = [['projects', 'Work'], ['writing', 'Blog'], ['photos', 'Photos'], ['
 <MapScrap mode={mode} />
 <StickyNote mode={mode} at={printer ? [400, 410] : undefined} />
 <Stamp mode={mode} />
+{desk && <SpotifyCard />}
 {!printer && <Model3D id="ice3dp" kind={desk ? 'world' : 'poster'} fly="projects" poster="models/ice3dp-collage.webp" fill={1.1} elev={18} style="left: 286px; top: 270px; width: 240px; height: 280px; z-index: 6" />}
 <Model3D id="tamagotchi" kind={desk ? 'world' : 'poster'} fly="projects" morph="projects" upright spin={false} toy poster="models/tamagotchi-front.webp" elev={8} azim={-18} fill={1.15} style="left: calc(1090px + var(--ex, 0px) * 0.6); top: 492px; width: 284px; height: 272px; z-index: 6" />
 <TamaScreen mode={mode} />

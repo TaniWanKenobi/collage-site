@@ -1,0 +1,66 @@
+---
+// Decoration with a job: a taped-on Spotify card. Spotify's embed iframe is heavy (~1 MB of script), so this is a
+// click-to-load facade: the card is a button, and only a click swaps in the real player (compact, 152px tall).
+// It is not a zoom target (no data-jump), and its clicks never reach the collage camera (stopPropagation below).
+// Desktop collage only: on the phone collage (scaled to ~27%) a player would be too small to use.
+import site from '../../data/site.json';
+
+// TODO(owner): put your Spotify share link in src/data/site.json "spotify" (a playlist, album, track, artist,
+// episode or show link from Share > Copy link). Empty = no card. The placeholder below marks the card data-ph,
+// so the launch build (npm run check:placeholders) flags it until it is replaced.
+const link = ((site as { spotify?: string }).spotify ?? '').trim();
+const placeholder = /PASTE/i.test(link);
+// A normal share link (https://open.spotify.com/intl-de/playlist/<id>?si=...) -> https://open.spotify.com/embed/playlist/<id>
+const m = link.match(/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?(playlist|album|track|artist|episode|show)\/([A-Za-z0-9_-]+)/i);
+const embed = m ? `https://open.spotify.com/embed/${m[1].toLowerCase()}/${m[2]}?utm_source=generator` : '';
+const kind = m ? m[1].toLowerCase() : '';
+---
+{embed && (
+  <div class="spot" data-edit-name="spotify" data-spotify={embed} data-ph={placeholder ? '' : undefined}>
+    <span aria-hidden="true" class="tape t-clear" style="top: -13px; left: 50%; width: 84px; margin-left: -42px; transform: rotate(-4deg)"></span>
+    <button type="button" class="spot-facade" aria-label={`Load the Spotify player (my ${kind})`}>
+      <span class="spot-disc" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></svg></span>
+      <span class="spot-text">
+        <span class="mono spot-kicker">on repeat</span>
+        <span class="spot-title">what I'm listening to</span>
+        <span class="mono spot-src">Spotify · play</span>
+      </span>
+    </button>
+  </div>
+)}
+
+<style>
+  .spot { position: absolute; left: calc(814px + var(--ex, 0px) * 0.3); top: 94px; z-index: 7; width: 218px; height: 152px; transform: rotate(-3deg); }
+  .spot-facade { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: 100%; height: 100%; padding: 16px; border-radius: 12px; cursor: pointer; background: var(--surface); color: var(--on-surface); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); }
+  .spot-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  .spot-disc { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; color: var(--on-accent); background: radial-gradient(circle, var(--accent) 0 15px, var(--ink) 16px 100%); box-shadow: 0 0 0 2px color-mix(in srgb, var(--on-surface) 25%, transparent); }
+  .spot-disc svg { margin-left: 2px; }
+  .spot-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .spot-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface); opacity: .75; }
+  .spot-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.15; }
+  .spot-src { font-size: 11px; white-space: nowrap; color: var(--on-surface); opacity: .75; }
+  .spot :global(iframe) { display: block; width: 100%; height: 152px; border: 0; border-radius: 12px; }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .spot-facade { transition: translate .25s ease; }
+    .spot-facade:hover { translate: 0 -3px; }
+  }
+</style>
+
+<script>
+  // Swap the facade for the real player on click (once). stopPropagation keeps the click away from the camera.
+  document.querySelectorAll<HTMLElement>('.spot[data-spotify]').forEach((card) => {
+    const btn = card.querySelector<HTMLButtonElement>('.spot-facade');
+    card.addEventListener('click', (e) => e.stopPropagation());
+    card.addEventListener('pointerdown', (e) => e.stopPropagation());
+    btn?.addEventListener('click', () => {
+      const f = document.createElement('iframe');
+      f.src = card.dataset.spotify!;
+      f.title = 'Spotify player';
+      f.loading = 'lazy';
+      f.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+      f.setAttribute('allowfullscreen', '');
+      btn.replaceWith(f);
+      f.focus();
+    }, { once: true });
+  });
+</script>
