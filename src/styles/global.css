@@ -73,6 +73,15 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 .zpage { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: hidden; transform-origin: 0 0; background-color: var(--bg-2); opacity: 0; pointer-events: none; }
 .zpage.is-held { overflow-y: auto; overscroll-behavior-y: auto; }
 .zpage .zs { padding-right: max(clamp(24px, 4.4vw, 64px), 64px); } /* clear the HUD */
+/* Hover lift on the clickable pieces ([data-jump] fly to a section): up a little and an extra 2deg of tilt, as the
+   separate translate / rotate properties so each piece's own inline transform (its rotation) stays. Only near the
+   overview (zoom-camera.js sets .zm-lift on the world while zoomness <= .3): the section page lives inside its piece,
+   so a lift there would shift the open page. The Tamagotchi screen is skipped (it sits on the 3D model; 3D slots
+   lift themselves, Model3D.astro). Mouse only; reduced motion keeps the pieces still. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  #zm-world [data-jump]:not(.tama-screen) { transition: translate .25s ease, rotate .25s ease; }
+  #zm-world.zm-lift [data-jump]:not(.tama-screen):hover { translate: 0 -6px; rotate: 2deg; }
+}
 #zm-home { opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
 #zm-home.is-on { opacity: 1; visibility: visible; transition: opacity .25s ease; }
 #zm-whead a:hover { color: var(--text); }

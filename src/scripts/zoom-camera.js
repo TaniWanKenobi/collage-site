@@ -179,6 +179,8 @@ export function initZoomCamera() {
     var hp = toScreen(c, homeAt.x, homeAt.y), off = !anyOpen && (hp.x < 0 || hp.y < 0 || hp.x > vw || hp.y > stageH);
     if (home.classList.contains('is-on') !== off) home.classList.toggle('is-on', off);
     if (whead && whead.inert !== (zn > 0.3)) whead.inert = zn > 0.3;
+    // Pieces lift on hover only near the overview (global.css .zm-lift); toggled only when it changes.
+    if (world.classList.contains('zm-lift') !== (zn <= 0.3)) world.classList.toggle('zm-lift', zn <= 0.3);
     setHud(zn >= 0.5 || anyOpen ? c.i : -1);
     publish(c, zn);
   }
