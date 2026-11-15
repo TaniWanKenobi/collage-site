@@ -1,5 +1,5 @@
 {
   "launch": false,
-  "spotify": "https://open.spotify.com/playlist/PASTE-YOUR-SPOTIFY-LINK-HERE",
+  "spotify": "https://open.spotify.com/playlist/31aVRI8BFshgiTKiSqaA4p?si=6068ca137f9f4154",
   "_comment": "Set launch to true when the site is finished. From then on, `npm run build` (and the GitHub deploy) fails if any placeholder is left. Run `npm run check:placeholders` to see the list."
 }

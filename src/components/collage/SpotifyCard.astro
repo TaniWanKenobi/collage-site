@@ -14,34 +14,61 @@ const placeholder = /PASTE/i.test(link);
 const m = link.match(/^https?:\/\/open\.spotify\.com\/(?:intl-[a-z-]+\/)?(?:embed\/)?(playlist|album|track|artist|episode|show)\/([A-Za-z0-9_-]+)/i);
 const embed = m ? `https://open.spotify.com/embed/${m[1].toLowerCase()}/${m[2]}?utm_source=generator` : '';
 const kind = m ? m[1].toLowerCase() : '';
+// Title and cover art for the facade, from Spotify's public oEmbed endpoint at build time (no runtime cost).
+// Offline, or for the placeholder link, the card falls back to a generic look.
+let title = 'My playlist', cover = '';
+if (m && !placeholder) {
+  try {
+    const r = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(`https://open.spotify.com/${kind}/${m[2]}`)}`);
+    if (r.ok) { const j = await r.json() as { title?: string; thumbnail_url?: string }; title = j.title || title; cover = j.thumbnail_url || ''; }
+  } catch { /* build offline: generic card */ }
+}
+const sub = { playlist: 'Playlist', album: 'Album', track: 'Song', artist: 'Artist', episode: 'Episode', show: 'Podcast' }[kind] ?? 'Spotify';
 ---
 {embed && (
   <div class="spot" data-edit-name="spotify" data-spotify={embed} data-ph={placeholder ? '' : undefined}>
     <span aria-hidden="true" class="tape t-clear" style="top: -13px; left: 50%; width: 84px; margin-left: -42px; transform: rotate(-4deg)"></span>
-    <button type="button" class="spot-facade" aria-label={`Load the Spotify player (my ${kind})`}>
-      <span class="spot-disc" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" focusable="false"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></svg></span>
-      <span class="spot-text">
-        <span class="mono spot-kicker">on repeat</span>
-        <span class="spot-title">what I'm listening to</span>
-        <span class="mono spot-src">Spotify · play</span>
+    <!-- Facade drawn like Spotify's own compact embed (cover, title, logo, green play button), so the swap to the
+         real player on click looks like the same widget waking up. -->
+    <button type="button" class="spot-facade" aria-label={`Play ${title} on Spotify`}>
+      <span class="spot-cover" aria-hidden="true">
+        {cover ? <img src={cover} alt="" width="92" height="92" loading="lazy" decoding="async" /> :
+          <svg viewBox="0 0 24 24" width="40" height="40" focusable="false"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /><circle cx="6.5" cy="18" r="2.5" fill="currentColor" /><circle cx="17.5" cy="16" r="2.5" fill="currentColor" /></svg>}
+      </span>
+      <span class="spot-body">
+        <svg class="spot-logo" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .25c-2.86-1.75-6.46-2.14-10.7-1.17a.75.75 0 1 1-.33-1.46c4.64-1.06 8.62-.6 11.8 1.35.36.22.47.68.25 1.03zm1.47-3.27a.94.94 0 0 1-1.29.31c-3.27-2.01-8.26-2.6-12.13-1.42a.94.94 0 1 1-.55-1.8c4.42-1.34 9.92-.69 13.66 1.62.44.27.58.85.31 1.29zm.13-3.4C15.18 8.3 8.75 8.08 5.03 9.21a1.13 1.13 0 1 1-.65-2.16c4.27-1.3 11.37-1.05 15.85 1.61a1.13 1.13 0 0 1-1.15 1.95z" /></svg>
+        <span class="spot-title">{title}</span>
+        <span class="spot-sub">{sub}</span>
+        <span class="spot-row">
+          <span class="spot-badge">Preview</span>
+          <span class="spot-play" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" focusable="false"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" /></svg></span>
+        </span>
       </span>
     </button>
   </div>
 )}
 
 <style>
-  .spot { position: absolute; left: calc(814px + var(--ex, 0px) * 0.3); top: 94px; z-index: 7; width: 218px; height: 152px; transform: rotate(-3deg); }
-  .spot-facade { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 12px; width: 100%; height: 100%; padding: 16px; border-radius: 12px; cursor: pointer; background: var(--surface); color: var(--on-surface); box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); }
-  .spot-facade:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
-  .spot-disc { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; color: var(--on-accent); background: radial-gradient(circle, var(--accent) 0 15px, var(--ink) 16px 100%); box-shadow: 0 0 0 2px color-mix(in srgb, var(--on-surface) 25%, transparent); }
-  .spot-disc svg { margin-left: 2px; }
-  .spot-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .spot-kicker { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--on-surface); opacity: .75; }
-  .spot-title { font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.15; }
-  .spot-src { font-size: 11px; white-space: nowrap; color: var(--on-surface); opacity: .75; }
+  .spot { position: absolute; left: calc(814px + var(--ex, 0px) * 0.3); top: 94px; z-index: 7; width: 226px; height: 152px; transform: rotate(-3deg); }
+  /* Spotify's compact embed: 12px radius, dark tinted panel, square cover with a small radius, white bold title,
+     muted subtitle, logo top right, white/green round play button bottom right. Fixed colours (not the theme): it
+     should read as the Spotify widget it turns into. */
+  .spot-facade { all: unset; box-sizing: border-box; display: flex; gap: 10px; width: 100%; height: 100%; padding: 14px; border-radius: 12px; cursor: pointer; background: #282828; color: #fff; font-family: 'Circular', 'Helvetica Neue', Helvetica, Arial, sans-serif; box-shadow: 0 14px 30px color-mix(in srgb, var(--shadow) 55%, transparent); }
+  .spot-facade:focus-visible { outline: 3px solid #1ed760; outline-offset: 4px; }
+  .spot-cover { flex: none; display: grid; place-items: center; align-self: center; width: 92px; height: 92px; border-radius: 6px; overflow: hidden; background: #3e3e3e; color: #b3b3b3; box-shadow: 0 4px 12px rgba(0,0,0,.35); }
+  .spot-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .spot-body { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; padding-top: 2px; }
+  .spot-logo { position: absolute; top: 0; right: 0; color: #fff; }
+  .spot-title { padding-right: 22px; font-weight: 700; font-size: 14px; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+  .spot-sub { margin-top: 4px; font-size: 12px; color: #b3b3b3; }
+  .spot-row { margin-top: auto; display: flex; align-items: center; justify-content: space-between; }
+  .spot-badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: rgba(0,0,0,.45); color: #fff; }
+  .spot-play { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; color: #000; }
+  .spot-play svg { margin-left: 2px; }
+  .spot-facade:hover .spot-play { background: #1ed760; scale: 1.06; }
   .spot :global(iframe) { display: block; width: 100%; height: 152px; border: 0; border-radius: 12px; }
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .spot-facade { transition: translate .25s ease; }
+    .spot-facade { transition: translate .25s ease; } .spot-play { transition: background .15s ease, scale .15s ease; }
     .spot-facade:hover { translate: 0 -3px; }
   }
 </style>
