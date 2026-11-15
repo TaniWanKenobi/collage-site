@@ -82,7 +82,7 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
   <script>if (/[?&]bg=/.test(location.search)) import('../scripts/shader-bg');</script>
   <!-- ?theme=<preset|custom:HEX-HEX-HEX>: colour theme (scripts/theme.ts), loaded only when asked for. -->
   <script>if (/[?&]theme=/.test(location.search)) import('../scripts/theme');</script>
-  <!-- ?music=<track> / ?sfx=<set>: sounds (scripts/sound.ts), loaded only when asked for. -->
-  <script>if (/[?&](music|sfx)=/.test(location.search)) import('../scripts/sound');</script>
+  <!-- Sounds (scripts/sound.ts): ?music=<track>, ?sfx=<set> (default tick), ?whoosh=<kind> (default air). -->
+  <script>import('../scripts/sound'); // tick UI sounds + click whoosh are on by default (?sfx=off / ?whoosh=off)</script>
 </body>
 </html>

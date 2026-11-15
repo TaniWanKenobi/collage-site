@@ -1,5 +1,5 @@
 // "Looks" picker (temporary, lives in the A/B panel): switches the URL-driven variants — section nav (?nav=),
-// section transition (?tx=), shader background (?bg=), music (?music=), UI sounds (?sfx=) and scroll smoothing
+// section transition (?tx=), shader background (?bg=), music (?music=), whoosh (?whoosh=) and scroll smoothing
 // (?smooth=) and colour theme (?theme=) — live, in place. A pick rewrites the query (replaceState, so the link and a reload keep the look),
 // then sends a window "looks:change" event { key, value } that the module concerned applies at once
 // (nav-styles.ts, zoom-camera.js for tx + smooth, shader-bg.ts, sound.ts, theme.ts). Modules that load only when their
@@ -22,8 +22,9 @@ const GROUPS: Group[] = [
     ['ripple', 'ripple'], ['reveal', 'reveal']] },
   { key: 'music', label: 'Music', def: '', opts: [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
-  { key: 'sfx', label: 'UI sounds', def: '', opts: [
-    ['', 'off'], ['synth', 'synth'], ['tap', 'tap'], ['stopwatch', 'stopwatch'], ['tick', 'tick']] },
+  // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.
+  { key: 'whoosh', label: 'Whoosh (click a piece)', def: '', opts: [
+    ['', 'air'], ['swish', 'swish'], ['swoop', 'swoop'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
   { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
 ];
 
@@ -34,6 +35,7 @@ const LOADERS: Record<string, () => Promise<unknown>> = {
   bg: () => import('./shader-bg'),
   music: () => import('./sound'),
   sfx: () => import('./sound'),
+  whoosh: () => import('./sound'),
   theme: () => import('./theme'),
 };
 

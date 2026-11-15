@@ -1,7 +1,10 @@
 // Music + UI sounds, opt-in by URL (A/B like ?nav= / ?bg=). Loaded by Base.astro only when one of these is set
 // (or when the Looks picker, scripts/looks.ts, turns one on; it then switches them live via "looks:change"):
 //   ?music=explore|shop|voting|waves|off   looping track (public/sounds/music-*.mp3, credits in public/sounds/CREDITS.md)
-//   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file)
+//   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file). Default: tick (always on;
+//                                          ?sfx=off turns it off). Not in the Looks picker any more.
+//   ?whoosh=air|swish|swoop|gust|zip|off   a whoosh when a collage piece is clicked (the camera flies into it);
+//                                          all synthesized (filtered noise sweeps), no files. Default: air.
 // Plain Web Audio: one AudioContext, created on the first user gesture (browsers block audio before that).
 // Music plays from a decoded buffer so the loop is gapless; a track switch fades the old one out as the new one
 // fades in. Tab hidden or muted -> the context is suspended. The mute pill shows only while music or sfx is on.
@@ -19,10 +22,16 @@ const MUTE_KEY = 'sound-muted';
 const HIT = 'a[href], button, [role="button"], .hud-dot, .ihb, [data-fly], summary, select, input:not([type="hidden"])';
 
 const pickMusic = (v: string | null) => MUSIC[v || ''] || null;
-const pickSfx = (v: string | null) => (v === 'synth' || FILES[v || ''] ? (v as string) : null);
+const SFX_DEF = 'tick';
+const pickSfx = (v: string | null) => (v === null || v === '' ? SFX_DEF : v === 'synth' || FILES[v] ? v : null);
+const WHOOSH = ['air', 'swish', 'swoop', 'gust', 'zip'] as const;
+type Whoosh = (typeof WHOOSH)[number];
+const WHOOSH_DEF: Whoosh = 'air';
+const pickWhoosh = (v: string | null): Whoosh | null => (v === null || v === '' ? WHOOSH_DEF : (WHOOSH as readonly string[]).includes(v) ? (v as Whoosh) : null);
 const q = new URLSearchParams(location.search);
 let musicFile = pickMusic(q.get('music'));
 let sfx = pickSfx(q.get('sfx'));
+let whoosh = pickWhoosh(q.get('whoosh'));
 const BASE = (import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/') + 'sounds/';
 
 const dbg = { hover: 0, press: 0, land: 0, ctx: 'none' as string, music: 'off' as string, muted: false };
@@ -31,15 +40,19 @@ w.__sfx = dbg;
 w.__sfxCount = 0;
 
 let update: (() => void) | null = null;
-if (musicFile || sfx) update = init();
+if (musicFile || sfx || whoosh) update = init();
 
 // The Looks picker switches music / sfx live (the engine is set up the first time either is turned on).
 window.addEventListener('looks:change', (e) => {
   const d = (e as CustomEvent<{ key: string; value: string }>).detail;
   if (d?.key === 'music') { const f = pickMusic(d.value); if (f === musicFile) return; musicFile = f; }
   else if (d?.key === 'sfx') { const s = pickSfx(d.value); if (s === sfx) return; sfx = s; }
+  else if (d?.key === 'whoosh') {
+    const v = pickWhoosh(d.value); if (v === whoosh) return; whoosh = v;
+    if (v) window.dispatchEvent(new CustomEvent('sound:preview-whoosh')); // let the picker click be heard
+  }
   else return;
-  if (!update) { if (!musicFile && !sfx) return; update = init(); }
+  if (!update) { if (!musicFile && !sfx && !whoosh) return; update = init(); }
   update();
 });
 
@@ -220,6 +233,50 @@ function init() {
     }
   }
 
+  // ---- Whoosh: white noise through a swept filter, swelled in and out, panned across ----
+  let wnoise: AudioBuffer | null = null;
+  function whooshNow(kind: Whoosh) {
+    if (!wake()) return;
+    const c = ctx!;
+    if (!wnoise) {
+      wnoise = c.createBuffer(1, Math.round(c.sampleRate * 1.5), c.sampleRate);
+      const d = wnoise.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    // [filter, from Hz, to Hz, Q, duration s, peak at (0..1 of duration), gain, pan from, pan to, back-to Hz]
+    const P: Record<Whoosh, [BiquadFilterType, number, number, number, number, number, number, number, number, number?]> = {
+      air:   ['bandpass', 500, 2600, 0.9, 0.62, 0.45, 0.5, -0.5, 0.5],
+      swish: ['bandpass', 1400, 6000, 1.3, 0.32, 0.35, 0.42, -0.7, 0.7],
+      swoop: ['lowpass', 260, 1900, 1.6, 0.85, 0.5, 0.7, -0.6, 0.6, 500],
+      gust:  ['bandpass', 300, 1200, 0.6, 1.1, 0.4, 0.6, -0.3, 0.3, 700],
+      zip:   ['bandpass', 700, 7000, 5, 0.28, 0.6, 0.35, -0.8, 0.8],
+    };
+    const [type, f0, f1, Qv, dur, pk, peak, p0, p1, fBack] = P[kind];
+    const t = c.currentTime + 0.005, tp = t + dur * pk, te = t + dur;
+    const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    src.buffer = wnoise;
+    src.playbackRate.value = 1 + (Math.random() * 2 - 1) * 0.05;
+    f.type = type; f.Q.value = Qv;
+    f.frequency.setValueAtTime(f0, t);
+    f.frequency.exponentialRampToValueAtTime(f1, tp);
+    f.frequency.exponentialRampToValueAtTime(fBack ?? f1 * 1.15, te);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, tp);
+    g.gain.exponentialRampToValueAtTime(0.0001, te);
+    let node: AudioNode = src.connect(f).connect(g);
+    if (c.createStereoPanner) {
+      const pan = c.createStereoPanner();
+      pan.pan.setValueAtTime(p0, t);
+      pan.pan.linearRampToValueAtTime(p1, te);
+      node = node.connect(pan);
+    }
+    node.connect(master);
+    src.start(t, Math.random() * 0.3);
+    src.stop(te + 0.05);
+    w.__sfxCount++;
+  }
+  window.addEventListener('sound:preview-whoosh', () => { if (whoosh && ctx) whooshNow(whoosh); });
+
   // ---- Hooks: delegated at document level (they do nothing while sfx is off) ----
   const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
   let hovered: Element | null = null;
@@ -236,6 +293,12 @@ function init() {
   }, { passive: true });
   document.addEventListener('pointerout', (e) => {
     if (hovered && !(e.relatedTarget instanceof Node && hovered.contains(e.relatedTarget))) hovered = null;
+  }, { passive: true });
+  // Whoosh on a click on a collage piece the camera flies into ([data-jump]).
+  document.addEventListener('click', (e) => {
+    if (!whoosh) return;
+    const el = (e.target as Element).closest?.('[data-jump]');
+    if (el) whooshNow(whoosh);
   }, { passive: true });
   document.addEventListener('pointerdown', (e) => {
     if (!sfx || e.button !== 0) return;
@@ -302,7 +365,7 @@ function init() {
   // Apply the current musicFile / sfx (called again by the Looks picker after either changes).
   let playing: string | null = musicFile;
   function apply() {
-    const on = !!(musicFile || sfx);
+    const on = !!(musicFile || sfx || whoosh);
     btn.style.display = on ? '' : 'none';
     if (musicFile !== playing) { playing = musicFile; stopMusic(); }
     // The picker click was a gesture, so the context may start now; otherwise the first gesture starts it.
@@ -312,7 +375,7 @@ function init() {
       if (!musicFile) sleepSoon();
     } else if (!on && ctx) {
       clearTimeout(idle);
-      setTimeout(() => { if (ctx && !musicFile && !sfx) ctx.suspend().catch(() => {}); }, 500);
+      setTimeout(() => { if (ctx && !musicFile && !sfx && !whoosh) ctx.suspend().catch(() => {}); }, 500);
     }
   }
   apply();
