@@ -5,7 +5,7 @@
 //                                          ?sfx=off turns it off). Not in the Looks picker any more.
 //   ?whoosh=air|swish|swoop|gust|zip|off   a whoosh when a collage piece is clicked (the camera flies into it);
 //                                          all synthesized (filtered noise sweeps), no files. Default: swoop.
-//   ?whoosh-at=<ms>  when it plays, in ms after the press (default 40; the camera starts on release, ~100 ms in).
+//   ?whoosh-at=<ms>  when it plays, in ms after the press (default 200; the camera starts on release, ~100 ms in).
 //                    A press that turns into a drag (orbiting a 3D model) before then plays nothing.
 //   ?whoosh-vol=<%>  its volume (default 100).
 // Plain Web Audio: one AudioContext, created on the first user gesture (browsers block audio before that).
@@ -31,7 +31,7 @@ const WHOOSH = ['air', 'swish', 'swoop', 'gust', 'zip'] as const;
 type Whoosh = (typeof WHOOSH)[number];
 const WHOOSH_DEF: Whoosh = 'swoop';
 const numParam = (k: string, def: number) => { const v = parseFloat(new URLSearchParams(location.search).get(k) ?? ''); return isFinite(v) ? v : def; };
-let whooshAt = numParam('whoosh-at', 40), whooshVol = numParam('whoosh-vol', 100) / 100;
+let whooshAt = numParam('whoosh-at', 200), whooshVol = numParam('whoosh-vol', 100) / 100;
 const pickWhoosh = (v: string | null): Whoosh | null => (v === null || v === '' ? WHOOSH_DEF : (WHOOSH as readonly string[]).includes(v) ? (v as Whoosh) : null);
 const q = new URLSearchParams(location.search);
 let musicFile = pickMusic(q.get('music'));
@@ -52,7 +52,7 @@ window.addEventListener('looks:change', (e) => {
   const d = (e as CustomEvent<{ key: string; value: string }>).detail;
   if (d?.key === 'music') { const f = pickMusic(d.value); if (f === musicFile) return; musicFile = f; }
   else if (d?.key === 'sfx') { const s = pickSfx(d.value); if (s === sfx) return; sfx = s; }
-  else if (d?.key === 'whoosh-at') { whooshAt = numParam('whoosh-at', 40); return; }
+  else if (d?.key === 'whoosh-at') { whooshAt = numParam('whoosh-at', 200); return; }
   else if (d?.key === 'whoosh-vol') { whooshVol = numParam('whoosh-vol', 100) / 100; return; }
   else if (d?.key === 'whoosh') {
     const v = pickWhoosh(d.value); if (v === whoosh) return; whoosh = v;

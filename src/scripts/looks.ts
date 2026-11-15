@@ -26,7 +26,7 @@ const GROUPS: Group[] = [
   // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.
   { key: 'whoosh', label: 'Whoosh (click a piece)', def: '', opts: [
     ['', 'swoop'], ['swish', 'swish'], ['air', 'air'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
-  { key: 'whoosh-at', label: 'Whoosh timing', def: '40', opts: [],
+  { key: 'whoosh-at', label: 'Whoosh timing', def: '200', opts: [],
     slider: { min: 0, max: 250, step: 5, unit: 'ms', hint: '0 = the moment you press; the camera starts on release (~100 ms)' } },
   { key: 'whoosh-vol', label: 'Whoosh volume', def: '100', opts: [], slider: { min: 0, max: 200, step: 5, unit: '%' } },
   { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
