@@ -300,16 +300,6 @@ html[data-theme] .places-map::after { content: ""; position: absolute; inset: 0;
 .ihb:is(:hover, :focus-visible) .ihb-alt { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: no-preference) { .ihb-dot, .ihb-label, .ihb-alt { transition: transform .3s ease, opacity .3s ease; } }
 
-/* Spotlight cards: after Magic UI Magic Card (MIT). scripts/magic-card.ts writes --mx/--my on pointermove;
-   ::before is the glow under the content, ::after the rim. Both only fade in on hover. */
-.mc { isolation: isolate; --mc-glow: color-mix(in srgb, var(--accent) 55%, transparent); --mc-warm: rgba(255,214,140,.28); --mc-rim: color-mix(in srgb, var(--accent) 72%, var(--ink)); }
-.mc--dark { --mc-glow: color-mix(in srgb, var(--accent) 10%, transparent); --mc-warm: color-mix(in srgb, var(--accent) 4%, transparent); --mc-rim: color-mix(in srgb, var(--accent) 55%, transparent); }
-.mc::before, .mc::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; }
-.mc::before { z-index: -1; background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), var(--mc-glow), var(--mc-warm) 45%, transparent 100%); }
-.mc::after { z-index: 3; padding: 1.5px; background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 50%), var(--mc-rim), transparent 100%); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
-.mc:hover::before, .mc:hover::after { opacity: 1; }
-@media (prefers-reduced-motion: no-preference) { .mc::before, .mc::after { transition: opacity .3s ease; } }
-
 /* Scramble titles: after Magic UI Hyper Text (MIT). scripts/hyper-text.ts swaps in these spans only while it runs. */
 .ht-word { white-space: nowrap; }
 .ht-ch { display: inline-block; text-align: center; }
