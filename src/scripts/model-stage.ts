@@ -23,7 +23,7 @@ import { readTheme, onTheme, themed, rgbOf, rgba, type Theme } from './theme-var
 
 type Kind = 'world' | 'page' | 'flow';
 // key/prog: which piece the camera is heading for, and how far into it (0 = overview, 1 = landed).
-interface Cam { s: number; open: boolean; cx: number; cy: number; r: number; vw: number; h: number; key?: string; prog?: number }
+interface Cam { s: number; open: boolean; cx: number; cy: number; r: number; vw: number; h: number; key?: string; prog?: number; still?: boolean }
 interface Slot {
   el: HTMLElement; kind: Kind; canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D;
   scene: Scene; camera: PerspectiveCamera; controls: OrbitControls;
@@ -86,7 +86,23 @@ let io: IntersectionObserver;
 const now = () => performance.now();
 const camMoving = () => now() - camAt < REST_MS;
 // Every camera frame: note the time, and schedule one tick just after the camera comes to rest.
+// The scroll smoothing eases out with a long, nearly invisible tail (a fraction of a pixel per frame). A frame
+// that moves less than CREEP counts as rest, so the sharp redraw lands as the motion visibly stops, not 320 ms
+// after the tail ends. Any later frame that moves more than CREEP makes the camera "moving" again.
+// Once at rest, a frame must move HYST times more than that to count as moving again, so the tail's last
+// uneven frames cannot flip a model from sharp back to half resolution.
+const CREEP_ZOOM = 0.0015, CREEP_PX = 0.75, HYST = 4;
+let lastCam: Cam | null = null;
 function onCam() {
+  const c = cam(), p = lastCam;
+  lastCam = c ? { ...c } : null;
+  const m = camMoving() ? 1 : HYST;
+  const crept = !!c?.still || !!c && !!p && Math.abs(Math.log(c.s / p.s)) < CREEP_ZOOM * m && Math.hypot(c.cx - p.cx, c.cy - p.cy) * c.s < CREEP_PX * m;
+  if (crept) {
+    // Motion has visibly stopped: end the "moving" state now (once) and draw sharp on the next frame.
+    if (camMoving()) { camAt = now() - REST_MS; clearTimeout(restTimer); kick(); }
+    return;
+  }
   camAt = now();
   clearTimeout(restTimer);
   restTimer = window.setTimeout(kick, REST_MS + 10);
@@ -285,12 +301,16 @@ function tick() {
     if (!s.drawn && !s.el.classList.contains('is-live') && firsts++) continue;
     // Device pixels per CSS pixel, stepped to 0.25 so a camera flight does not resize the canvas every frame.
     const k = Math.min(MAX_PX / Math.max(cw, ch), Math.max(1, Math.round((window.devicePixelRatio || 1) * scale * 4) / 4));
-    // In flight: half resolution (motion hides it; it halves the GPU's fill and upload work), fixed for the
-    // whole flight so the canvas is resized once at take-off and once at landing, never mid-flight.
+    // In flight: half resolution (motion hides it; it halves the GPU's fill and upload work). The size follows the
+    // zoom in coarse steps (x1.4), so a zoom into the model resizes the canvas a handful of times instead of
+    // stretching its take-off pixels up to full screen, and never resizes it every frame.
     const fly = moving && s.drawn > 0;
-    const w = fly ? (s.flyW ||= Math.max(64, Math.round(cw * k / 2))) : Math.round(cw * k);
-    const h = fly ? (s.flyH ||= Math.max(64, Math.round(ch * k / 2))) : Math.round(ch * k);
-    if (!fly) s.flyW = s.flyH = 0;
+    if (fly) {
+      const fw = Math.max(64, Math.round(cw * k / 2));
+      if (!s.flyW || fw > s.flyW * 1.4 || fw < s.flyW / 2) { s.flyW = fw; s.flyH = Math.max(64, Math.round(ch * k / 2)); }
+    } else s.flyW = s.flyH = 0;
+    const w = fly ? s.flyW! : Math.round(cw * k);
+    const h = fly ? s.flyH! : Math.round(ch * k);
     todo.push([s, w, h, cw]);
   }
   if (spinDue && todo.some(([s]) => !s.dragging)) spunAt = t;
