@@ -85,10 +85,11 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-home { opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
 #zm-home.is-on { opacity: 1; visibility: visible; transition: opacity .25s ease; }
 #zm-whead a:hover { color: var(--text); }
-/* Scroll arrow at the overview, bottom-centre of the screen. The bounce is a transform-only CSS animation on the svg
-   (compositor-only); zoom-camera.js sets the anchor's opacity as the camera zooms in and adds .is-off once it is
-   gone, which hides it and stops the animation. */
-#zm-arrow { position: absolute; left: 50%; bottom: 18px; z-index: 30; display: grid; place-items: center; width: 42px; height: 42px; margin-left: -21px; border-radius: 50%; color: var(--on-accent); background-color: var(--accent); border: 2px solid color-mix(in srgb, var(--bg) 70%, transparent); box-shadow: 0 4px 14px color-mix(in srgb, var(--bg) 70%, transparent); text-decoration: none; transition: background-color .2s; }
+/* Scroll arrow at the overview, under the section nav's column of dots (it sits inside #zm-hud, so it scales with the
+   nav's --hud-k; top: 100% keeps it out of the nav's flow and clear of the last dot). The bounce is a transform-only
+   CSS animation on the svg (compositor-only); zoom-camera.js sets the anchor's opacity as the camera zooms in and adds
+   .is-off once it is gone, which hides it and stops the animation. */
+#zm-arrow { position: absolute; left: 50%; top: calc(100% + 16px); z-index: 1; box-sizing: border-box; display: grid; place-items: center; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; color: var(--on-accent); background-color: var(--accent); border: 2px solid color-mix(in srgb, var(--bg) 70%, transparent); box-shadow: 0 4px 14px color-mix(in srgb, var(--bg) 70%, transparent); text-decoration: none; transition: background-color .2s; }
 #zm-arrow:hover, #zm-arrow:focus-visible { background-color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
 #zm-arrow.is-off { visibility: hidden; }
 #zm-arrow.is-off svg { animation: none; }
