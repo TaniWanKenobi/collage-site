@@ -89,24 +89,24 @@ a.zp { display: block; color: inherit; text-decoration: none; }
    scales with the nav's --hud-k; top: 100% keeps it out of the nav's flow and clear of the last dot). The bob is a
    transform-only CSS animation on the svg (compositor-only); zoom-camera.js sets the button's opacity as the camera
    zooms in and adds .is-off once it is gone, which hides it and stops the bob.
-   Clicked, it auto-scrolls (zoom-camera.js) and the triangle turns into a ▶: the one path rotates -90deg about its
-   centroid (12, 9.33) with a springy ease while it squashes to play proportions (12x16 → ~14x12) and drops 2.67px to
-   sit centred. The transform lists match function for function, so each part interpolates on its own (a real turn,
-   not a matrix blend). .is-playing keeps it visible and clickable while zoomed in; the bob eases to rest (JS hands it
-   its current offset) and restarts from rest, after the morph back, once stopped. */
-#zm-arrow { position: absolute; left: 50%; top: calc(100% + 14px); z-index: 1; box-sizing: border-box; display: grid; place-items: center; width: 34px; height: 34px; margin-left: -17px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color .2s, opacity .3s ease, visibility 0s linear .3s; }
+   It is also the auto-scroll play/pause toggle (zoom-camera.js sets data-state: down | pause = playing, shows ❚❚ |
+   play = paused, shows ▶). The path's shape morphs by SMIL (ZoomStage.astro); the turn is here: ▼ is the ▶ path
+   rotated +90deg about the glyph's centre, and every other state is upright, so ▼ → ❚❚ un-rotates while it morphs
+   (same .3s and ease as the SMIL keySplines). .is-shown (any state but down) keeps it visible and clickable while
+   zoomed in; the bob eases to rest (JS hands it its current offset) and restarts from rest back at ▼. */
+#zm-arrow { position: absolute; left: 50%; top: calc(100% + 12px); z-index: 1; box-sizing: border-box; display: grid; place-items: center; width: 34px; height: 34px; margin-left: -17px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color .2s, opacity .3s ease, visibility 0s linear .3s; }
 #zm-arrow svg { display: block; overflow: visible; filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--bg) 75%, transparent)); }
-#zm-arrow path { transform-box: view-box; transform-origin: 12px 9.333px; transform: translate(0px, 0px) rotate(0deg) scale(1, 1); transition: transform .45s cubic-bezier(.34, 1.56, .64, 1); }
-#zm-arrow[aria-pressed="true"] path { transform: translate(0px, 2.667px) rotate(-90deg) scale(1.15, .75); }
+#zm-arrow g { transform-box: view-box; transform-origin: 18.5px 18px; transform: rotate(0deg); transition: transform .3s cubic-bezier(.4, 0, .2, 1); }
+#zm-arrow[data-state="down"] g { transform: rotate(90deg); }
 #zm-arrow:hover, #zm-arrow:focus-visible { color: color-mix(in srgb, var(--accent) 78%, var(--text)); }
 #zm-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #zm-arrow.is-off { visibility: hidden; }
 #zm-arrow.is-off svg { animation: none; }
-#zm-arrow.is-playing { opacity: 1 !important; visibility: visible; transition: color .2s, opacity .3s ease, visibility 0s; }
-#zm-arrow.is-playing svg { animation: none; transform: translateY(0px); transition: transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+#zm-arrow.is-shown { opacity: 1 !important; visibility: visible; transition: color .2s, opacity .3s ease, visibility 0s; }
+#zm-arrow.is-shown svg { animation: none; transform: translateY(0px); transition: transform .3s cubic-bezier(.4, 0, .2, 1); }
 @keyframes zm-arrow-bob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(6px); } }
-@media (prefers-reduced-motion: no-preference) { #zm-arrow svg { animation: zm-arrow-bob 1.6s ease-in-out .45s infinite; } }
-@media (prefers-reduced-motion: reduce) { #zm-arrow path { transition: transform .15s ease; } }
+@media (prefers-reduced-motion: no-preference) { #zm-arrow svg { animation: zm-arrow-bob 1.6s ease-in-out .3s infinite; } }
+@media (prefers-reduced-motion: reduce) { #zm-arrow g, #zm-arrow.is-shown svg { transition: none; } }
 
 /* Bio line (bottom-left of the overview) and its "who I am" card. The card is a paper note like .places-card; it opens
    upward on hover / focus / tap (.is-open; .is-shut = closed by Escape or a second tap). Opacity + a small lift; with

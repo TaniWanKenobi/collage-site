@@ -172,6 +172,7 @@ export function initZoomCamera() {
     // The scroll arrow fades three times as fast (it only invites the first scroll), then hides (its bounce stops).
     var ao = f(clamp(1 - zn * 3, 0, 1));
     if (put(arrow, 'opacity', String(ao), 'arrow') && arrow.classList.contains('is-off') !== (ao === 0)) arrow.classList.toggle('is-off', ao === 0);
+    if (auto && auto.state === 'play') atOverview(c);
     // The fixed "Tanishq" pill only appears once the in-world header's "Tanishq" has left the screen.
     // Hidden while a section page is open: the page has its own "back to collage" button.
     var anyOpen = false;
@@ -326,14 +327,20 @@ export function initZoomCamera() {
     if (fl) cancelFlight();
   });
 
-  // Auto-scroll (the ▼ arrow under the nav; it morphs to ▶ in CSS off aria-pressed). While on, one rAF loop moves
-  // the real window scroll at a constant speed (px/s x dt, so frame-rate independent); the camera follows it through
-  // its usual scroll smoothing, so it is the same tour a slow, steady scroll gives. The loop runs only while on.
-  // It stops at the end of the page, on a second click, on any user wheel / touch / scroll key / nav click (all go
-  // through flyTo), and if the scroll position moves under it (scrollbar drag). AUTO_SECS = seconds per section
-  // (one section = 1.6 screens of scroll: zoom in, hold, zoom out); lower is faster.
+  // Auto-scroll: the ▼ under the nav is a play/pause toggle. While playing, one rAF loop moves the real window scroll
+  // at a constant speed (px/s x dt, so frame-rate independent); the camera follows it through its usual scroll
+  // smoothing, so it is the same tour a slow, steady scroll gives. The loop runs only while playing.
+  // It pauses on a click, on any user wheel / touch / scroll key / nav click (all go through flyTo), if the scroll
+  // position moves under it (scrollbar drag), and at the end of the page. AUTO_SECS = seconds per section (one section
+  // = 1.6 screens of scroll: zoom in, hold, zoom out); lower is faster.
+  // The button's data-state: down (▼, idle, bobbing) → pause (❚❚, playing) ⇄ play (▶, paused); paused back at the
+  // start overview it returns to down (applyCam). Shape morphs are SMIL on the path's d (YouTube's play/pause
+  // paths, same points in both), the ▼ turn is CSS on the <g> (global.css).
   var AUTO_SECS = 4.5;
-  var auto = { on: false, raf: 0, last: 0, y: null, off: 0 };
+  var D_PLAY = 'M12,26 18.5,22 18.5,14 12,10z M18.5,22 25,18 25,18 18.5,14z';
+  var D_PAUSE = 'M12,26 16,26 16,10 12,10z M20,26 24,26 24,10 20,10z';
+  var auto = { on: false, raf: 0, last: 0, y: null, state: 'down' };
+  var aPath = arrow && arrow.querySelector('path'), aAnim = arrow && arrow.querySelector('animate'), aSvg = arrow && arrow.querySelector('svg');
   function autoFrame(ts) {
     auto.raf = 0;
     if (!auto.on) return;
@@ -351,25 +358,32 @@ export function initZoomCamera() {
     if (auto.y >= max - 0.5) { autoStop(); return; }
     auto.raf = requestAnimationFrame(autoFrame);
   }
-  function autoUi(on) {
-    if (!arrow) return;
-    arrow.setAttribute('aria-pressed', on ? 'true' : 'false');
-    arrow.setAttribute('aria-label', on ? 'Stop auto-scroll' : 'Auto-scroll through the site');
-    clearTimeout(auto.off);
-    var svg = arrow.querySelector('svg');
-    if (on) {
-      if (arrow.classList.contains('is-playing')) return;
-      // Stop the bob where it is and ease it to rest (an animation can't transition out by itself): pin its current
-      // offset inline, switch the animation off, then drop the pin so .is-playing's transition carries it to 0.
-      var t = svg ? getComputedStyle(svg).transform : 'none';
-      if (svg && t !== 'none') svg.style.transform = t;
-      arrow.classList.add('is-playing');
-      if (svg) { void svg.getBoundingClientRect(); svg.style.transform = ''; }
-    } else {
-      // Stay visible through the morph back (it may be zoomed in, where the arrow is faded out), then hand
-      // opacity back to the camera.
-      auto.off = setTimeout(function () { arrow.classList.remove('is-playing'); }, 450);
+  function autoUi(state) {
+    if (!arrow || state === auto.state) return;
+    var prev = auto.state;
+    auto.state = state;
+    arrow.dataset.state = state;
+    arrow.setAttribute('aria-pressed', state === 'pause' ? 'true' : 'false');
+    arrow.setAttribute('aria-label', state === 'pause' ? 'Pause auto-scroll' : state === 'play' ? 'Resume auto-scroll' : 'Auto-scroll through the site');
+    // The shape: ▼ and ▶ are the same path (▼ is just turned), ❚❚ is the pause path. Morph only when it changes.
+    var from = prev === 'pause' ? D_PAUSE : D_PLAY, to = state === 'pause' ? D_PAUSE : D_PLAY;
+    if (aPath && from !== to) {
+      aPath.setAttribute('d', to);
+      if (aAnim && aAnim.beginElement) {
+        aAnim.setAttribute('from', from); aAnim.setAttribute('to', to);
+        aAnim.setAttribute('dur', reduce() ? '0.001s' : '0.3s');
+        aAnim.beginElement();
+      }
     }
+    if (prev === 'down' && aSvg) {
+      // Leaving ▼: stop the bob where it is and ease it to rest (an animation can't transition out by itself): pin its
+      // current offset inline, switch the animation off (.is-shown), then drop the pin so the transition carries it to 0.
+      var t = getComputedStyle(aSvg).transform;
+      if (t !== 'none') aSvg.style.transform = t;
+      arrow.classList.add('is-shown');
+      void aSvg.getBoundingClientRect();
+      aSvg.style.transform = '';
+    } else if (state === 'down') arrow.classList.remove('is-shown');
   }
   function autoStart() {
     if (auto.on) return;
@@ -377,14 +391,21 @@ export function initZoomCamera() {
     // At the end of the page: fly back to the overview first, then tour from there.
     if (window.pageYOffset >= max - 2) flyTo(0);
     auto.on = true; auto.y = null; auto.last = 0;
-    autoUi(true);
+    autoUi('pause');
     auto.raf = requestAnimationFrame(autoFrame);
   }
   function autoStop() {
     if (!auto.on) return;
     auto.on = false;
     if (auto.raf) { cancelAnimationFrame(auto.raf); auto.raf = 0; }
-    autoUi(false);
+    autoUi('play');
+    // Paused right at the start overview (zoomed out), it is the idle ▼ again (not left at ▶ until the next frame).
+    if (cur) atOverview(cur);
+  }
+  // Called from applyCam: paused and back at the start overview (zoom ~0, first segment) = the idle ▼. Not at the
+  // end of the page, which is also zoomed out: there it stays ▶, and ▶ restarts the tour from the overview.
+  function atOverview(c) {
+    if (auto.state === 'play' && !auto.on && c.i === 0 && zoomness(c) < 0.02) autoUi('down');
   }
   if (arrow) arrow.addEventListener('click', function (e) { e.stopPropagation(); if (auto.on) autoStop(); else autoStart(); });
 

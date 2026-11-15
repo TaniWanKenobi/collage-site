@@ -29,10 +29,12 @@ const { center = 'globe' } = Astro.props;
         <span id="hud-name" class="sr-only" aria-live="polite">Collage</span>
         <!-- Bobbing ▼ under the nav's column of dots, so it reads as "scroll down through these". Inside #zm-hud so it
              gets the nav's --hud-k scale, but absolutely placed below it, so the nav's own layout (and its vertical
-             centring) is untouched. CSS bob; zoom-camera.js fades it as the camera zooms in. Clicking it turns the
-             triangle into a ▶ (one path rotating about its centroid, global.css) and auto-scrolls the page
-             (zoom-camera.js); clicking again, or any user scroll / nav click, stops it. -->
-        <button type="button" id="zm-arrow" aria-pressed="false" aria-label="Auto-scroll through the site"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M6 4h12l-6 16z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
+             centring) is untouched. CSS bob; zoom-camera.js fades it as the camera zooms in while idle.
+             It is an auto-scroll play/pause toggle (zoom-camera.js): ▼ → ❚❚ (playing) ⇄ ▶ (paused). The glyph is
+             YouTube's player play/pause morph: ▶ drawn as two halves (left trapezoid + right triangle) with the same
+             points as the two pause bars, so the SMIL <animate> on d morphs point for point (SMIL, not the CSS d
+             property, for Safari). ▼ is that ▶ turned +90deg (the <g>, global.css), so ▼ → ❚❚ un-rotates as it morphs. -->
+        <button type="button" id="zm-arrow" data-state="down" aria-pressed="false" aria-label="Auto-scroll through the site"><svg viewBox="0 0 36 36" width="34" height="34" aria-hidden="true" focusable="false"><g><path d="M12,26 18.5,22 18.5,14 12,10z M18.5,22 25,18 25,18 18.5,14z" fill="currentColor"><animate attributeName="d" begin="indefinite" dur="0.3s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1" /></path></g></svg></button>
         <!-- "lens" style: the rim bends what is behind it (SVG displacement as a backdrop filter, Chromium only;
              after rebane2001's glass gist and shuding/liquid-glass). The map is grey (no shift) in the middle and
              ramps to the edges, so only the rim refracts. Sized to the 40x272 capsule. -->
