@@ -4,7 +4,10 @@
 //   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file). Default: tick (always on;
 //                                          ?sfx=off turns it off). Not in the Looks picker any more.
 //   ?whoosh=air|swish|swoop|gust|zip|off   a whoosh when a collage piece is clicked (the camera flies into it);
-//                                          all synthesized (filtered noise sweeps), no files. Default: air.
+//                                          all synthesized (filtered noise sweeps), no files. Default: swish.
+//   ?whoosh-at=<ms>  when it plays, in ms after the press (default 40; the camera starts on release, ~100 ms in).
+//                    A press that turns into a drag (orbiting a 3D model) before then plays nothing.
+//   ?whoosh-vol=<%>  its volume (default 100).
 // Plain Web Audio: one AudioContext, created on the first user gesture (browsers block audio before that).
 // Music plays from a decoded buffer so the loop is gapless; a track switch fades the old one out as the new one
 // fades in. Tab hidden or muted -> the context is suspended. The mute pill shows only while music or sfx is on.
@@ -26,7 +29,9 @@ const SFX_DEF = 'tick';
 const pickSfx = (v: string | null) => (v === null || v === '' ? SFX_DEF : v === 'synth' || FILES[v] ? v : null);
 const WHOOSH = ['air', 'swish', 'swoop', 'gust', 'zip'] as const;
 type Whoosh = (typeof WHOOSH)[number];
-const WHOOSH_DEF: Whoosh = 'air';
+const WHOOSH_DEF: Whoosh = 'swish';
+const numParam = (k: string, def: number) => { const v = parseFloat(new URLSearchParams(location.search).get(k) ?? ''); return isFinite(v) ? v : def; };
+let whooshAt = numParam('whoosh-at', 40), whooshVol = numParam('whoosh-vol', 100) / 100;
 const pickWhoosh = (v: string | null): Whoosh | null => (v === null || v === '' ? WHOOSH_DEF : (WHOOSH as readonly string[]).includes(v) ? (v as Whoosh) : null);
 const q = new URLSearchParams(location.search);
 let musicFile = pickMusic(q.get('music'));
@@ -34,7 +39,7 @@ let sfx = pickSfx(q.get('sfx'));
 let whoosh = pickWhoosh(q.get('whoosh'));
 const BASE = (import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/') + 'sounds/';
 
-const dbg = { hover: 0, press: 0, land: 0, ctx: 'none' as string, music: 'off' as string, muted: false };
+const dbg = { hover: 0, press: 0, land: 0, whoosh: 0, ctx: 'none' as string, music: 'off' as string, muted: false };
 const w = window as unknown as { __sfx: typeof dbg; __sfxCount: number };
 w.__sfx = dbg;
 w.__sfxCount = 0;
@@ -47,6 +52,8 @@ window.addEventListener('looks:change', (e) => {
   const d = (e as CustomEvent<{ key: string; value: string }>).detail;
   if (d?.key === 'music') { const f = pickMusic(d.value); if (f === musicFile) return; musicFile = f; }
   else if (d?.key === 'sfx') { const s = pickSfx(d.value); if (s === sfx) return; sfx = s; }
+  else if (d?.key === 'whoosh-at') { whooshAt = numParam('whoosh-at', 40); return; }
+  else if (d?.key === 'whoosh-vol') { whooshVol = numParam('whoosh-vol', 100) / 100; return; }
   else if (d?.key === 'whoosh') {
     const v = pickWhoosh(d.value); if (v === whoosh) return; whoosh = v;
     if (v) window.dispatchEvent(new CustomEvent('sound:preview-whoosh')); // let the picker click be heard
@@ -252,7 +259,8 @@ function init() {
       gust:  ['bandpass', 300, 1200, 0.6, 0.95, 0.16, 0.6, -0.3, 0.3, 700],
       zip:   ['bandpass', 700, 7000, 5, 0.26, 0.25, 0.35, -0.8, 0.8],
     };
-    const [type, f0, f1, Qv, dur, pk, peak, p0, p1, fBack] = P[kind];
+    const [type, f0, f1, Qv, dur, pk, peak0, p0, p1, fBack] = P[kind];
+    const peak = Math.max(0.0002, peak0 * whooshVol);
     const t = c.currentTime, tp = t + dur * pk, te = t + dur;
     const src = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
     src.buffer = wnoise;
@@ -275,6 +283,7 @@ function init() {
     node.connect(master);
     src.start(t, Math.random() * 0.3);
     src.stop(te + 0.05);
+    dbg.whoosh++;
     w.__sfxCount++;
   }
   window.addEventListener('sound:preview-whoosh', () => { if (whoosh && ctx) whooshNow(whoosh); });
@@ -302,11 +311,24 @@ function init() {
     if (!whoosh || !ctx || ctx.state !== 'suspended' || muted || document.hidden) return;
     if ((e.target as Element).closest?.('[data-jump]')) { ctx.resume().catch(() => {}); if (!musicFile) sleepSoon(); }
   }, { passive: true });
-  // Whoosh on a click on a collage piece the camera flies into ([data-jump]).
+  // Whoosh on pressing a collage piece the camera flies into ([data-jump]): whooshAt ms after the press (0 = at once),
+  // unless the press turns into a drag first (orbiting a 3D model). Keyboard activation plays it at once.
+  let pendingWhoosh = 0, downX = 0, downY = 0;
+  const cancelWhoosh = () => { clearTimeout(pendingWhoosh); pendingWhoosh = 0; };
+  document.addEventListener('pointerdown', (e) => {
+    if (!whoosh || e.button !== 0 || !(e.target as Element).closest?.('[data-jump]')) return;
+    cancelWhoosh();
+    downX = e.clientX; downY = e.clientY;
+    const kind = whoosh;
+    if (whooshAt <= 0) whooshNow(kind);
+    else pendingWhoosh = window.setTimeout(() => { pendingWhoosh = 0; whooshNow(kind); }, whooshAt);
+  }, { passive: true });
+  document.addEventListener('pointermove', (e) => {
+    if (pendingWhoosh && Math.hypot(e.clientX - downX, e.clientY - downY) > 6) cancelWhoosh();
+  }, { passive: true });
+  document.addEventListener('pointercancel', cancelWhoosh, { passive: true });
   document.addEventListener('click', (e) => {
-    if (!whoosh) return;
-    const el = (e.target as Element).closest?.('[data-jump]');
-    if (el) whooshNow(whoosh);
+    if (whoosh && e.detail === 0 && (e.target as Element).closest?.('[data-jump]')) whooshNow(whoosh);
   }, { passive: true });
   document.addEventListener('pointerdown', (e) => {
     if (!sfx || e.button !== 0) return;

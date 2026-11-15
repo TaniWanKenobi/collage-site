@@ -143,5 +143,8 @@ export function themeFor(value: string | null): { spec: string; name: string; co
   }
   return null;
 }
+// The theme with no ?theme= param (for now). 'lime' is the original palette (global.css :root, no overrides).
+export const THEME_DEF = 'olive';
+export const ORIGINAL = 'lime';
 export const customSpec = (cols: string[]) => 'custom:' + cols.map((c) => c.slice(1)).join('-');
 export { DEFAULT_THEME };

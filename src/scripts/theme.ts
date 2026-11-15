@@ -5,7 +5,7 @@
 // "theme:change" event { spec, mode, colors } so the JS colour owners (3D models, globe, shader backgrounds, nav
 // water, Tamagotchi screen) update in place. Default / off removes the overrides: the :root look in global.css.
 // The resolved vars are kept in localStorage so the head script in Base.astro can paint them before first paint.
-import { themeFor } from './theme-core';
+import { themeFor, THEME_DEF } from './theme-core';
 import './theme-images'; // recolours the home-page photo of me and the map card on every switch
 import { ROLES, CSS_VAR, DEFAULT_THEME, type ThemeChange } from './theme-vars';
 
@@ -13,8 +13,9 @@ export const STORE = 'theme-vars';
 let current: string | null = null;
 
 /** Apply a ?theme= value ('' / null / unknown = the default look). Safe to call repeatedly. */
+// No param / '' = THEME_DEF (olive for now); 'lime' (or anything unknown) = the original :root palette.
 export function applyTheme(value: string | null) {
-  const t = themeFor(value);
+  const t = themeFor(value === null || value === '' ? THEME_DEF : value);
   const spec = t ? t.spec : '';
   if (spec === current) return;
   current = spec;

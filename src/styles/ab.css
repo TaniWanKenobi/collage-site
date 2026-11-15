@@ -67,6 +67,7 @@ html:not([data-ab-hover="b"]) .ab-hl { display: none; }
 
 /* Scroll smoothing: range bar + number box + preset dots on the track (scripts/looks.ts smoothControl) */
 .looks-smooth { --ls-fill: 22%; margin-top: 8px; }
+.ls-hint { margin: 4px 0 0; color: var(--muted); font-size: 9.5px; line-height: 1.3; }
 .ls-row { display: flex; align-items: center; gap: 10px; }
 .ls-track { position: relative; flex: 1 1 auto; min-width: 180px; height: 22px; }
 .ls-track input[type=range] { position: absolute; inset: 0; width: 100%; height: 22px; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: pointer; }

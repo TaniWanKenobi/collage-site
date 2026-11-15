@@ -5,13 +5,14 @@
 // (nav-styles.ts, zoom-camera.js for tx + smooth, shader-bg.ts, sound.ts, theme.ts). Modules that load only when their
 // param is set are imported first. Remove with the A/B tool.
 
-import { PRESETS as THEMES, parseColors, customSpec } from './theme-core';
+import { PRESETS as THEMES, parseColors, customSpec, THEME_DEF, ORIGINAL } from './theme-core';
 import { DEFAULT_THEME } from './theme-vars';
 
-type Group = { key: string; label: string; opts: [string, string][]; def: string };
+type Slider = { min: number; max: number; step: number; unit: string; hint?: string };
+type Group = { key: string; label: string; opts: [string, string][]; def: string; slider?: Slider };
 
 const GROUPS: Group[] = [
-  { key: 'theme', label: 'Theme', def: '', opts: [] }, // preset chips with swatches + a paste box (themeControl)
+  { key: 'theme', label: 'Theme', def: THEME_DEF, opts: [] }, // preset chips with swatches + a paste box (themeControl)
   { key: 'nav', label: 'Section nav', def: 'dots', opts: [
     ['dots', 'dots'], ['frost', 'frost'], ['lens', 'lens'], ['drop', 'drop'], ['bubble', 'bubble'], ['water', 'water'],
     ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
@@ -24,7 +25,10 @@ const GROUPS: Group[] = [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
   // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.
   { key: 'whoosh', label: 'Whoosh (click a piece)', def: '', opts: [
-    ['', 'air'], ['swish', 'swish'], ['swoop', 'swoop'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
+    ['', 'swish'], ['air', 'air'], ['swoop', 'swoop'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
+  { key: 'whoosh-at', label: 'Whoosh timing', def: '40', opts: [],
+    slider: { min: 0, max: 250, step: 5, unit: 'ms', hint: '0 = the moment you press; the camera starts on release (~100 ms)' } },
+  { key: 'whoosh-vol', label: 'Whoosh volume', def: '100', opts: [], slider: { min: 0, max: 200, step: 5, unit: '%' } },
   { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
 ];
 
@@ -86,6 +90,7 @@ function sync() {
   if (!box) return;
   syncSmooth();
   syncTheme();
+  sliderSyncs.forEach((f) => f());
   const p = params(), t = txOf(p);
   box.querySelectorAll<HTMLButtonElement>('button[data-key]').forEach((b) => {
     const key = b.dataset.key!;
@@ -108,6 +113,7 @@ function mount() {
     fs.append(lg);
     if (g.key === 'smooth') { fs.append(smoothControl()); box.append(fs); continue; }
     if (g.key === 'theme') { fs.append(themeControl()); box.append(fs); continue; }
+    if (g.slider) { fs.append(sliderControl(g, g.slider)); box.append(fs); continue; }
     const row = document.createElement('div');
     row.className = 'looks-opts';
     for (const [val, text] of g.opts) {
@@ -144,6 +150,34 @@ function mount() {
   box.append(reset);
   panel.append(box);
   sync();
+}
+
+// ---- Plain sliders (whoosh timing / volume): a range + number box writing ?<key>= (deleted at the default) ----
+const sliderSyncs: (() => void)[] = [];
+function sliderControl(g: Group, sl: Slider) {
+  const wrap = document.createElement('div');
+  wrap.className = 'looks-smooth';
+  wrap.innerHTML = `<div class="ls-row"><div class="ls-track"><input type="range" min="${sl.min}" max="${sl.max}" step="${sl.step}" aria-label="${g.label}"></div>`
+    + `<label class="ls-num"><input type="number" min="${sl.min}" max="${sl.max}" step="1" aria-label="${g.label} in ${sl.unit}"><span>${sl.unit}</span></label></div>`
+    + (sl.hint ? `<p class="ls-hint">${sl.hint}</p>` : '');
+  const range = wrap.querySelector<HTMLInputElement>('input[type=range]')!, num = wrap.querySelector<HTMLInputElement>('input[type=number]')!;
+  const set = (v: number) => {
+    v = Math.round(Math.min(sl.max, Math.max(sl.min, v)));
+    go((p) => { if (String(v) === g.def) p.delete(g.key); else p.set(g.key, String(v)); });
+  };
+  range.addEventListener('input', () => set(+range.value));
+  // on release, play the whoosh once so the new setting can be heard
+  range.addEventListener('change', () => window.dispatchEvent(new CustomEvent('sound:preview-whoosh')));
+  num.addEventListener('change', () => { set(+num.value); window.dispatchEvent(new CustomEvent('sound:preview-whoosh')); });
+  const sync = () => {
+    const v = +(params().get(g.key) ?? g.def);
+    range.value = String(v);
+    if (document.activeElement !== num) num.value = String(v);
+    wrap.style.setProperty('--ls-fill', `${((v - sl.min) / (sl.max - sl.min)) * 100}%`);
+  };
+  sliderSyncs.push(sync);
+  sync();
+  return wrap;
 }
 
 // ---- Scroll smoothing: a draggable bar (0-500 ms catch-up time), a number box, and preset dots on the track ----
@@ -239,12 +273,12 @@ function themeControl() {
     b.addEventListener('click', () => {
       if (b.getAttribute('aria-pressed') === 'true') return;
       const v = b.dataset.val || '';
-      go((p) => { if (v) p.set('theme', v); else p.delete('theme'); });
+      go((p) => { if (v && v !== THEME_DEF) p.set('theme', v); else p.delete('theme'); });
     });
     row.append(b);
     return b;
   };
-  chip('', 'default', [DEFAULT_THEME.bg, DEFAULT_THEME.surface, DEFAULT_THEME.accent]); // the :root palette
+  chip(ORIGINAL, 'lime', [DEFAULT_THEME.bg, DEFAULT_THEME.surface, DEFAULT_THEME.accent]); // the original :root palette (no overrides)
   for (const p of THEMES) chip(p.name, p.label, p.palette);
   const mine = chip('', 'custom', []); // shows the pasted palette while one is on
   mine.hidden = true;
