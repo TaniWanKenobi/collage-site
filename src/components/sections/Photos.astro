@@ -17,8 +17,7 @@ const files = import.meta.glob<{ default: ImageMetadata }>('../../assets/{photos
 // Layout: a dense mosaic of mixed-size polaroids (the claynicholson.com gallery idea, our own code).
 // Each photo's shape bucket (landscape / portrait / square) sets its tile shape; a hash of the file name picks
 // small or large (or set "size": "sm" | "lg" in photos.json), and CSS grid's dense flow packs the gaps.
-// A fixed pattern of small tilts and tape keeps the scrapbook feel but renders the same every build.
-const TILT = [-1.4, 1.1, -0.6, 1.5, -1.0, 0.7, -0.3, 1.2];
+// Polaroids sit straight (the owner found the tilts awkward); a fixed tape pattern keeps the scrapbook feel.
 const TAPE = ['l', '', 'c', 'r', '', 'c', 'l', ''];
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 const sizeOf = (p: { file: string; size?: string }) => p.size ?? (hash(p.file) % 3 === 0 ? 'lg' : 'sm');
@@ -33,7 +32,7 @@ const items = await Promise.all(
       ...p, src, full,
       bucket: p.bucket ?? bucketOf(src.width, src.height),
       size: sizeOf(p),
-      style: `--tilt:${TILT[i % TILT.length]}deg;--focus:${p.focus ?? '50% 50%'}`,
+      style: `--focus:${p.focus ?? '50% 50%'}`,
       tape: TAPE[i % TAPE.length],
     };
   }),

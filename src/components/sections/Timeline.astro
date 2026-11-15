@@ -14,7 +14,6 @@ for (const t of items) {
   if (t.data.post && !posts.has(t.data.post)) throw new Error(`timeline.json "${t.id}": no blog post "${t.data.post}"`);
 }
 const FILTERS = [['all', 'all'], ['timeline', 'timeline'], ['project', 'projects'], ['award', 'awards'], ['event', 'events']];
-const TILT = [0.4, -0.3, 0.2, -0.5];
 ---
 <Section id="timeline" title="Things I've done" back={Astro.props.back}>
 <div class="acc" data-acc>
@@ -35,7 +34,7 @@ const TILT = [0.4, -0.3, 0.2, -0.5];
     {items.map((t, i) => (
       <li class="acc-item" data-kind={t.data.kind} data-current={t.data.current ? '' : undefined} data-ph={t.data.placeholder ? '' : undefined}>
         <span aria-hidden="true" class="acc-dot"></span>
-        <div class="acc-card" style={`transform: rotate(${TILT[i % TILT.length]}deg)`}>
+        <div class="acc-card">
           {t.data.current && <span aria-hidden="true" class="tape t-grey" style="top: -12px; right: 28px; width: 76px; transform: rotate(4deg)"></span>}
           <p class="mono acc-stub">{t.data.when}{t.data.current && <span class="acc-now" aria-hidden="true">★ ongoing</span>}</p>
           <div class="acc-body">
