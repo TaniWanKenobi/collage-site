@@ -123,7 +123,7 @@ const LOGO = 'M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .
      sticker hides), a paper label on the tape shows the title, and a small green play disc sits on the label. */
   :global(html[data-spot="cassette"] [data-edit-name="cassette"]) { display: none; }
   :global(html[data-spot="cassette"]) .spot { left: calc(64px - var(--ex, 0px) * 0.6); top: 590px; width: 210px; height: 148px; transform: rotate(11deg); }
-  :global(html[data-spot="cassette"]) .spot.is-on { width: 226px; height: 152px; transform: rotate(4deg); }
+  :global(html[data-spot="cassette"]) .spot.is-on { width: 320px; height: 152px; margin-left: 0; transform: rotate(4deg); }
   :global(html[data-spot="cassette"]) .spot-tape { display: none; }
   :global(html[data-spot="cassette"]) .spot-tapeart { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--shadow) 60%, transparent)); }
   :global(html[data-spot="cassette"]) .spot-cover, :global(html[data-spot="cassette"]) .spot-logo, :global(html[data-spot="cassette"]) .spot-sub, :global(html[data-spot="cassette"]) .spot-badge { display: none; }
@@ -132,7 +132,9 @@ const LOGO = 'M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm5.5 17.3a.75.75 0 0 1-1 .
   :global(html[data-spot="cassette"]) .spot-row { position: absolute; right: 4px; top: 50%; translate: 0 -50%; }
   :global(html[data-spot="cassette"]) .spot-play { width: 22px; height: 22px; background: #1ed760; color: #000; }
   :global(html[data-spot="cassette"]) .spot-play svg { width: 11px; height: 11px; }
-  .spot.is-on { height: 152px; }
+  /* Loaded: Spotify's player needs about 300px or more for its compact layout (narrower, the track list crams and the
+     play button clips). Widen to 320, nudge left so it covers less of the book, and sit above the neighbours. */
+  :global(html) .spot.is-on { width: 320px; height: 152px; margin-left: -40px; z-index: 40; }
 
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .spot-facade { transition: translate .25s ease; }
