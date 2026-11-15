@@ -287,6 +287,10 @@ let req = 0;
 
 function off() { if (bg) { bg.stop(); bg = null; } }
 
+// No ?bg= = BG_DEF (ripple, for now); ?bg=flat = the flat CSS background.
+const BG_DEF = 'ripple';
+const pickBg = (v: string | null) => (v === null || v === '' ? BG_DEF : v === 'flat' ? '' : v);
+
 // Switch the background to `name` ('' or unknown = the flat CSS background). Safe to call repeatedly.
 export async function setBg(name: string) {
   if (!LOADERS[name]) name = '';
@@ -303,6 +307,6 @@ export async function setBg(name: string) {
 // The Looks picker (scripts/looks.ts) switches it live.
 window.addEventListener('looks:change', (e) => {
   const d = (e as CustomEvent<{ key: string; value: string }>).detail;
-  if (d?.key === 'bg') setBg(d.value || '').catch(() => {});
+  if (d?.key === 'bg') setBg(pickBg(d.value)).catch(() => {});
 });
-setBg(new URLSearchParams(location.search).get('bg') || '').catch(() => {});
+setBg(pickBg(new URLSearchParams(location.search).get('bg'))).catch(() => {});

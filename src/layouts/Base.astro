@@ -84,8 +84,8 @@ const base =import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : 
     <button type="button" class="ab-toggle" aria-expanded="false" aria-controls="ab-panel" aria-label="A/B review (temporary tool)" title="A/B review (temporary)">A/B</button>
   </div>
   <script>import '../scripts/ab'; import '../scripts/looks';</script>
-  <!-- ?bg=<name>: shader background (scripts/shader-bg.ts), loaded only when asked for. -->
-  <script>if (/[?&]bg=/.test(location.search)) import('../scripts/shader-bg');</script>
+  <!-- ?bg=<name>|flat: shader background (scripts/shader-bg.ts); no param = ripple (for now). -->
+  <script>import('../scripts/shader-bg');</script>
   <!-- ?theme=<preset|custom:HEX-HEX-HEX|lime>: colour theme (scripts/theme.ts); no param = THEME_DEF. -->
   <script>import('../scripts/theme'); // always: the default theme (olive, for now) is a theme too</script>
   <!-- Sounds (scripts/sound.ts): ?music=<track>, ?sfx=<set> (default tick), ?whoosh=<kind> (default air). -->

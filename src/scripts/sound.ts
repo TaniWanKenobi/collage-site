@@ -4,7 +4,7 @@
 //   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file). Default: tick (always on;
 //                                          ?sfx=off turns it off). Not in the Looks picker any more.
 //   ?whoosh=air|swish|swoop|gust|zip|off   a whoosh when a collage piece is clicked (the camera flies into it);
-//                                          all synthesized (filtered noise sweeps), no files. Default: swish.
+//                                          all synthesized (filtered noise sweeps), no files. Default: swoop.
 //   ?whoosh-at=<ms>  when it plays, in ms after the press (default 40; the camera starts on release, ~100 ms in).
 //                    A press that turns into a drag (orbiting a 3D model) before then plays nothing.
 //   ?whoosh-vol=<%>  its volume (default 100).
@@ -29,7 +29,7 @@ const SFX_DEF = 'tick';
 const pickSfx = (v: string | null) => (v === null || v === '' ? SFX_DEF : v === 'synth' || FILES[v] ? v : null);
 const WHOOSH = ['air', 'swish', 'swoop', 'gust', 'zip'] as const;
 type Whoosh = (typeof WHOOSH)[number];
-const WHOOSH_DEF: Whoosh = 'swish';
+const WHOOSH_DEF: Whoosh = 'swoop';
 const numParam = (k: string, def: number) => { const v = parseFloat(new URLSearchParams(location.search).get(k) ?? ''); return isFinite(v) ? v : def; };
 let whooshAt = numParam('whoosh-at', 40), whooshVol = numParam('whoosh-vol', 100) / 100;
 const pickWhoosh = (v: string | null): Whoosh | null => (v === null || v === '' ? WHOOSH_DEF : (WHOOSH as readonly string[]).includes(v) ? (v as Whoosh) : null);

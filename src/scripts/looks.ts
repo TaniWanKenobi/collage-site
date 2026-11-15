@@ -18,14 +18,14 @@ const GROUPS: Group[] = [
     ['dock', 'dock'], ['goo', 'goo'], ['thread', 'thread'], ['dockline', 'dock + thread'], ['odometer', 'odometer']] },
   { key: 'tx', label: 'Transition', def: '', opts: [
     ['', 'fade'], ['morph', 'morph'], ['iris', 'iris'], ['paper', 'paper'], ['dither', 'dither']] },
-  { key: 'bg', label: 'Background', def: '', opts: [
-    ['', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours'],
+  { key: 'bg', label: 'Background', def: 'ripple', opts: [
+    ['flat', 'flat'], ['satin', 'satin'], ['halo', 'halo'], ['melt', 'melt'], ['smoke', 'smoke'], ['dither', 'dither'], ['contours', 'contours'],
     ['ripple', 'ripple'], ['reveal', 'reveal']] },
   { key: 'music', label: 'Music', def: '', opts: [
     ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
   // UI sounds: tick is now the default for everyone (?sfx=off still turns it off); no longer picked here.
   { key: 'whoosh', label: 'Whoosh (click a piece)', def: '', opts: [
-    ['', 'swish'], ['air', 'air'], ['swoop', 'swoop'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
+    ['', 'swoop'], ['swish', 'swish'], ['air', 'air'], ['gust', 'gust'], ['zip', 'zip'], ['off', 'off']] },
   { key: 'whoosh-at', label: 'Whoosh timing', def: '40', opts: [],
     slider: { min: 0, max: 250, step: 5, unit: 'ms', hint: '0 = the moment you press; the camera starts on release (~100 ms)' } },
   { key: 'whoosh-vol', label: 'Whoosh volume', def: '100', opts: [], slider: { min: 0, max: 200, step: 5, unit: '%' } },
