@@ -16,7 +16,8 @@ const GROUPS: Group[] = [
   { key: 'tx', label: 'Transition', def: '', opts: [
     ['', 'fade'], ['morph', 'morph'], ['iris', 'iris'], ['paper', 'paper'], ['dither', 'dither']] },
   { key: 'music', label: 'Music', def: '', opts: [
-    ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves']] },
+    ['', 'off'], ['explore', 'explore'], ['shop', 'shop'], ['voting', 'voting'], ['waves', 'waves'],
+    ['penne', 'penne'], ['wrapped', 'wrapped'], ['stash', 'stash'], ['counterspell', 'counterspell'], ['littlething', 'littlething'], ['ranaway', 'ran away']] },
   // Settled and no longer picked here (their URL params still work): nav = dock + thread, bg = ripple,
   // Spotify card = embed (disc on light themes), whoosh = swoop at 200 ms / 100 %, UI sound = tick.
   { key: 'smooth', label: 'Scroll smoothing', def: '', opts: [] }, // rendered as a slider (smoothControl)
