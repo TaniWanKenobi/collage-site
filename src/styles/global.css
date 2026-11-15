@@ -85,16 +85,28 @@ a.zp { display: block; color: inherit; text-decoration: none; }
 #zm-home { opacity: 0; visibility: hidden; transition: opacity .25s ease, visibility 0s linear .25s; }
 #zm-home.is-on { opacity: 1; visibility: visible; transition: opacity .25s ease; }
 #zm-whead a:hover { color: var(--text); }
-/* Scroll arrow at the overview, under the section nav's column of dots (it sits inside #zm-hud, so it scales with the
-   nav's --hud-k; top: 100% keeps it out of the nav's flow and clear of the last dot). The bounce is a transform-only
-   CSS animation on the svg (compositor-only); zoom-camera.js sets the anchor's opacity as the camera zooms in and adds
-   .is-off once it is gone, which hides it and stops the animation. */
-#zm-arrow { position: absolute; left: 50%; top: calc(100% + 16px); z-index: 1; box-sizing: border-box; display: grid; place-items: center; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; color: var(--on-accent); background-color: var(--accent); border: 2px solid color-mix(in srgb, var(--bg) 70%, transparent); box-shadow: 0 4px 14px color-mix(in srgb, var(--bg) 70%, transparent); text-decoration: none; transition: background-color .2s; }
-#zm-arrow:hover, #zm-arrow:focus-visible { background-color: color-mix(in srgb, var(--accent) 80%, var(--text)); }
+/* Scroll arrow at the overview: a bobbing ▼ under the section nav's column of dots (it sits inside #zm-hud, so it
+   scales with the nav's --hud-k; top: 100% keeps it out of the nav's flow and clear of the last dot). The bob is a
+   transform-only CSS animation on the svg (compositor-only); zoom-camera.js sets the button's opacity as the camera
+   zooms in and adds .is-off once it is gone, which hides it and stops the bob.
+   Clicked, it auto-scrolls (zoom-camera.js) and the triangle turns into a ▶: the one path rotates -90deg about its
+   centroid (12, 9.33) with a springy ease while it squashes to play proportions (12x16 → ~14x12) and drops 2.67px to
+   sit centred. The transform lists match function for function, so each part interpolates on its own (a real turn,
+   not a matrix blend). .is-playing keeps it visible and clickable while zoomed in; the bob eases to rest (JS hands it
+   its current offset) and restarts from rest, after the morph back, once stopped. */
+#zm-arrow { position: absolute; left: 50%; top: calc(100% + 14px); z-index: 1; box-sizing: border-box; display: grid; place-items: center; width: 34px; height: 34px; margin-left: -17px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--accent); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color .2s, opacity .3s ease, visibility 0s linear .3s; }
+#zm-arrow svg { display: block; overflow: visible; filter: drop-shadow(0 2px 3px color-mix(in srgb, var(--bg) 75%, transparent)); }
+#zm-arrow path { transform-box: view-box; transform-origin: 12px 9.333px; transform: translate(0px, 0px) rotate(0deg) scale(1, 1); transition: transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+#zm-arrow[aria-pressed="true"] path { transform: translate(0px, 2.667px) rotate(-90deg) scale(1.15, .75); }
+#zm-arrow:hover, #zm-arrow:focus-visible { color: color-mix(in srgb, var(--accent) 78%, var(--text)); }
+#zm-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #zm-arrow.is-off { visibility: hidden; }
 #zm-arrow.is-off svg { animation: none; }
-@keyframes zm-arrow-bounce { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(4px); } }
-@media (prefers-reduced-motion: no-preference) { #zm-arrow svg { animation: zm-arrow-bounce 1.6s cubic-bezier(.45, 0, .55, 1) infinite; } }
+#zm-arrow.is-playing { opacity: 1 !important; visibility: visible; transition: color .2s, opacity .3s ease, visibility 0s; }
+#zm-arrow.is-playing svg { animation: none; transform: translateY(0px); transition: transform .45s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes zm-arrow-bob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(6px); } }
+@media (prefers-reduced-motion: no-preference) { #zm-arrow svg { animation: zm-arrow-bob 1.6s ease-in-out .45s infinite; } }
+@media (prefers-reduced-motion: reduce) { #zm-arrow path { transition: transform .15s ease; } }
 
 /* Bio line (bottom-left of the overview) and its "who I am" card. The card is a paper note like .places-card; it opens
    upward on hover / focus / tap (.is-open; .is-shut = closed by Escape or a second tap). Opacity + a small lift; with

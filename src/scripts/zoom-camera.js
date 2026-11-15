@@ -250,6 +250,8 @@ export function initZoomCamera() {
   // Scale moves in log space; piece-to-piece flights pull out partway mid-flight (a fly-to arc).
   // The centre is weighted by 1/scale so it travels while zoomed out, not while zoomed in.
   function flyTo(P, focusAfter) {
+    // Every nav click (dots, pieces, back buttons, the name pill, in-world links) lands here: it ends auto-scroll.
+    autoStop();
     if (isPhone() || fl || !cur) return;
     var dest = camAtP(P);
     if (reduce()) { jumpScroll(P); afterLand(P, focusAfter, cur); return; }
@@ -315,11 +317,76 @@ export function initZoomCamera() {
     kick();
   }
   window.addEventListener('scroll', function () { if (fl) cancelFlight(); kick(); }, { passive: true });
-  window.addEventListener('wheel', cancelFlight, { passive: true });
-  window.addEventListener('touchstart', cancelFlight, { passive: true });
+  window.addEventListener('wheel', function () { autoStop(); cancelFlight(); }, { passive: true });
+  window.addEventListener('touchstart', function () { autoStop(); cancelFlight(); }, { passive: true });
   window.addEventListener('keydown', function (e) {
-    if (fl && /^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| |Spacebar)$/.test(e.key)) cancelFlight();
+    if (!/^(ArrowUp|ArrowDown|PageUp|PageDown|Home|End| |Spacebar)$/.test(e.key)) return;
+    // Space on the focused arrow is its own click (which toggles), not a scroll.
+    if (e.target !== arrow) autoStop();
+    if (fl) cancelFlight();
   });
+
+  // Auto-scroll (the ▼ arrow under the nav; it morphs to ▶ in CSS off aria-pressed). While on, one rAF loop moves
+  // the real window scroll at a constant speed (px/s x dt, so frame-rate independent); the camera follows it through
+  // its usual scroll smoothing, so it is the same tour a slow, steady scroll gives. The loop runs only while on.
+  // It stops at the end of the page, on a second click, on any user wheel / touch / scroll key / nav click (all go
+  // through flyTo), and if the scroll position moves under it (scrollbar drag). AUTO_SECS = seconds per section
+  // (one section = 1.6 screens of scroll: zoom in, hold, zoom out); lower is faster.
+  var AUTO_SECS = 4.5;
+  var auto = { on: false, raf: 0, last: 0, y: null, off: 0 };
+  function autoFrame(ts) {
+    auto.raf = 0;
+    if (!auto.on) return;
+    var dt = auto.last ? clamp((ts - auto.last) / 1000, 0, 0.05) : 0;
+    auto.last = ts;
+    // A flight (the start-over one from the end of the page) owns the scroll; carry on from where it lands.
+    if (fl) { auto.y = null; auto.raf = requestAnimationFrame(autoFrame); return; }
+    var y = window.pageYOffset, max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    if (auto.y === null) auto.y = y;
+    else if (Math.abs(y - auto.y) > 3) { autoStop(); return; }
+    auto.y = Math.min(max, auto.y + (stageH * 1.6 / AUTO_SECS) * dt);
+    try { window.scrollTo({ top: auto.y, left: 0, behavior: 'instant' }); } catch (err) { window.scrollTo(0, auto.y); }
+    // Track what the browser actually stored (it may round), so the drift check above only sees outside moves.
+    auto.y = Math.abs(window.pageYOffset - auto.y) < 1 ? auto.y : window.pageYOffset;
+    if (auto.y >= max - 0.5) { autoStop(); return; }
+    auto.raf = requestAnimationFrame(autoFrame);
+  }
+  function autoUi(on) {
+    if (!arrow) return;
+    arrow.setAttribute('aria-pressed', on ? 'true' : 'false');
+    arrow.setAttribute('aria-label', on ? 'Stop auto-scroll' : 'Auto-scroll through the site');
+    clearTimeout(auto.off);
+    var svg = arrow.querySelector('svg');
+    if (on) {
+      if (arrow.classList.contains('is-playing')) return;
+      // Stop the bob where it is and ease it to rest (an animation can't transition out by itself): pin its current
+      // offset inline, switch the animation off, then drop the pin so .is-playing's transition carries it to 0.
+      var t = svg ? getComputedStyle(svg).transform : 'none';
+      if (svg && t !== 'none') svg.style.transform = t;
+      arrow.classList.add('is-playing');
+      if (svg) { void svg.getBoundingClientRect(); svg.style.transform = ''; }
+    } else {
+      // Stay visible through the morph back (it may be zoomed in, where the arrow is faded out), then hand
+      // opacity back to the camera.
+      auto.off = setTimeout(function () { arrow.classList.remove('is-playing'); }, 450);
+    }
+  }
+  function autoStart() {
+    if (auto.on) return;
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    // At the end of the page: fly back to the overview first, then tour from there.
+    if (window.pageYOffset >= max - 2) flyTo(0);
+    auto.on = true; auto.y = null; auto.last = 0;
+    autoUi(true);
+    auto.raf = requestAnimationFrame(autoFrame);
+  }
+  function autoStop() {
+    if (!auto.on) return;
+    auto.on = false;
+    if (auto.raf) { cancelAnimationFrame(auto.raf); auto.raf = 0; }
+    autoUi(false);
+  }
+  if (arrow) arrow.addEventListener('click', function (e) { e.stopPropagation(); if (auto.on) autoStop(); else autoStart(); });
 
   function measure() {
     vw = Math.round(root.clientWidth || window.innerWidth || 1440);

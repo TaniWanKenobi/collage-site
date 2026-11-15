@@ -27,11 +27,12 @@ const { center = 'globe' } = Astro.props;
           ))}
         </ul>
         <span id="hud-name" class="sr-only" aria-live="polite">Collage</span>
-        <!-- Bouncing "scroll" arrow under the nav's column of dots, so it reads as "scroll down through these". Inside
-             #zm-hud so it gets the nav's --hud-k scale, but absolutely placed below it, so the nav's own layout (and its
-             vertical centring) is untouched. CSS bounce; zoom-camera.js fades it as the camera zooms in. Clicking it
-             flies to the first section, like the in-world nav links (data-fly). -->
-        <a href={url('projects')} id="zm-arrow" data-fly="projects" aria-label="Zoom in to the first section"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M6 9.5l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <!-- Bobbing ▼ under the nav's column of dots, so it reads as "scroll down through these". Inside #zm-hud so it
+             gets the nav's --hud-k scale, but absolutely placed below it, so the nav's own layout (and its vertical
+             centring) is untouched. CSS bob; zoom-camera.js fades it as the camera zooms in. Clicking it turns the
+             triangle into a ▶ (one path rotating about its centroid, global.css) and auto-scrolls the page
+             (zoom-camera.js); clicking again, or any user scroll / nav click, stops it. -->
+        <button type="button" id="zm-arrow" aria-pressed="false" aria-label="Auto-scroll through the site"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path d="M6 4h12l-6 16z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
         <!-- "lens" style: the rim bends what is behind it (SVG displacement as a backdrop filter, Chromium only;
              after rebane2001's glass gist and shuding/liquid-glass). The map is grey (no shift) in the middle and
              ramps to the edges, so only the rim refracts. Sized to the 40x272 capsule. -->
