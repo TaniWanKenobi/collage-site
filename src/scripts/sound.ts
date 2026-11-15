@@ -1,6 +1,6 @@
 // Music + UI sounds, opt-in by URL (A/B like ?nav= / ?bg=). Loaded by Base.astro only when one of these is set
 // (or when the Looks picker, scripts/looks.ts, turns one on; it then switches them live via "looks:change"):
-//   ?music=explore|shop|voting|waves|off   looping track (public/sounds/music-*.mp3, credits in public/sounds/CREDITS.md)
+//   ?music=explore|shop|voting|waves|penne|wrapped|stash|counterspell|littlething|ranaway|off   looping track (public/sounds/music-*.mp3, credits in public/sounds/CREDITS.md)
 //   ?sfx=tap|stopwatch|tick|synth|off      hover/press ticks (synth = procedural, no file). Default: tick (always on;
 //                                          ?sfx=off turns it off). Not in the Looks picker any more.
 //   ?whoosh=air|swish|swoop|gust|zip|off   a whoosh when a collage piece is clicked (the camera flies into it);
@@ -16,7 +16,7 @@
 import '../styles/sound.css';
 
 type Kind = 'hover' | 'press' | 'land';
-const MUSIC: Record<string, string> = { explore: 'music-explore.mp3', shop: 'music-shop.mp3', voting: 'music-voting.mp3', waves: 'music-waves.mp3' };
+const MUSIC: Record<string, string> = { explore: 'music-explore.mp3', shop: 'music-shop.mp3', voting: 'music-voting.mp3', waves: 'music-waves.mp3', penne: 'music-penne.mp3', wrapped: 'music-wrapped.mp3', stash: 'music-stash.mp3', counterspell: 'music-counterspell.mp3', littlething: 'music-littlething.mp3', ranaway: 'music-ranaway.mp3' };
 const FILES: Record<string, string> = { tap: 'tap.mp3', stopwatch: 'stopwatch.mp3', tick: 'tick.mp3' };
 const GAIN: Record<Kind, number> = { hover: 0.05, press: 0.22, land: 0.3 };
 const MUSIC_GAIN = 0.25;
